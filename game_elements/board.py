@@ -20,11 +20,12 @@ class Board:
     def __init__(self, board_template):
         self.template = board_template
         self.tile_mapping = {
-            'X': list(),
-            'E': list(),
-            'D': list(),
-            'T': list(),
-            'O': list()
+            # Each letter corresponds to:
+            'X': list(),  # Blank tiles
+            'E': list(),  # Enemies
+            'D': list(),  # Doors
+            'T': list(),  # Treasure
+            'O': list()   # Open tiles
         }
         for y in range(len(self.template)):
             for x in range(len(self.template[y])):
@@ -52,6 +53,11 @@ class Board:
         for x in new_template:
             print(x)
         self.template = new_template
+
+    def tile_is_open(self, x, y):
+        if (x, y) in set(self.tile_mapping['O']):
+            return True
+        return False
 
 
 
