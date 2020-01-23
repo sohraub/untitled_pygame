@@ -24,3 +24,7 @@ TILE_COLORS = {
     'D': (153, 102, 51),
     'X': (0, 0, 0)
 }
+
+
+###### FONT FILES ######
+SHADOWS_INTO_LIGHT = '.\\fonts\\ShadowsIntoLight.ttf'

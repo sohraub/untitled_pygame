@@ -1,7 +1,7 @@
 import pygame as pg
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
+    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 from game_elements.board import Board
 from game_elements.player import Player
@@ -48,6 +48,9 @@ class Game:
         panel_top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
         pg.draw.rect(self.window, (255, 255, 255),
                      (panel_top_left_x, panel_top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
+        font = pg.font.Font(SHADOWS_INTO_LIGHT, 30)
+        player_name = font.render(self.player.name, 1, (255, 255, 255))
+        self.window.blit(player_name, (panel_top_left_x + 5, panel_top_left_y + 5))
 
 
     def draw_misc_panel(self):
