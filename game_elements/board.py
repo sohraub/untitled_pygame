@@ -1,4 +1,7 @@
+from uuid import uuid4
+
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
+from game_elements.enemy import Enemy
 
 
 class Board:
@@ -33,6 +36,11 @@ class Board:
                     self.player_coordinates = (x, y)
                 elif self.template[y][x] in self.tile_mapping.keys():
                     self.tile_mapping[self.template[y][x]].append((x, y))
+        self.enemies = list()
+        for coord in self.tile_mapping['E']:
+            self.enemies.append(
+                self.generate_new_enemy(x=coord[0], y=coord[1])
+            )
 
     def __str__(self):
         board = ''
@@ -49,15 +57,16 @@ class Board:
                 new_template[coord[1]][coord[0]] = tile_type
 
         new_template[self.player_coordinates[1]][self.player_coordinates[0]] = 'P'
-        print(self.player_coordinates)
-        for x in new_template:
-            print(x)
         self.template = new_template
 
     def tile_is_open(self, x, y):
         if (x, y) in set(self.tile_mapping['O']):
             return True
         return False
+
+    def generate_new_enemy(self, x, y):
+        return Enemy(name=str(uuid4()), x=x, y=y)
+
 
 
 
