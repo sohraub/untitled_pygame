@@ -2,9 +2,11 @@ import pygame as pg
 
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, COLORS
+from game import Game
 from game_elements.board import Board
 from game_elements.board_templates import TEMPLATES
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
+from game_elements.player import Player, load_player_from_json
 
 
 def draw_window(window, board):
@@ -38,13 +40,19 @@ def handle_user_input():
 
     return True
 
+
 def main(window):
-    board = load_board()
-    draw_window(window, board)
+    game = Game(board=load_board(), player=load_player_from_json(".\\saves\\first.json"))
+    draw_window(window, game.board)
     run = True
     while run:
+        # game_loop_iteration() returns a boolean based on whether or not the game should keep running
+        run = game.game_loop_iteration()
+        draw_window(window, game.board)
         pg.display.update()
-        run = handle_user_input()
+
+
+
 
 if __name__ == '__main__':
     pg.font.init()
