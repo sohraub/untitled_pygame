@@ -3,9 +3,9 @@ from utility_functions import get_manhattan_distance
 
 
 class Enemy(Character):
-    def __init__(self, name, x=0, y=0, attributes=None, buffs=None, debuffs=None, move_speed=1, in_combat=False,
+    def __init__(self, name, x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
                  aggro_range=3):
-       super().__init__(name, x, y, attributes, buffs, debuffs, move_speed, in_combat)
+       super().__init__(name, x, y, attributes, status, move_speed, in_combat)
        self.aggro_range = aggro_range
 
     def check_aggro(self, player):
