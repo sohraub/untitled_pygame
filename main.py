@@ -39,7 +39,7 @@ def main(window):
         # game_loop_iteration() returns a boolean based on whether or not the game should keep running
         run = game.game_loop_iteration()
         game.draw_window()
-        game.draw_player_panel()
+        game.load_player_panel()
         game.draw_misc_panel()
         pg.display.update()
 
