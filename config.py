@@ -1,3 +1,4 @@
+import colors
 """
 Config file to store most variables which have to do with main system stuff.
 """
@@ -17,10 +18,14 @@ SIDE_PANEL_HEIGHT = 600
 
 ###### TILE COLORS ######
 TILE_COLORS = {
-    'P': (102, 204, 0),
-    'E': (255, 51, 51),
-    'O': (173, 173, 173),
-    'T': (153, 153, 0),
-    'D': (153, 102, 51),
-    'X': (0, 0, 0)
+    'P': colors.GREEN,
+    'E': colors.RED,
+    'O': colors.GREY,
+    'T': colors.GOLD,
+    'D': colors.BROWN,
+    'X': colors.BLACK
 }
+
+
+###### FONT FILES ######
+SHADOWS_INTO_LIGHT = '.\\fonts\\ShadowsIntoLight.ttf'

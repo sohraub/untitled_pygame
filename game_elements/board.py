@@ -4,6 +4,12 @@ from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 
 
+def choose_random_board():
+    import random
+    from game_elements.board_templates import TEMPLATES
+    return random.choice(TEMPLATES)
+
+
 class Board:
     """
     Class representing the game's board object. These will be initialized from a list of strings called the
@@ -20,8 +26,8 @@ class Board:
                       'XXXXXXXXDXXXXXXX']
     according to the tile_mapping below.
     """
-    def __init__(self, board_template):
-        self.template = board_template
+    def __init__(self, board_template=None):
+        self.template = board_template if board_template is not None else choose_random_board()
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Blank tiles

@@ -1,12 +1,13 @@
 import json
+
 import pygame as pg
 
 from game_elements.character import Character
 
 
 class Player(Character):
-    def __init__(self, name, x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
-                 inventory=None, equipment=None, condition=None):
+    def __init__(self, name='default', x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
+                 inventory=None, equipment=None, condition=None, level=1, experience=None, type="adventurer"):
         super().__init__(name, x, y, attributes, status, move_speed, in_combat)
         self.inventory = inventory if inventory is not None else dict()
         self.equipment = equipment if equipment is not None else {
@@ -17,27 +18,15 @@ class Player(Character):
             'feet': None
         }
         self.condition = condition if condition is not None else {
-            'HP':{
-                'current': 10,
-                'max': 10
-            },
-            'MP':{
-                'current': 10,
-                'max': 10
-            },
-            'tired':{
-                'current': 10,
-                'max': 10
-            },
-            'hungry': {
-                'current': 10,
-                'max': 10
-            },
-            'thirsty': {
-                'current': 10,
-                'max': 10
-            }
+            'HP': [10, 10],
+            'MP': [10, 10],
+            'tired': [10, 10],
+            'hungry': [10, 10],
+            'thirsty': [10, 10]
         }
+        self.level = level
+        self.experience = experience if experience is not None else [0, 20]
+        self.type = type
         # Here we create a mapping for all of the basic movements,
         # so that they can all be called from one function. The keys in
         # this dict are a tuple of (method, parameter), which are called
@@ -73,5 +62,6 @@ def load_player_from_json(filename):
         status=character.get('status', None),
         condition=character.get('condition', None),
         inventory=character.get('inventory', None),
-        equipment=character.get('equipement', None)
+        equipment=character.get('equipment', None),
+        experience=character.get('experience', None)
     )

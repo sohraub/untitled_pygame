@@ -6,7 +6,14 @@ class Character:
         self.name = name
         self.x = x
         self.y = y
-        self.attributes = attributes if attributes is not None else {'HP':5, 'MP':0}
+        self.attributes = attributes if attributes is not None else {
+            "str": 2,
+            "dex": 2,
+            "int": 2,
+            "end": 2,
+            "vit": 2,
+            "wis": 2
+        }
         self.status = status if status is not None else {
             'buffs': list(),
             'debuffs': list()
