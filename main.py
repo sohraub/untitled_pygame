@@ -33,7 +33,7 @@ def handle_user_input():
 
 
 def main(window):
-    game = Game(window, board=load_board(), player=load_player_from_json(".\\saves\\first.json"))
+    game = Game(window, player=load_player_from_json(".\\saves\\first.json"))
     run = True
     while run:
         # game_loop_iteration() returns a boolean based on whether or not the game should keep running

@@ -1,6 +1,7 @@
 import pygame as pg
 
 import player_panel
+import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
@@ -41,7 +42,7 @@ class Game:
             for x in range(BOARD_LENGTH):
                 pg.draw.rect(self.window, TILE_COLORS[self.board.template[y][x]],
                              (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
-        pg.draw.rect(self.window, (255, 255, 255),
+        pg.draw.rect(self.window, colors.WHITE,
                      (TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT), 4)
 
 
