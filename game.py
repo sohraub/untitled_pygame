@@ -12,10 +12,10 @@ from game_elements.player import Player
 class Game:
     def __init__(self, window, board=None, player=None, filename='untitlted'):
         self.window = window
-        self.board = board
-        self.player = player
-        self.player.x = board.player_coordinates[0]
-        self.player.y = board.player_coordinates[1]
+        self.board = board if board is not None else Board()
+        self.player = player if player is not None else Player()
+        self.player.x = self.board.player_coordinates[0]
+        self.player.y = self.board.player_coordinates[1]
         self.filename = filename
 
 

@@ -5,7 +5,7 @@ from game_elements.character import Character
 
 
 class Player(Character):
-    def __init__(self, name, x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
+    def __init__(self, name='default', x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
                  inventory=None, equipment=None, condition=None):
         super().__init__(name, x, y, attributes, status, move_speed, in_combat)
         self.inventory = inventory if inventory is not None else dict()
