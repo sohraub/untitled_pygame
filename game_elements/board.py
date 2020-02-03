@@ -44,11 +44,11 @@ class Board:
                     self.player_coordinates = (x, y)
                 elif self.template[y][x] in self.tile_mapping.keys():
                     self.tile_mapping[self.template[y][x]].append((x, y))
-        self.enemies = list()
+        self.enemies = dict()
         for coord in self.tile_mapping['E']:
-            self.enemies.append(
-                enemy_list.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
-            )
+            self.enemies['({0},{1})'.format(coord[0], coord[1])] = enemy_list.generate_new_enemy(x=coord[0], y=coord[1],
+                                                                                                 tier=self.tier)
+
 
     def __str__(self):
         board = ''
@@ -71,6 +71,13 @@ class Board:
         if (x, y) in set(self.tile_mapping['O']):
             return True
         return False
+
+
+    def handle_enemy_death(self, x, y):
+        del self.enemies['({0},{1})'.format(x, y)]
+        self.tile_mapping['E'].remove((x, y))
+        self.tile_mapping['O'].append((x, y))
+        self.rebuild_template()
 
 
 
