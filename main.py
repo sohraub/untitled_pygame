@@ -33,7 +33,8 @@ def handle_user_input():
 
 
 def main(window):
-    game = Game(window, player=load_player_from_json(".\\saves\\first.json"))
+    game = Game(window, player=load_player_from_json(".\\saves\\first.json"),
+                board=Board(tier=1))
     run = True
     while run:
         # game_loop_iteration() returns a boolean based on whether or not the game should keep running
@@ -42,8 +43,6 @@ def main(window):
         game.load_player_panel()
         game.draw_misc_panel()
         pg.display.update()
-
-
 
 
 if __name__ == '__main__':

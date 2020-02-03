@@ -17,6 +17,15 @@ SIDE_PANEL_HEIGHT = 600
 
 
 ###### TILE COLORS ######
+"""
+Mapping of letters to tile type is as follows:
+    P - Player
+    E - Enemy
+    O - Open tile
+    T - Treasure chest
+    D - Door
+    X - Out-of-play tile
+"""
 TILE_COLORS = {
     'P': colors.GREEN,
     'E': colors.RED,

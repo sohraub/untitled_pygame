@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+import enemy_list
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 
@@ -26,8 +27,9 @@ class Board:
                       'XXXXXXXXDXXXXXXX']
     according to the tile_mapping below.
     """
-    def __init__(self, board_template=None):
+    def __init__(self, board_template=None, tier=1):
         self.template = board_template if board_template is not None else choose_random_board()
+        self.tier = tier
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Blank tiles
@@ -45,7 +47,7 @@ class Board:
         self.enemies = list()
         for coord in self.tile_mapping['E']:
             self.enemies.append(
-                self.generate_new_enemy(x=coord[0], y=coord[1])
+                enemy_list.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
             )
 
     def __str__(self):
@@ -70,8 +72,6 @@ class Board:
             return True
         return False
 
-    def generate_new_enemy(self, x, y):
-        return Enemy(name=str(uuid4()), x=x, y=y)
 
 
 

@@ -11,8 +11,8 @@ panel_top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
 
 
 def draw_conditions(window, player):
-    hp_string = "HP: {0} / {1}".format(player.condition['HP'][0], player.condition['HP'][1])
-    mp_string = "MP: {0} / {1}".format(player.condition['MP'][0], player.condition['MP'][1])
+    hp_string = "HP: {0} / {1}".format(player.hp[0], player.hp[1])
+    mp_string = "MP: {0} / {1}".format(player.mp[0], player.mp[1])
     font = pg.font.Font(SHADOWS_INTO_LIGHT, 20)
     hp_indicator = font.render(hp_string, 1, colors.RED)
     mp_indicator = font.render(mp_string, 1, colors.BLUE)
