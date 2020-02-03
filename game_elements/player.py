@@ -6,9 +6,10 @@ from game_elements.character import Character
 
 
 class Player(Character):
-    def __init__(self, name='default', x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False,
-                 inventory=None, equipment=None, condition=None, level=1, experience=None, type="adventurer"):
-        super().__init__(name, x, y, attributes, status, move_speed, in_combat)
+    def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1,
+                 in_combat=False, inventory=None, equipment=None, condition=None, level=1, experience=None,
+                 type="adventurer"):
+        super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
         self.inventory = inventory if inventory is not None else dict()
         self.equipment = equipment if equipment is not None else {
             'head': None,
@@ -18,8 +19,6 @@ class Player(Character):
             'feet': None
         }
         self.condition = condition if condition is not None else {
-            'HP': [10, 10],
-            'MP': [10, 10],
             'tired': [10, 10],
             'hungry': [10, 10],
             'thirsty': [10, 10]
@@ -27,11 +26,9 @@ class Player(Character):
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
         self.type = type
-        # Here we create a mapping for all of the basic movements,
-        # so that they can all be called from one function. The keys in
-        # this dict are a tuple of (method, parameter), which are called
-        # together in the perform_movement() method below. Good idea? Who
-        # knows, but that's what we're trying for now
+        # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
+        # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
+        # method below. Good idea? Who knows, but that's what we're trying for now
         self.movement_mapping = {
             pg.K_UP: (self.move_up, None),
             pg.K_w: (self.move_up, None),
@@ -57,6 +54,8 @@ def load_player_from_json(filename):
         character = json.load(f)
     return Player(
         name=character.get('name', 'TEST'),
+        hp=character.get('hp', None),
+        mp=character.get('mp', None),
         move_speed=character.get('move_speed', None),
         attributes=character.get('attributes', None),
         status=character.get('status', None),

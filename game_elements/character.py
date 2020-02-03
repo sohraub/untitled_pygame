@@ -2,10 +2,12 @@ from utility_functions import get_manhattan_distance
 
 
 class Character:
-    def __init__(self, name, x=0, y=0, attributes=None, status=None, move_speed=1, in_combat=False):
+    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1, in_combat=False):
         self.name = name
         self.x = x
         self.y = y
+        self.hp = hp if hp is not None else [5, 5]
+        self.mp = mp if mp is not None else [5, 5]
         self.attributes = attributes if attributes is not None else {
             "str": 2,
             "dex": 2,
