@@ -36,12 +36,10 @@ def main(window):
     game = Game(window, player=load_player_from_json(".\\saves\\first.json"),
                 board=Board(tier=1))
     run = True
+    game.draw_window()
     while run:
         # game_loop_iteration() returns a boolean based on whether or not the game should keep running
         run = game.game_loop_iteration()
-        game.draw_window()
-        game.load_player_panel()
-        game.draw_misc_panel()
         pg.display.update()
 
 

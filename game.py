@@ -1,6 +1,7 @@
 import pygame as pg
 
 import player_panel
+import misc_panel
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
@@ -35,7 +36,8 @@ class Game:
             self.player.x = old_x
             self.player.y = old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
-                target_enemy = self.board.enemies['({0},{1})'.format(new_x, new_y)]
+                self.refresh_focus_window((new_x, new_y))
+                target_enemy = self.board.enemies[(new_x, new_y)]
                 print(target_enemy.hp)
                 self.player.basic_attack(target_enemy)
                 print(target_enemy.hp)
@@ -45,6 +47,12 @@ class Game:
 
     def draw_window(self):
         self.window.fill((0, 0, 0))
+        self.load_game_board()
+        self.load_player_panel()
+        self.load_misc_panel()
+
+
+    def load_game_board(self):
         for y in range(BOARD_HEIGHT):
             for x in range(BOARD_LENGTH):
                 pg.draw.rect(self.window, TILE_COLORS[self.board.template[y][x]],
@@ -56,13 +64,12 @@ class Game:
     def load_player_panel(self):
         player_panel.draw_player_panel(self.window, self.player)
 
+    def load_misc_panel(self):
+        misc_panel.draw_misc_panel(self.window, self.board)
 
-    def draw_misc_panel(self):
-        panel_top_left_x = WINDOW_LENGTH - ((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2) - SIDE_PANEL_LENGTH
-        panel_top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
-        pg.draw.rect(self.window, (255, 255, 255),
-                     (panel_top_left_x, panel_top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
-
+    def refresh_focus_window(self, focus_tile):
+        misc_panel.draw_focus_window(self.window, self.board, focus_tile)
+        pg.display.update()
 
     def game_loop_iteration(self):
         for event in pg.event.get():
@@ -74,5 +81,7 @@ class Game:
                 # Check if input is for a basic movement, i.e. up, down, left, right
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
+                self.load_game_board()
+                self.load_player_panel()
 
         return True
