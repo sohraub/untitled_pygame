@@ -1,3 +1,6 @@
+import random
+import math
+
 from utility_functions import get_manhattan_distance
 
 
@@ -37,3 +40,14 @@ class Character:
 
     def move_right(self, steps=1):
         self.move_to((self.x + steps, self.y))
+
+    def basic_attack(self, target):
+        base_damage = self.attributes['str'] - target.attributes['end']
+        base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
+        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        if random.randint(0, 100) <= crit_chance:
+            base_damage = 2 * base_damage
+        elif random.randint(0, 100) >= base_accuracy:
+            base_damage = 0
+
+        target.hp[0] = max(target.hp[0] - base_damage, 0)

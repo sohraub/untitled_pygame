@@ -34,6 +34,13 @@ class Game:
         else:
             self.player.x = old_x
             self.player.y = old_y
+            if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
+                target_enemy = self.board.enemies['({0},{1})'.format(new_x, new_y)]
+                print(target_enemy.hp)
+                self.player.basic_attack(target_enemy)
+                print(target_enemy.hp)
+                if target_enemy.hp[0] == 0:
+                    self.board.handle_enemy_death(new_x, new_y)
 
 
     def draw_window(self):

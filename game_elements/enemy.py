@@ -3,7 +3,7 @@ from utility_functions import get_manhattan_distance
 
 
 class Enemy(Character):
-    def __init__(self, name, x=0, y=0, hp=[5, 5], mp=[5, 5], attributes=None, status=None, move_speed=1, in_combat=False,
+    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1, in_combat=False,
                  aggro_range=3):
        super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
        self.aggro_range = aggro_range
