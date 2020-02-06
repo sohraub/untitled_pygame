@@ -1,5 +1,4 @@
 import json
-
 import pygame as pg
 
 from game_elements.character import Character
@@ -48,6 +47,7 @@ class Player(Character):
         else:
             func(param)
         return self.x, self.y
+
 
 def load_player_from_json(filename):
     with open(filename, 'r') as f:

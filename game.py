@@ -1,6 +1,5 @@
 import pygame as pg
 
-import player_panel
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
@@ -8,6 +7,8 @@ from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HE
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 from game_elements.board import Board
 from game_elements.player import Player
+from misc_panel import MiscPanel
+from player_panel import PlayerPanel
 
 
 class Game:
@@ -18,6 +19,8 @@ class Game:
         self.player.x = self.board.player_coordinates[0]
         self.player.y = self.board.player_coordinates[1]
         self.filename = filename
+        self.player_panel = None
+        self.misc_panel = None
 
 
     def move_player_on_board(self, input):
@@ -34,10 +37,24 @@ class Game:
         else:
             self.player.x = old_x
             self.player.y = old_y
+            if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
+                self.refresh_focus_window((new_x, new_y))
+                target_enemy = self.board.enemies[(new_x, new_y)]
+                print(target_enemy.name)
+                self.player.basic_attack(target_enemy)
+                print(target_enemy.hp)
+                if target_enemy.hp[0] == 0:
+                    self.board.handle_enemy_death(new_x, new_y)
 
 
     def draw_window(self):
-        self.window.fill((0, 0, 0))
+        self.window.fill(colors.BLACK)
+        self.load_game_board()
+        self.load_player_panel()
+        self.load_misc_panel()
+
+
+    def load_game_board(self):
         for y in range(BOARD_HEIGHT):
             for x in range(BOARD_LENGTH):
                 pg.draw.rect(self.window, TILE_COLORS[self.board.template[y][x]],
@@ -45,17 +62,18 @@ class Game:
         pg.draw.rect(self.window, colors.WHITE,
                      (TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT), 4)
 
-
     def load_player_panel(self):
-        player_panel.draw_player_panel(self.window, self.player)
+        self.player_panel = PlayerPanel(self)
+        self.player_panel.draw_player_panel()
 
+    def load_misc_panel(self):
+        self.misc_panel = MiscPanel(self)
+        self.misc_panel.draw_misc_panel()
 
-    def draw_misc_panel(self):
-        panel_top_left_x = WINDOW_LENGTH - ((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2) - SIDE_PANEL_LENGTH
-        panel_top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
-        pg.draw.rect(self.window, (255, 255, 255),
-                     (panel_top_left_x, panel_top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
-
+    def refresh_focus_window(self, focus_tile):
+        self.misc_panel.focus_tile = focus_tile
+        self.misc_panel.draw_focus_window()
+        pg.display.update()
 
     def game_loop_iteration(self):
         for event in pg.event.get():
@@ -67,5 +85,7 @@ class Game:
                 # Check if input is for a basic movement, i.e. up, down, left, right
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
+                self.load_game_board()
+                self.load_player_panel()
 
         return True
