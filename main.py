@@ -33,8 +33,7 @@ def handle_user_input():
 
 
 def main(window):
-    game = Game(window, player=load_player_from_json(".\\saves\\first.json"),
-                board=Board(tier=1))
+    game = Game(window, player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
     run = True
     game.draw_window()
     while run:

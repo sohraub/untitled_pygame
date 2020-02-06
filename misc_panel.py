@@ -6,38 +6,47 @@ from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HE
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
 
 
-panel_top_left_x = WINDOW_LENGTH - ((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2) - SIDE_PANEL_LENGTH
-panel_top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
+
+class MiscPanel:
+    def __init__(self, game, focus_tile=None):
+        self.game = game
+        self.focus_tile = focus_tile
+        self.top_left_x = WINDOW_LENGTH - ((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2) - SIDE_PANEL_LENGTH
+        self.top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
+        self.f_window_top_left_x = self.top_left_x + int(0.02*SIDE_PANEL_LENGTH)  # Top-left coords for the focus window
+        self.f_window_top_left_y = self.top_left_y + int(0.02*SIDE_PANEL_HEIGHT)
+        self.f_window_length = int(0.96*SIDE_PANEL_LENGTH)
+        self.f_window_height = int(0.3*SIDE_PANEL_HEIGHT)
 
 
-def draw_misc_panel(window, board, focus_tile=None):
-    pg.draw.rect(window, colors.WHITE, (panel_top_left_x, panel_top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
-    draw_focus_window(window, board, focus_tile)
+    def draw_misc_panel(self):
+        pg.draw.rect(self.game.window, colors.WHITE, (self.top_left_x, self.top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
+        self.draw_focus_window()
 
 
-def draw_focus_window(window, board, focus_tile=None):
-    top_left_x = panel_top_left_x + int(0.02*SIDE_PANEL_LENGTH)
-    top_left_y = panel_top_left_y + int(0.02*SIDE_PANEL_HEIGHT)
-    length = int(0.96*SIDE_PANEL_LENGTH)
-    height = int(0.3*SIDE_PANEL_HEIGHT)
-    pg.draw.rect(window, colors.WHITE, (top_left_x, top_left_y, length, height), 1)
-    if focus_tile is not None:
-        # This mapping gives the appropriate function to load data, based on the type of tile which under focus
-        focus_function_mapping = {
-            'E': load_enemy_info
-        }
-        tile_type = board.template[focus_tile[1]][focus_tile[0]]  # Get the tile letter from the board template
-        focus_function_mapping[tile_type](top_left_x, top_left_y, length, height, window, board, focus_tile)
+    def draw_focus_window(self):
+        pg.draw.rect(self.game.window, colors.WHITE,
+                     (self.f_window_top_left_x, self.f_window_top_left_y, self.f_window_length, self.f_window_height),
+                     1)
+        if self.focus_tile is not None:
+            # This mapping gives the appropriate function to load data, based on the type of tile which under focus
+            focus_function_mapping = {
+                'E': self.load_enemy_info
+            }
+            # Get the tile letter from the board template
+            tile_type = self.game.board.template[self.focus_tile[1]][self.focus_tile[0]]
+            focus_function_mapping[tile_type]()
 
 
-def load_enemy_info(top_left_x, top_left_y, f_window_length, f_window_height, window, board, focus_tile):
-    enemy = board.enemies[focus_tile]
-    portrait_top_left_x = top_left_x + int(0.025*f_window_length)
-    portrait_top_left_y = top_left_y + int(0.025*f_window_height)
-    portrait_length = int(0.19*f_window_length)
-    portrait_height = int(0.3*f_window_height)
-    pg.draw.rect(window, colors.WHITE, (portrait_top_left_x, portrait_top_left_y, portrait_length, portrait_height), 1)
-    big_font = pg.font.Font(SHADOWS_INTO_LIGHT, 30)
-    small_font = pg.font.Font(SHADOWS_INTO_LIGHT, 15)
-    enemy_name = big_font.render(' '.join(enemy.name.split('_')[0:-1]).upper(), 1, colors.WHITE)
-    window.blit(enemy_name, (portrait_top_left_x + portrait_length + 5, portrait_top_left_y))
+    def load_enemy_info(self):
+        enemy = self.game.board.enemies[self.focus_tile]
+        portrait_top_left_x = self.f_window_top_left_x + int(0.025*self.f_window_length)
+        portrait_top_left_y = self.f_window_top_left_y + int(0.025*self.f_window_height)
+        portrait_length = int(0.19*self.f_window_length)
+        portrait_height = int(0.3*self.f_window_height)
+        pg.draw.rect(self.game.window, colors.WHITE,
+                     (portrait_top_left_x, portrait_top_left_y, portrait_length, portrait_height), 1)
+        big_font = pg.font.Font(SHADOWS_INTO_LIGHT, 30)
+        small_font = pg.font.Font(SHADOWS_INTO_LIGHT, 15)
+        enemy_name = big_font.render(' '.join(enemy.name.split('_')[0:-1]).upper(), 1, colors.WHITE)
+        self.game.window.blit(enemy_name, (portrait_top_left_x + portrait_length + 5, portrait_top_left_y))

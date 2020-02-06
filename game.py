@@ -1,7 +1,5 @@
 import pygame as pg
 
-import player_panel
-import misc_panel
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
@@ -9,6 +7,8 @@ from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HE
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 from game_elements.board import Board
 from game_elements.player import Player
+from misc_panel import MiscPanel
+from player_panel import PlayerPanel
 
 
 class Game:
@@ -19,6 +19,8 @@ class Game:
         self.player.x = self.board.player_coordinates[0]
         self.player.y = self.board.player_coordinates[1]
         self.filename = filename
+        self.player_panel = None
+        self.misc_panel = None
 
 
     def move_player_on_board(self, input):
@@ -60,15 +62,17 @@ class Game:
         pg.draw.rect(self.window, colors.WHITE,
                      (TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT), 4)
 
-
     def load_player_panel(self):
-        player_panel.draw_player_panel(self.window, self.player)
+        self.player_panel = PlayerPanel(self)
+        self.player_panel.draw_player_panel()
 
     def load_misc_panel(self):
-        misc_panel.draw_misc_panel(self.window, self.board)
+        self.misc_panel = MiscPanel(self)
+        self.misc_panel.draw_misc_panel()
 
     def refresh_focus_window(self, focus_tile):
-        misc_panel.draw_focus_window(self.window, self.board, focus_tile)
+        self.misc_panel.focus_tile = focus_tile
+        self.misc_panel.draw_focus_window()
         pg.display.update()
 
     def game_loop_iteration(self):
