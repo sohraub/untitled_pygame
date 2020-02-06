@@ -40,7 +40,7 @@ class Game:
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
                 self.refresh_focus_window((new_x, new_y))
                 target_enemy = self.board.enemies[(new_x, new_y)]
-                print(target_enemy.hp)
+                print(target_enemy.name)
                 self.player.basic_attack(target_enemy)
                 print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
@@ -48,7 +48,7 @@ class Game:
 
 
     def draw_window(self):
-        self.window.fill((0, 0, 0))
+        self.window.fill(colors.BLACK)
         self.load_game_board()
         self.load_player_panel()
         self.load_misc_panel()

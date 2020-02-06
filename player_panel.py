@@ -21,9 +21,9 @@ class PlayerPanel:
         mp_indicator = font.render(mp_string, 1, colors.BLUE)
         self.game.window.blit(hp_indicator, (self.top_left_x + 10, self.top_left_y + 40))
         self.game.window.blit(mp_indicator, (self.top_left_x + 10, self.top_left_y + 65))
-        for item in ['tired', 'hungry', 'thirsty']:
-            if self.game.player.condition[item][0] < 0.5 * self.game.player.condition[item][1]:
-                self.isplay_condition_state(self.game.window, self.game.player, item)
+        for condition in ['tired', 'hungry', 'thirsty']:
+            if self.game.player.condition[condition][0] < 0.5 * self.game.player.condition[condition][1]:
+                self.display_condition_state(condition)
 
 
     def display_condition_state(self, condition):

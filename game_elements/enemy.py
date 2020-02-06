@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from game_elements.character import Character
 from utility_functions import get_manhattan_distance
 
@@ -7,7 +9,7 @@ class Enemy(Character):
                  aggro_range=3):
         super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
         self.aggro_range = aggro_range
-        self.flavour_text = 'This is placholder flavour text'
+        self.flavour_text = 'This is placeholder flavour text'
 
 
     def check_aggro(self, player):
