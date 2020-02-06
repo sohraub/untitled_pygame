@@ -7,6 +7,7 @@ Config file to store most variables which have to do with main system stuff.
 WINDOW_LENGTH = 1500
 WINDOW_HEIGHT = 700
 
+#TODO: Change these values to be percentages of the above values only
 PLAY_LENGTH = 800
 PLAY_HEIGHT = 500
 TILE_SIZE = 50
