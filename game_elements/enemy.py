@@ -3,6 +3,8 @@ from uuid import uuid4
 from game_elements.character import Character
 from utility_functions import get_manhattan_distance
 
+death_phrases = ['It lets out one final, desperate breath before it ceases movement. ',
+                 'You watch it slowly bleed out to death. ']
 
 class Enemy(Character):
     def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1, in_combat=False,

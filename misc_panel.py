@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE,\
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
+    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 
 
 class MiscPanel:
@@ -49,8 +49,8 @@ class MiscPanel:
         pg.draw.rect(self.game.window, colors.WHITE,
                      (portrait_top_left_x, portrait_top_left_y, portrait_length, portrait_height), 1)
 
-        big_font = pg.font.Font(SHADOWS_INTO_LIGHT, 30)
-        small_font = pg.font.Font(SHADOWS_INTO_LIGHT, 15)
+        big_font = pg.font.Font(font_SIL, 30)
+        small_font = pg.font.Font(font_SIL, 15)
 
         enemy_hp_percentage = float(enemy.hp[0]) / float(enemy.hp[1])
         if enemy_hp_percentage > 0.66:
