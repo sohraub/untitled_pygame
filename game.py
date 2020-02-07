@@ -29,7 +29,7 @@ class Game:
         Given a basic movement input, moves the player character and updates its position
         on the board
         """
-        console_text = ''
+        console_text = list()
         old_x = self.player.x
         old_y = self.player.y
         new_x, new_y = self.player.perform_movement(input)
@@ -43,10 +43,12 @@ class Game:
                 self.refresh_focus_window((new_x, new_y))
                 target_enemy = self.board.enemies[(new_x, new_y)]
                 print(target_enemy.name)
-                console_text = self.player.basic_attack(target_enemy)
+                console_text.append(self.player.basic_attack(target_enemy))
+                console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
                 print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
                     self.board.handle_enemy_death(new_x, new_y)
+                self.player_panel.refresh_hp_mp()
 
         if console_text != '':
             self.console.update_console(console_text)
@@ -91,6 +93,6 @@ class Game:
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
                 self.load_game_board()
-                self.load_player_panel()
+                # self.load_player_panel()
 
         return True

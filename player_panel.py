@@ -13,7 +13,12 @@ class PlayerPanel:
         self.top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
 
 
-    def draw_conditions(self):
+    def refresh_hp_mp(self):
+        self.game.window.fill(colors.BLACK,
+                              (self.top_left_x + 10, self.top_left_y + 40, self.top_left_x + 100, 50))
+        self.draw_conditions(just_refresh_hp_mp=True)
+
+    def draw_conditions(self, just_refresh_hp_mp=False):
         hp_string = "HP: {0} / {1}".format(self.game.player.hp[0], self.game.player.hp[1])
         mp_string = "MP: {0} / {1}".format(self.game.player.mp[0], self.game.player.mp[1])
         font = pg.font.Font(font_SIL, 20)
@@ -21,9 +26,10 @@ class PlayerPanel:
         mp_indicator = font.render(mp_string, 1, colors.BLUE)
         self.game.window.blit(hp_indicator, (self.top_left_x + 10, self.top_left_y + 40))
         self.game.window.blit(mp_indicator, (self.top_left_x + 10, self.top_left_y + 65))
-        for condition in ['tired', 'hungry', 'thirsty']:
-            if self.game.player.condition[condition][0] < 0.5 * self.game.player.condition[condition][1]:
-                self.display_condition_state(condition)
+        if not just_refresh_hp_mp:
+            for condition in ['tired', 'hungry', 'thirsty']:
+                if self.game.player.condition[condition][0] < 0.5 * self.game.player.condition[condition][1]:
+                    self.display_condition_state(condition)
 
 
     def display_condition_state(self, condition):

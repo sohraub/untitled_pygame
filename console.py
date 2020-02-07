@@ -11,9 +11,10 @@ class Console:
         self.window = window
         self.lines = ['', '', '', '']
 
-    def update_console(self, new_line):
-        self.lines.pop(0)
-        self.lines.append(new_line)
+    def update_console(self, new_lines):
+        for new_line in new_lines:
+            self.lines.pop(0)
+            self.lines.append(new_line)
         self.refresh_console()
 
     def refresh_console(self):
