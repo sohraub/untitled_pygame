@@ -42,12 +42,20 @@ class Character:
         self.move_to((self.x + steps, self.y))
 
     def basic_attack(self, target):
+        console_text = ''
         base_damage = self.attributes['str'] - target.attributes['end']
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
+            console_text += 'Critical hit! '
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
+            console_text += 'Miss! '
 
+        console_text += 'You dealt {0} damage to {1}. '.format(base_damage, ' '.join(target.name.split('_')[0:-1]))
         target.hp[0] = max(target.hp[0] - base_damage, 0)
+        if target.hp[0] == 0:
+            from game_elements.enemy import death_phrases
+            console_text += random.choice(death_phrases)
+        return console_text

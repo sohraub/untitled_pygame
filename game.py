@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
+    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 from game_elements.board import Board
 from game_elements.player import Player
@@ -12,8 +12,9 @@ from player_panel import PlayerPanel
 
 
 class Game:
-    def __init__(self, window, board=None, player=None, filename='untitlted'):
+    def __init__(self, window, console, board=None, player=None, filename='untitlted'):
         self.window = window
+        self.console = console
         self.board = board if board is not None else Board()
         self.player = player if player is not None else Player()
         self.player.x = self.board.player_coordinates[0]
@@ -28,6 +29,7 @@ class Game:
         Given a basic movement input, moves the player character and updates its position
         on the board
         """
+        console_text = ''
         old_x = self.player.x
         old_y = self.player.y
         new_x, new_y = self.player.perform_movement(input)
@@ -41,10 +43,13 @@ class Game:
                 self.refresh_focus_window((new_x, new_y))
                 target_enemy = self.board.enemies[(new_x, new_y)]
                 print(target_enemy.name)
-                self.player.basic_attack(target_enemy)
+                console_text = self.player.basic_attack(target_enemy)
                 print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
                     self.board.handle_enemy_death(new_x, new_y)
+
+        if console_text != '':
+            self.console.update_console(console_text)
 
 
     def draw_window(self):
