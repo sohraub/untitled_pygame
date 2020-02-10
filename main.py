@@ -10,7 +10,6 @@ from game_elements.board_templates import TEMPLATES
 from game_elements.player import Player, load_player_from_json
 
 
-
 def load_board():
     template = TEMPLATES[0]
     board = Board(template)
@@ -18,7 +17,7 @@ def load_board():
 
 
 def main_menu(window):
-    main(window)
+    main_game(window)
 
 
 def handle_user_input():
@@ -33,7 +32,7 @@ def handle_user_input():
     return True
 
 
-def main(window):
+def main_game(window):
     console = Console(window)
     game = Game(window, console, player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
     run = True

@@ -54,6 +54,7 @@ class MiscPanel:
 
         enemy_hp_percentage = float(enemy.hp[0]) / float(enemy.hp[1])
         if enemy_hp_percentage > 0.66:
+            # TODO: These might need some work
             health_text = 'This creature looks quite healthy.'
         elif enemy_hp_percentage > 0.33:
             health_text = 'This creature seems to be in pain.'

@@ -1,5 +1,4 @@
 import random
-import math
 
 from utility_functions import get_manhattan_distance
 
