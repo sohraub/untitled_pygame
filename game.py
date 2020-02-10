@@ -44,7 +44,8 @@ class Game:
                 target_enemy = self.board.enemies[(new_x, new_y)]
                 print(target_enemy.name)
                 console_text.append(self.player.basic_attack(target_enemy))
-                console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
+                if target_enemy.hp[0] > 0:
+                    console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
                 print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
                     self.board.handle_enemy_death(new_x, new_y)
