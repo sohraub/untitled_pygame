@@ -38,4 +38,4 @@ TILE_COLORS = {
 
 
 ###### FONT FILES ######
-SHADOWS_INTO_LIGHT = '.\\fonts\\ShadowsIntoLight.ttf'
+font_SIL = '.\\fonts\\ShadowsIntoLight.ttf'

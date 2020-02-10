@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, SHADOWS_INTO_LIGHT
+    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 
 
 class PlayerPanel:
@@ -13,17 +13,23 @@ class PlayerPanel:
         self.top_left_y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
 
 
-    def draw_conditions(self):
+    def refresh_hp_mp(self):
+        self.game.window.fill(colors.BLACK,
+                              (self.top_left_x + 10, self.top_left_y + 40, self.top_left_x + 100, 50))
+        self.draw_conditions(just_refresh_hp_mp=True)
+
+    def draw_conditions(self, just_refresh_hp_mp=False):
         hp_string = "HP: {0} / {1}".format(self.game.player.hp[0], self.game.player.hp[1])
         mp_string = "MP: {0} / {1}".format(self.game.player.mp[0], self.game.player.mp[1])
-        font = pg.font.Font(SHADOWS_INTO_LIGHT, 20)
+        font = pg.font.Font(font_SIL, 20)
         hp_indicator = font.render(hp_string, 1, colors.RED)
         mp_indicator = font.render(mp_string, 1, colors.BLUE)
         self.game.window.blit(hp_indicator, (self.top_left_x + 10, self.top_left_y + 40))
         self.game.window.blit(mp_indicator, (self.top_left_x + 10, self.top_left_y + 65))
-        for condition in ['tired', 'hungry', 'thirsty']:
-            if self.game.player.condition[condition][0] < 0.5 * self.game.player.condition[condition][1]:
-                self.display_condition_state(condition)
+        if not just_refresh_hp_mp:
+            for condition in ['tired', 'hungry', 'thirsty']:
+                if self.game.player.condition[condition][0] < 0.5 * self.game.player.condition[condition][1]:
+                    self.display_condition_state(condition)
 
 
     def display_condition_state(self, condition):
@@ -36,7 +42,7 @@ class PlayerPanel:
             color = colors.ORANGE
         else:
             color = colors.YELLOW
-        font = pg.font.Font(SHADOWS_INTO_LIGHT, 20)
+        font = pg.font.Font(font_SIL, 20)
         condition_indicator = font.render(condition.upper(), 1, color)
         self.game.window.blit(condition_indicator, (self.top_left_x + SIDE_PANEL_LENGTH - 90,
                                           self.top_left_y + condition_y_mapping[condition]))
@@ -51,7 +57,7 @@ class PlayerPanel:
             'vit': (self.top_left_x + 120, self.top_left_y + 145),
             'wis': (self.top_left_x + 120, self.top_left_y + 170)
         }
-        font = pg.font.Font(SHADOWS_INTO_LIGHT, 20)
+        font = pg.font.Font(font_SIL, 20)
         for stat in coord_mapping.keys():
             string = "{0}: {1}".format(stat.upper(), self.game.player.attributes[stat])
             stat_indicator = font.render(string, 1, colors.WHITE)
@@ -59,7 +65,7 @@ class PlayerPanel:
 
 
     def draw_level_and_experience(self):
-        font = pg.font.Font(SHADOWS_INTO_LIGHT, 20)
+        font = pg.font.Font(font_SIL, 20)
         level_indicator = font.render("LEVEL {} {}".format(self.game.player.level, self.game.player.type.upper()),
                                       1, colors.WHITE)
         self.game.window.blit(level_indicator, (self.top_left_x + 10, self.top_left_y + 220))
@@ -75,7 +81,7 @@ class PlayerPanel:
     def draw_player_panel(self):
         pg.draw.rect(self.game.window, colors.WHITE,
                      (self.top_left_x, self.top_left_y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
-        font = pg.font.Font(SHADOWS_INTO_LIGHT, 30)
+        font = pg.font.Font(font_SIL, 30)
         self.game.player_name = font.render(self.game.player.name, 1, colors.WHITE)
         self.game.window.blit(self.game.player_name, (self.top_left_x + 5, self.top_left_y + 5))
         self.draw_conditions()
