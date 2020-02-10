@@ -2,6 +2,7 @@ import pygame as pg
 
 import colors
 
+from rendering import window_renderer, board_renderer
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
@@ -56,8 +57,7 @@ class Game:
 
 
     def draw_window(self):
-        self.window.fill(colors.BLACK)
-        self.load_game_board()
+        board_renderer.render_game_board(self.board.template)
         self.load_player_panel()
         self.load_misc_panel()
 

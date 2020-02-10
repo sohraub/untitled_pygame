@@ -1,8 +1,7 @@
 import pygame as pg
 
+from rendering import window_renderer
 
-from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE,\
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
 from game import Game
 from console import Console
 from game_elements.board import Board
@@ -32,9 +31,8 @@ def handle_user_input():
     return True
 
 
-def main_game(window):
-    console = Console(window)
-    game = Game(window, console, player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
+def main_game():
+    game = Game(console=Console(), player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
     run = True
     game.draw_window()
     game.console.refresh_console()
@@ -45,7 +43,4 @@ def main_game(window):
 
 
 if __name__ == '__main__':
-    pg.font.init()
-    window = pg.display.set_mode((WINDOW_LENGTH, WINDOW_HEIGHT))
-    pg.display.set_caption('Untitled Game # 1')
-    main_menu(window)
+    main_menu()
