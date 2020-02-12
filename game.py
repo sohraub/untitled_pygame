@@ -2,6 +2,7 @@ import pygame as pg
 
 import colors
 
+from rendering import window_renderer, board_renderer
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
@@ -12,8 +13,7 @@ from player_panel import PlayerPanel
 
 
 class Game:
-    def __init__(self, window, console, board=None, player=None, filename='untitlted'):
-        self.window = window
+    def __init__(self, console, board=None, player=None, filename='untitlted'):
         self.console = console
         self.board = board if board is not None else Board()
         self.player = player if player is not None else Player()
@@ -56,32 +56,24 @@ class Game:
 
 
     def draw_window(self):
-        self.window.fill(colors.BLACK)
-        self.load_game_board()
+        board_renderer.render_game_board(self.board.template)
         self.load_player_panel()
         self.load_misc_panel()
 
 
     def load_game_board(self):
-        for y in range(BOARD_HEIGHT):
-            for x in range(BOARD_LENGTH):
-                pg.draw.rect(self.window, TILE_COLORS[self.board.template[y][x]],
-                             (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
-        pg.draw.rect(self.window, colors.WHITE,
-                     (TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT), 4)
+        board_renderer.render_game_board(self.board.template)
+
 
     def load_player_panel(self):
-        self.player_panel = PlayerPanel(self)
-        self.player_panel.draw_player_panel()
+        self.player_panel = PlayerPanel(self.player)
 
     def load_misc_panel(self):
-        self.misc_panel = MiscPanel(self)
-        self.misc_panel.draw_misc_panel()
+        self.misc_panel = MiscPanel(self.board)
 
     def refresh_focus_window(self, focus_tile):
         self.misc_panel.focus_tile = focus_tile
-        self.misc_panel.draw_focus_window()
-        pg.display.update()
+        self.misc_panel.load_focus_window()
 
     def game_loop_iteration(self):
         for event in pg.event.get():

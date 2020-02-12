@@ -38,6 +38,21 @@ class Player(Character):
             pg.K_LEFT: (self.move_right, -1),
             pg.K_a: (self.move_right, -1)
         }
+    def to_dict(self):
+        dict = {
+            'name': self.name,
+            'hp': self.hp,
+            'mp': self.mp,
+            'attributes': self.attributes,
+            'status': self.status,
+            'inventory': self.inventory,
+            'equipment': self.equipment,
+            'condition': self.condition,
+            'level': self.level,
+            'type': self.type,
+            'experience': self.experience
+        }
+        return dict
 
     def perform_movement(self, input):
         func = self.movement_mapping[input][0]
@@ -64,3 +79,5 @@ def load_player_from_json(filename):
         equipment=character.get('equipment', None),
         experience=character.get('experience', None)
     )
+
+
