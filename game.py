@@ -69,13 +69,11 @@ class Game:
         self.player_panel = PlayerPanel(self.player)
 
     def load_misc_panel(self):
-        self.misc_panel = MiscPanel(self)
-        self.misc_panel.draw_misc_panel()
+        self.misc_panel = MiscPanel(self.board)
 
     def refresh_focus_window(self, focus_tile):
         self.misc_panel.focus_tile = focus_tile
-        self.misc_panel.draw_focus_window()
-        pg.display.update()
+        self.misc_panel.load_focus_window()
 
     def game_loop_iteration(self):
         for event in pg.event.get():
