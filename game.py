@@ -13,8 +13,7 @@ from player_panel import PlayerPanel
 
 
 class Game:
-    def __init__(self, window, console, board=None, player=None, filename='untitlted'):
-        self.window = window
+    def __init__(self, console, board=None, player=None, filename='untitlted'):
         self.console = console
         self.board = board if board is not None else Board()
         self.player = player if player is not None else Player()
@@ -63,16 +62,11 @@ class Game:
 
 
     def load_game_board(self):
-        for y in range(BOARD_HEIGHT):
-            for x in range(BOARD_LENGTH):
-                pg.draw.rect(self.window, TILE_COLORS[self.board.template[y][x]],
-                             (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
-        pg.draw.rect(self.window, colors.WHITE,
-                     (TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT), 4)
+        board_renderer.render_game_board(self.board.template)
+
 
     def load_player_panel(self):
-        self.player_panel = PlayerPanel(self)
-        self.player_panel.draw_player_panel()
+        self.player_panel = PlayerPanel(self.player)
 
     def load_misc_panel(self):
         self.misc_panel = MiscPanel(self)

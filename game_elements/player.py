@@ -49,6 +49,7 @@ class Player(Character):
             'equipment': self.equipment,
             'condition': self.condition,
             'level': self.level,
+            'type': self.type,
             'experience': self.experience
         }
         return dict

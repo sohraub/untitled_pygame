@@ -17,6 +17,7 @@ def render_player_panel(player_dict):
     MAIN_WINDOW.blit(player_name, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
     draw_player_condition(player_dict['hp'], player_dict['mp'], player_dict['condition'])
     draw_attributes(player_dict['attributes'])
+    draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
 
 def draw_level_and_experience(level, type, experience):
     level_indicator = FONT_20.render("LEVEL {} {}".format(level, type), 1, colors.WHITE)
@@ -28,6 +29,10 @@ def draw_level_and_experience(level, type, experience):
     if current_exp_length > 0:
         pg.draw.rect(MAIN_WINDOW, colors.PALE_YELLOW,
                      (PANEL_TOP_LEFT_X + 7, PANEL_TOP_LEFT_Y + 249, current_exp_length, 6), 0)
+
+def redraw_level_and_experience(player_dict):
+    # TODO: Add window fill function for specific area
+    draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
 
 def draw_attributes(attributes):
     coord_mapping = {
@@ -69,6 +74,7 @@ def draw_condition_state(conditions_dict, condition):
     MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                            PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
 
-def refresh_hp_mp(player_dict):
+def redraw_hp_mp(player_dict):
     MAIN_WINDOW.fill(colors.BLACK, (TOP_LEFT_X + 10, TOP_LEFT_Y + 40, TOP_LEFT_X + 100, 50))
     draw_player_condition(player_dict['hp'], player_dict['MP'])
+

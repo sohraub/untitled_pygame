@@ -15,8 +15,8 @@ def load_board():
     return board
 
 
-def main_menu(window):
-    main_game(window)
+def main_menu():
+    main_game()
 
 
 def handle_user_input():
