@@ -37,7 +37,7 @@ def render_focus_window(focus_info=None):
 
 def render_enemy_info(enemy_dict):
     pg.draw.rect(MAIN_WINDOW, colors.WHITE,
-                 (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y, PORTRAIT_LENGTH, PLAY_HEIGHT), 1)
+                 (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y, PORTRAIT_LENGTH, PORTRAIT_HEIGHT), 1)
 
     enemy_hp_percentage = float(enemy_dict['hp'][0]) / float(enemy_dict['hp'][1])
     if enemy_hp_percentage > 0.66:

@@ -75,6 +75,6 @@ def draw_condition_state(conditions_dict, condition):
                                            PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
 
 def redraw_hp_mp(player_dict):
-    MAIN_WINDOW.fill(colors.BLACK, (TOP_LEFT_X + 10, TOP_LEFT_Y + 40, TOP_LEFT_X + 100, 50))
-    draw_player_condition(player_dict['hp'], player_dict['MP'])
+    MAIN_WINDOW.fill(colors.BLACK, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, PANEL_TOP_LEFT_X + 100, 50))
+    draw_player_condition(player_dict['hp'], player_dict['mp'])
 
