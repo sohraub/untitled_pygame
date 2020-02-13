@@ -1,6 +1,6 @@
 import random
 
-from utility_functions import get_manhattan_distance
+from utility_functions import manhattan_distance
 
 
 class Character:
@@ -27,7 +27,7 @@ class Character:
 
     def move_to(self, destination):
         if self.in_combat:
-            if get_manhattan_distance((self.x, self.y), destination) > self.move_speed:
+            if manhattan_distance((self.x, self.y), destination) > self.move_speed:
                 return False
         self.x = destination[0]
         self.y = destination[1]
@@ -54,7 +54,8 @@ class Character:
         if not enemy_attack:
             console_text += 'You dealt {0} damage to {1}. '.format(base_damage, ' '.join(target.name.split('_')[0:-1]))
         else:
-            console_text += 'The {0} attacks you for {1} damage. '.format(' '.join(self.name.split('_')[0:-1]), base_damage)
+            console_text += 'The {0} attacks you for {1} damage. '.format(' '.join(self.name.split('_')[0:-1]),
+                                                                          base_damage)
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0 and not enemy_attack:
             from game_elements.enemy import death_phrases

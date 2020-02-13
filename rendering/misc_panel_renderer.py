@@ -24,14 +24,15 @@ PORTRAIT_HEIGHT = int(0.3 * F_WINDOW_HEIGHT)
 def render_misc_panel():
     pg.draw.rect(MAIN_WINDOW, colors.WHITE,
                  (PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
+    render_focus_window()
 
 def render_focus_window(focus_info=None):
     f_window_rect = (F_WINDOW_TOP_LEFT_X, F_WINDOW_TOP_LEFT_Y, F_WINDOW_LENGTH, F_WINDOW_HEIGHT)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE, f_window_rect, 1)
+    # Re-fill the area just inside the window to black, as a refresh
+    MAIN_WINDOW.fill(colors.BLACK,
+                     rect=(f_window_rect[0] + 1, f_window_rect[1] + 1, f_window_rect[2] - 2, f_window_rect[3] - 2))
     if focus_info is not None:
-        # Re-fill the area just inside the window to black, as a refresh
-        MAIN_WINDOW.fill(colors.BLACK,
-                         rect=(f_window_rect[0]+1, f_window_rect[1]+1, f_window_rect[2]-2, f_window_rect[3]-2))
         if focus_info['type'] == 'enemy':
             render_enemy_info(focus_info)
 
