@@ -2,6 +2,7 @@ import pygame as pg
 
 import colors
 
+from utility_functions import manhattan_distance
 from rendering import window_renderer, board_renderer
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
@@ -44,26 +45,45 @@ class Game:
                 target_enemy = self.board.enemies[(new_x, new_y)]
                 print(target_enemy.name)
                 console_text.append(self.player.basic_attack(target_enemy))
-                if target_enemy.hp[0] > 0:
-                    console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
+                # if target_enemy.hp[0] > 0:
+                    # console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
                 print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
                     self.board.handle_enemy_death(new_x, new_y)
-                self.player_panel.refresh_hp_mp()
+                    self.misc_panel.focus_tile = None
+                    self.refresh_focus_window()
 
-        if console_text != '':
+        if console_text:
             self.console.update_console(console_text)
+
+    def start_enemy_turn(self):
+        enemies = list()
+        for enemy_coord in self.board.enemies:
+            enemies.append(self.board.enemies[enemy_coord])
+        for enemy in enemies:
+            console_text = list()
+            distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
+            if distance_to_player <= enemy.attack_range:
+                console_text.append(enemy.basic_attack(self.player, enemy_attack=True))
+            elif distance_to_player <= enemy.aggro_range:
+                new_position = enemy.move_towards_target((self.player.x, self.player.y), self.board.tile_mapping['O'])
+                if new_position is not None:
+                    self.board.update_enemy_position((enemy.x, enemy.y), new_position)
+                    enemy.x = new_position[0]
+                    enemy.y = new_position[1]
+                    self.load_game_board()
+
+            if console_text:
+                self.console.update_console(console_text)
 
 
     def draw_window(self):
-        board_renderer.render_game_board(self.board.template)
+        self.load_game_board()
         self.load_player_panel()
         self.load_misc_panel()
 
-
     def load_game_board(self):
         board_renderer.render_game_board(self.board.template)
-
 
     def load_player_panel(self):
         self.player_panel = PlayerPanel(self.player)
@@ -71,9 +91,8 @@ class Game:
     def load_misc_panel(self):
         self.misc_panel = MiscPanel(self.board)
 
-    def refresh_focus_window(self, focus_tile):
-        self.misc_panel.focus_tile = focus_tile
-        self.misc_panel.load_focus_window()
+    def refresh_focus_window(self, focus_tile=None):
+        self.misc_panel.refresh_focus_window(focus_tile)
 
     def game_loop_iteration(self):
         for event in pg.event.get():
@@ -85,6 +104,8 @@ class Game:
                 # Check if input is for a basic movement, i.e. up, down, left, right
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
+                    self.start_enemy_turn()
+                    self.player_panel.refresh_hp_mp()
                 self.load_game_board()
                 # self.load_player_panel()
 

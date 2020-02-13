@@ -12,6 +12,8 @@ BOARD_HEIGHT = 10
 def render_game_board(board_template):
     for y in range(BOARD_HEIGHT):
         for x in range(BOARD_LENGTH):
+            if board_template[y][x] == 'E':
+                print('hello')
             pg.draw.rect(MAIN_WINDOW, TILE_COLORS[board_template[y][x]],
                          (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE,
