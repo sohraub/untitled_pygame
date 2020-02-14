@@ -5,7 +5,7 @@ Class for the console that will display text based on what is happening in the g
 
 class Console:
     def __init__(self):
-        self.lines = ['', '', '', '']
+        self.lines = ['', '', '', '', '', '']
 
     def update_console(self, new_lines):
         for new_line in new_lines:

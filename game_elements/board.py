@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 import enemy_list
-from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
+from config import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 
 
