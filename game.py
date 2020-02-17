@@ -77,6 +77,16 @@ class Game:
                 self.console.update_console(console_text)
 
 
+    def handle_turn_end(self):
+        # These functions each return a boolean which determines whether any of the info has changes, and thus needs
+        # re-drawing
+        if self.player.conditions_worsen():
+            self.player_panel.refresh_hp_mp()
+            self.player_panel.refresh_conditions()
+            self.player_panel.refresh_attributes()
+        if self.player.check_fatigue():
+            self.player_panel.refresh_attributes()
+
     def draw_window(self):
         self.load_game_board()
         self.load_player_panel()
@@ -101,14 +111,14 @@ class Game:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_q:
                     return False
-                # Check if input is for a basic movement, i.e. up, down, left, right
                 elif event.type == pg.K_SPACE:
                     self.player.wait()
+                # Check if input is for a basic movement, i.e. up, down, left, right
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
                 self.start_enemy_turn()
+                self.handle_turn_end()
                 self.player_panel.refresh_hp_mp()
                 self.load_game_board()
-                # self.load_player_panel()
 
         return True
