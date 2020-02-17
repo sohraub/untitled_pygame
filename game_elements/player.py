@@ -63,6 +63,10 @@ class Player(Character):
             func(param)
         return self.x, self.y
 
+    def wait(self):
+        # Placeholder for now, might want to add extra functionality later
+        pass
+
 
 def load_player_from_json(filename):
     with open(filename, 'r') as f:
