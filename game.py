@@ -102,10 +102,12 @@ class Game:
                 if event.key == pg.K_q:
                     return False
                 # Check if input is for a basic movement, i.e. up, down, left, right
+                elif event.type == pg.K_SPACE:
+                    self.player.wait()
                 elif event.key in self.player.movement_mapping.keys():
                     self.move_player_on_board(event.key)
-                    self.start_enemy_turn()
-                    self.player_panel.refresh_hp_mp()
+                self.start_enemy_turn()
+                self.player_panel.refresh_hp_mp()
                 self.load_game_board()
                 # self.load_player_panel()
 
