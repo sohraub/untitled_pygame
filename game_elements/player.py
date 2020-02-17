@@ -1,4 +1,5 @@
 import json
+import copy
 import pygame as pg
 
 from game_elements.character import Character
@@ -17,14 +18,15 @@ class Player(Character):
             'hands': None,
             'feet': None
         }
-        self.condition = condition if condition is not None else {
-            'tired': [10, 10],
-            'hungry': [10, 10],
-            'thirsty': [10, 10]
+        self.conditions = condition if condition is not None else {
+            'tired': [10, 10, 0],
+            'hungry': [10, 10, 0],
+            'thirsty': [10, 10, 0]
         }
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
         self.type = type
+        self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
         # method below. Good idea? Who knows, but that's what we're trying for now
@@ -39,6 +41,22 @@ class Player(Character):
             pg.K_a: (self.move_right, -1)
         }
 
+    def to_dict(self):
+        dict = {
+            'name': self.name,
+            'hp': self.hp,
+            'mp': self.mp,
+            'attributes': self.attributes,
+            'status': self.status,
+            'inventory': self.inventory,
+            'equipment': self.equipment,
+            'conditions': self.conditions,
+            'level': self.level,
+            'type': self.type,
+            'experience': self.experience
+        }
+        return dict
+
     def perform_movement(self, input):
         func = self.movement_mapping[input][0]
         param = self.movement_mapping[input][1]
@@ -48,6 +66,52 @@ class Player(Character):
             func(param)
         return self.x, self.y
 
+    def wait(self):
+        # Placeholder for now, might want to add extra functionality later
+        pass
+
+    def conditions_worsen(self):
+        """
+        Function to be called at the end of every turn, which will increment the condition-worsening counter, and
+        de-increment the current condition value if the counter reaches the threshold.
+        :return: n/a
+        """
+        render_necessary = False
+        condition_thresholds = {
+            'thirsty': 5 * self.attributes['end'],
+            'hungry': 7 * self.attributes['end'],
+            'tired': 9 * self.attributes['end']
+        }
+        for condition in self.conditions:
+            self.conditions[condition][2] += 1
+            if self.conditions[condition][2] >= condition_thresholds[condition]:
+                self.conditions[condition][0] = max(self.conditions[condition][0] - 1, 0)
+                self.conditions[condition][2] = 0
+            if self.conditions[condition][0] < 0.15*self.conditions[condition][1]:
+                self.apply_condition_penalty(condition)
+                render_necessary = True
+        return render_necessary
+
+
+    def apply_condition_penalty(self, condition):
+        if condition == 'thirsty' or condition == 'hungry':
+            self.hp[0] = max(self.hp[0] - 1, 0)
+        if condition == 'hungry':
+            self.mp[0] = max(self.mp[0] - 1, 0)
+        if condition == 'tired' and self.fatigued == 0:
+            self.fatigued = 1
+            for attribute in self.attributes:
+                self.attributes[attribute] -= 2
+
+
+    def check_fatigue(self):
+        render_necessary = False
+        if self.conditions['tired'][0] >= 0.15*self.conditions['tired'][1] and self.fatigued == 1:
+            self.fatigued = 0
+            for attribute in self.attributes:
+                self.attributes[attribute] += 2
+            render_necessary = True
+        return render_necessary
 
 def load_player_from_json(filename):
     with open(filename, 'r') as f:
@@ -64,3 +128,5 @@ def load_player_from_json(filename):
         equipment=character.get('equipment', None),
         experience=character.get('experience', None)
     )
+
+

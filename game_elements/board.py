@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 import enemy_list
-from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
+from config import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 
 
@@ -32,7 +32,7 @@ class Board:
         self.tier = tier
         self.tile_mapping = {
             # Each letter corresponds to:
-            'X': list(),  # Blank tiles
+            'X': list(),  # Wall tiles
             'E': list(),  # Enemies
             'D': list(),  # Doors
             'T': list(),  # Treasure
@@ -62,15 +62,17 @@ class Board:
         for tile_type in self.tile_mapping.keys():
             for coord in self.tile_mapping[tile_type]:
                 new_template[coord[1]][coord[0]] = tile_type
+                if tile_type == 'E':
+                    print(coord)
 
         new_template[self.player_coordinates[1]][self.player_coordinates[0]] = 'P'
         self.template = new_template
+        print('hello')
 
     def tile_is_open(self, x, y):
         if (x, y) in set(self.tile_mapping['O']):
             return True
         return False
-
 
     def handle_enemy_death(self, x, y):
         del self.enemies[(x, y)]
@@ -78,7 +80,12 @@ class Board:
         self.tile_mapping['O'].append((x, y))
         self.rebuild_template()
 
-
-
-
-
+    def update_enemy_position(self, old_pos, new_pos):
+        self.enemies[new_pos] = self.enemies.pop(old_pos)
+        self.enemies[new_pos].x = new_pos[0]
+        self.enemies[new_pos].y = new_pos[1]
+        self.tile_mapping['E'].remove(old_pos)
+        self.tile_mapping['E'].append(new_pos)
+        self.tile_mapping['O'].remove(new_pos)
+        self.tile_mapping['O'].append(old_pos)
+        self.rebuild_template()
