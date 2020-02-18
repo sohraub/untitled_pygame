@@ -1,3 +1,5 @@
+from item_list import generate_random_item
+
 
 class Chest:
     def __init__(self, tier=1, item=None, opened=False):

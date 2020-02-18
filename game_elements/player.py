@@ -119,6 +119,12 @@ class Player(Character):
             render_necessary = True
         return render_necessary
 
+    def consume_item(self, index):
+        item = self.inventory.pop(index)
+        for effect, parameter_dict in zip(item.effects, item.parameters):
+            parameter_dict['target'] = self
+            effect(**parameter_dict)
+
 def load_player_from_json(filename):
     with open(filename, 'r') as f:
         character = json.load(f)

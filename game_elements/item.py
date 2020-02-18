@@ -6,13 +6,9 @@ class Item:
 
 
 class Consumable(Item):
-    def __init__(self, name, description, effects):
+    def __init__(self, name, description, effects, parameters):
         super().__init__(name, description)
         self.effects = effects
+        self.parameters = parameters
 
-
-def increase_hp(target, value):
-    target.hp += value
-
-def improve_condition(target, condition, value):
 
