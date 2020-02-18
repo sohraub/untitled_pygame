@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 import enemy_list
-from config import BOARD_LENGTH, BOARD_HEIGHT
+from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 
 
@@ -67,7 +67,6 @@ class Board:
 
         new_template[self.player_coordinates[1]][self.player_coordinates[0]] = 'P'
         self.template = new_template
-        print('hello')
 
     def tile_is_open(self, x, y):
         if (x, y) in set(self.tile_mapping['O']):

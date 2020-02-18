@@ -2,14 +2,14 @@ import json
 import pygame as pg
 
 from game_elements.character import Character
-
+from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1,
                  in_combat=False, inventory=None, equipment=None, condition=None, level=1, experience=None,
                  type="adventurer"):
         super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
-        self.inventory = inventory if inventory is not None else dict()
+        self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
             'body': None,
@@ -67,6 +67,13 @@ class Player(Character):
         # Placeholder for now, might want to add extra functionality later
         pass
 
+    def pick_up_item(self, item):
+        if len(self.inventory) == INVENTORY_LIMIT:
+            console_text = f'Inventory is full. You cannot pick up {item.name}.'
+        else:
+            self.inventory.append(item)
+            console_text = f'You picked up {item.name}.'
+        return console_text
 
 def load_player_from_json(filename):
     with open(filename, 'r') as f:

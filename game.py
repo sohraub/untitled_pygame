@@ -1,4 +1,5 @@
 import pygame as pg
+from time import sleep
 
 import colors
 
@@ -43,11 +44,9 @@ class Game:
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
                 self.refresh_focus_window((new_x, new_y))
                 target_enemy = self.board.enemies[(new_x, new_y)]
-                print(target_enemy.name)
                 console_text.append(self.player.basic_attack(target_enemy))
                 # if target_enemy.hp[0] > 0:
                     # console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
-                print(target_enemy.hp)
                 if target_enemy.hp[0] == 0:
                     self.board.handle_enemy_death(new_x, new_y)
                     self.misc_panel.focus_tile = None

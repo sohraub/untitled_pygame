@@ -16,11 +16,6 @@ SIDE_PANEL_LENGTH = int(WINDOW_LENGTH * 0.25)
 SIDE_PANEL_HEIGHT = int(WINDOW_HEIGHT * 0.98)
 
 
-######## GAME ELEMENT VARIABLES ########
-BOARD_LENGTH = 15
-BOARD_HEIGHT = 15
-
-
 ###### TILE COLORS ######
 """
 Mapping of letters to tile type is as follows:
