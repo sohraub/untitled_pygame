@@ -10,4 +10,5 @@ BOARD_HEIGHT = 15
 ########### PLAYER VALUES #############
 #######################################
 
-INVENTORY_LIMIT = 20
+INVENTORY_LIMIT = 30
+INVENTORY_ROW_LENGTH = 10

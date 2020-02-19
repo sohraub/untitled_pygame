@@ -7,8 +7,10 @@ from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HE
 from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30
 
 
-PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2)
-PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
+PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)
+PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)
+INVENTORY_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
+ITEM_SIZE = int(INVENTORY_LENGTH / 10)
 
 
 def render_player_panel(player_dict):
@@ -20,6 +22,7 @@ def render_player_panel(player_dict):
     draw_conditions(player_dict['conditions'])
     draw_attributes(player_dict['attributes'])
     draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
+    draw_inventory(player_dict['inventory'])
 
 
 def draw_level_and_experience(level, type, experience, refresh=False):
@@ -81,3 +84,22 @@ def draw_conditions(conditions, refresh=False):
             condition_indicator = font.render(condition.upper(), 1, color)
             MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
+
+def draw_inventory(inventory, refresh=False):
+    from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
+    top_left_x = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PANEL_TOP_LEFT_X
+    top_left_y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
+    num_rows = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
+    inventory_label = FONT_20.render("INVENTORY", 1, colors.WHITE)
+    MAIN_WINDOW.blit(inventory_label, (top_left_x, top_left_y - 25))
+    if refresh:
+        MAIN_WINDOW.fill(color=colors.BLACK,
+                         rect=(top_left_x, top_left_y, ITEM_SIZE*int(INVENTORY_LIMIT/num_rows), ITEM_SIZE*num_rows))
+    for y in range(num_rows):
+        for x in range(int(INVENTORY_LIMIT / num_rows)):
+            pg.draw.rect(MAIN_WINDOW, colors.GREY,
+                         ((x * ITEM_SIZE) + top_left_x, (y * ITEM_SIZE) + top_left_y, ITEM_SIZE, ITEM_SIZE), 1)
+            if len(inventory) >= (y * 10) + x + 1:
+                MAIN_WINDOW.fill(color=colors.ORANGE,
+                                 rect=((x * ITEM_SIZE) + top_left_x + 1, (y * ITEM_SIZE) + top_left_y + 1,
+                                      ITEM_SIZE - 2, ITEM_SIZE - 2))
