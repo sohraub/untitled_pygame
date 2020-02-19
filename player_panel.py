@@ -19,3 +19,6 @@ class PlayerPanel:
     def refresh_conditions(self):
         player_panel_renderer.draw_conditions(self.player_dict['conditions'], refresh=True)
 
+    def refresh_inventory(self):
+        player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
+

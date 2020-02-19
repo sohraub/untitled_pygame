@@ -42,18 +42,37 @@ class Game:
             self.player.x = old_x
             self.player.y = old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
-                self.refresh_focus_window((new_x, new_y))
-                target_enemy = self.board.enemies[(new_x, new_y)]
-                console_text.append(self.player.basic_attack(target_enemy))
-                # if target_enemy.hp[0] > 0:
-                    # console_text.append(target_enemy.basic_attack(self.player, enemy_attack=True))
-                if target_enemy.hp[0] == 0:
-                    self.board.handle_enemy_death(new_x, new_y)
-                    self.misc_panel.focus_tile = None
-                    self.refresh_focus_window()
+                # The handle_attacking_enemy function returns a text string to be displayed in the console
+                console_text.append(self.handle_attacking_enemy((new_x, new_y)))
+            if self.board.template[new_y][new_x] == 'T':  # Moving a tile which contains a chest opens the chest
+                console_text.append(self.handle_opening_chest((new_x, new_y)))
 
         if console_text:
             self.console.update_console(console_text)
+
+
+    def handle_opening_chest(self, chest_pos):
+        target_chest = self.board.chests[chest_pos]
+        if target_chest.opened:
+            return 'This chest is empty. '
+        # pick_up_item returns text for the console as well as a boolean signifying the success of picking up item
+        console_text, success = self.player.pick_up_item(target_chest.item)
+        if success:
+            self.board.handle_chest_has_been_opened(chest_pos)
+            self.player_panel.refresh_inventory()
+        return console_text
+
+
+    def handle_attacking_enemy(self, enemy_pos):
+        self.refresh_focus_window(enemy_pos)
+        target_enemy = self.board.enemies[enemy_pos]
+        battle_text = self.player.basic_attack(target_enemy)
+        if target_enemy.hp[0] == 0:
+            self.board.handle_enemy_death(enemy_pos)
+            self.misc_panel.focus_tile = None
+            self.refresh_focus_window()
+        return battle_text
+
 
     def start_enemy_turn(self):
         enemies = list()

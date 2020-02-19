@@ -3,6 +3,7 @@ from uuid import uuid4
 import enemy_list
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
+from game_elements.chest import Chest
 
 
 def choose_random_board():
@@ -30,6 +31,9 @@ class Board:
     def __init__(self, board_template=None, tier=1):
         self.template = board_template if board_template is not None else choose_random_board()
         self.tier = tier
+        self.player_coordinates = None
+        self.enemies = dict()
+        self.chests = dict()
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Wall tiles
@@ -47,6 +51,8 @@ class Board:
         self.enemies = dict()
         for coord in self.tile_mapping['E']:
             self.enemies[coord] = enemy_list.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
+        for coord in self.tile_mapping['T']:
+            self.chests[coord] = Chest(tier=1)
 
 
     def __str__(self):
@@ -73,10 +79,10 @@ class Board:
             return True
         return False
 
-    def handle_enemy_death(self, x, y):
-        del self.enemies[(x, y)]
-        self.tile_mapping['E'].remove((x, y))
-        self.tile_mapping['O'].append((x, y))
+    def handle_enemy_death(self, enemy_pos):
+        del self.enemies[enemy_pos]
+        self.tile_mapping['E'].remove(enemy_pos)
+        self.tile_mapping['O'].append(enemy_pos)
         self.rebuild_template()
 
     def update_enemy_position(self, old_pos, new_pos):
@@ -88,3 +94,8 @@ class Board:
         self.tile_mapping['O'].remove(new_pos)
         self.tile_mapping['O'].append(old_pos)
         self.rebuild_template()
+
+    def handle_chest_has_been_opened(self, chest_pos):
+        chest = self.chests[chest_pos]
+        chest.opened = True
+        # TODO: Add some kind of rendering logic to make open chests look different

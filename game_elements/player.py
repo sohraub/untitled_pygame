@@ -70,13 +70,17 @@ class Player(Character):
         # Placeholder for now, might want to add extra functionality later
         pass
 
-    def pick_up_item(self, item):
+    def pick_up_item(self, item, from_chest=False):
         if len(self.inventory) == INVENTORY_LIMIT:
             console_text = f'Inventory is full. You cannot pick up {item.name}.'
+            return console_text, False
         else:
             self.inventory.append(item)
-            console_text = f'You picked up {item.name}.'
-        return console_text
+            if from_chest:
+                console_text = f'You open the chest to find {item.name}'
+            else:
+                console_text = f'You picked up {item.name}.'
+            return console_text, True
 
     def conditions_worsen(self):
         """
