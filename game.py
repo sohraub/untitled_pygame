@@ -124,6 +124,8 @@ class Game:
 
     def game_loop_iteration(self):
         for event in pg.event.get():
+            if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
+                self.player_panel.handle_panel_mouseover()
             if event.type == pg.QUIT:
                 return False
             if event.type == pg.KEYDOWN:

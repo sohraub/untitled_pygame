@@ -10,7 +10,6 @@ from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30
 PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)
 PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)
 INVENTORY_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
-ITEM_SIZE = int(INVENTORY_LENGTH / 10)
 
 
 def render_player_panel(player_dict):
@@ -23,6 +22,7 @@ def render_player_panel(player_dict):
     draw_attributes(player_dict['attributes'])
     draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
     draw_inventory(player_dict['inventory'])
+    return pg.Rect(PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
 
 
 def draw_level_and_experience(level, type, experience, refresh=False):
@@ -90,16 +90,20 @@ def draw_inventory(inventory, refresh=False):
     top_left_x = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PANEL_TOP_LEFT_X
     top_left_y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
     num_rows = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
+    item_size = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)
     inventory_label = FONT_20.render("INVENTORY", 1, colors.WHITE)
     MAIN_WINDOW.blit(inventory_label, (top_left_x, top_left_y - 25))
+    inventory_rect = pg.Rect(top_left_x, top_left_y, item_size*int(INVENTORY_LIMIT/num_rows), item_size*num_rows)
     if refresh:
-        MAIN_WINDOW.fill(color=colors.BLACK,
-                         rect=(top_left_x, top_left_y, ITEM_SIZE*int(INVENTORY_LIMIT/num_rows), ITEM_SIZE*num_rows))
+        MAIN_WINDOW.fill(color=colors.BLACK, rect=inventory_rect)
+    inventory_tiles = list()
     for y in range(num_rows):
         for x in range(int(INVENTORY_LIMIT / num_rows)):
-            pg.draw.rect(MAIN_WINDOW, colors.GREY,
-                         ((x * ITEM_SIZE) + top_left_x, (y * ITEM_SIZE) + top_left_y, ITEM_SIZE, ITEM_SIZE), 1)
+            item_tile = pg.Rect((x * item_size) + top_left_x, (y * item_size) + top_left_y, item_size, item_size)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
             if len(inventory) >= (y * 10) + x + 1:
                 MAIN_WINDOW.fill(color=colors.ORANGE,
-                                 rect=((x * ITEM_SIZE) + top_left_x + 1, (y * ITEM_SIZE) + top_left_y + 1,
-                                      ITEM_SIZE - 2, ITEM_SIZE - 2))
+                                 rect=((x * item_size) + top_left_x + 1, (y * item_size) + top_left_y + 1,
+                                      item_size - 2, item_size - 2))
+                inventory_tiles.append(item_tile)
+    return inventory_tiles, inventory_rect
