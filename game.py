@@ -126,6 +126,10 @@ class Game:
         for event in pg.event.get():
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
+                if self.player_panel.item_window_active and\
+                    not self.player_panel.inventory_rect.collidepoint(pg.mouse.get_pos()):
+                    self.player_panel.refresh_inventory()
+                    self.player_panel.item_window_active = False
             if event.type == pg.QUIT:
                 return False
             if event.type == pg.KEYDOWN:
