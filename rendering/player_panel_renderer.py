@@ -5,7 +5,7 @@ import colors
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW,FONT_10, FONT_15, FONT_20, FONT_30
+from rendering.window_renderer import MAIN_WINDOW,FONT_10, FONT_15, FONT_20, FONT_30, FONT_ARIAL_15
 
 
 PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)
@@ -123,15 +123,20 @@ def draw_item_info(item_dict, mouse_pos):
     item_window_length = int(INVENTORY_LENGTH / 2)
     item_window_height = ITEM_SIZE * 2
     top_left_y = INVENTORY_TOP_LEFT_Y
-    if mouse_pos[0] < item_window_length:
+    if mouse_pos[0] < PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         # Cursor is on the left side of the inventory
         top_left_x = mouse_pos[0]
     else:
         # Cursor is on the right side of the inventory
         top_left_x = mouse_pos[0] - item_window_length
     MAIN_WINDOW.fill(colors.NAVY, (top_left_x, top_left_y, item_window_length, item_window_height))
-    item_name = FONT_15.render(item_dict['name'].upper(), 1, colors.WHITE)
-    item_description = FONT_10.render(item_dict['description'], 1, colors.WHITE)
+    item_name = FONT_20.render(item_dict['name'].upper(), 1, colors.WHITE)
+    # ['description'] and ['details'] are both lists of strings which we concatenate to add in a single loop
+    item_string_list = item_dict['description'] + ['---'] + item_dict['details']
+    item_details = [FONT_ARIAL_15.render(string, 1, colors.WHITE) for string in item_string_list]
+    MAIN_WINDOW.blit(item_name, (top_left_x + 2, top_left_y + 2))
+    for i, detail in enumerate(item_details):
+        MAIN_WINDOW.blit(detail, (top_left_x + 5, top_left_y + 27 + (i *16)))
     pg.display.update()
 
 

@@ -2,7 +2,25 @@
 class Item:
     def __init__(self, name, description):
         self.name = name
-        self.description = description
+        self.description = self.parse_description(description)
+
+    def parse_description(self, full_string, char_limit=35):
+        """
+        A function to parse a description string into a list of strings that can fit into the item-
+        display modal.
+        """
+        parsed_string_list = list()
+        temp_string = ''
+        for word in full_string.split(' '):
+            if len(temp_string + word) + 1 >= char_limit:
+                parsed_string_list.append(temp_string)
+                temp_string = ''
+            temp_string += f'{word} '
+
+        if 0 < len(temp_string) < char_limit:
+            parsed_string_list.append(temp_string)
+
+        return parsed_string_list
 
 
 class Consumable(Item):
