@@ -8,6 +8,7 @@ class PlayerPanel:
         self.panel_rect = player_panel_renderer.render_player_panel(self.player_dict)
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
         self.item_window_active = None
+        self.active_item_index = None
 
     def refresh_hp_mp(self):
         player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'], refresh=True)
@@ -29,9 +30,19 @@ class PlayerPanel:
     def handle_panel_mouseover(self):
         if self.inventory_rect.collidepoint(mouse.get_pos()) and not self.item_window_active:
             self.handle_inventory_mouseover()
+        # This condition checks if an item info window is still displaying even if the mouse is no longer
+        # on that item, and if so, refreshes the inventory to get rid of the item info
+        if self.item_window_active is not None and \
+                not self.item_window_active.collidepoint(mouse.get_pos()):
+            self.refresh_inventory()
+            self.item_window_active = None
+            self.active_item_index = None
+        # if mouse.get_pressed()[0]:
+        #     if self.item_window_active.collidepoint(mouse.get_pos()):
 
     def handle_inventory_mouseover(self):
         item_index = None
+        item_tile = None
         for i, item_tile in enumerate(self.inventory_tiles):
             if item_tile.collidepoint(mouse.get_pos()) and len(self.player_dict['inventory']) >= i + 1:
                 print(i)
@@ -39,6 +50,6 @@ class PlayerPanel:
                 break
 
         if item_index is not None:
-            print('index:', item_index)
             self.item_window_active = item_tile
+            self.active_item_index = item_index
             player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict(), mouse.get_pos())
