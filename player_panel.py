@@ -25,7 +25,6 @@ class PlayerPanel:
 
     def refresh_inventory(self):
         self.inventory_tiles, _ = player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
-        print(self.inventory_tiles)
 
     def handle_panel_mouseover(self):
         if self.inventory_rect.collidepoint(mouse.get_pos()) and not self.item_window_active:
@@ -45,7 +44,6 @@ class PlayerPanel:
         item_tile = None
         for i, item_tile in enumerate(self.inventory_tiles):
             if item_tile.collidepoint(mouse.get_pos()) and len(self.player_dict['inventory']) >= i + 1:
-                print(i)
                 item_index = i
                 break
 
@@ -53,3 +51,8 @@ class PlayerPanel:
             self.item_window_active = item_tile
             self.active_item_index = item_index
             player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict(), mouse.get_pos())
+
+    def handle_item_consumption(self):
+        self.item_window_active = None
+        self.active_item_index = None
+        self.refresh_inventory()

@@ -129,6 +129,7 @@ class Player(Character):
             parameter_dict['target'] = self
             effect(**parameter_dict)
 
+
 def load_player_from_json(filename):
     with open(filename, 'r') as f:
         character = json.load(f)

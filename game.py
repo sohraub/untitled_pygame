@@ -57,6 +57,8 @@ class Game:
         if console_text:
             self.console.update_console(console_text)
 
+        return True
+
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -158,20 +160,37 @@ class Game:
         elif pressed_key in self.player.movement_mapping.keys():
             self.move_player_on_board(pressed_key)
 
+    def handle_player_turn_over(self):
+        """
+        Method that's called when the player has performed a turn-ending action. Calls methods to progress enemy turns
+        and re-render necessary parts of the screen that may have changed.
+        """
+        self.start_enemy_turn()
+        self.handle_turn_end()
+        self.player_panel.refresh_hp_mp()
+        self.load_game_board()
+
     def game_loop_iteration(self):
-        """Main game loop, which iterates over player inputs and calls appropriate methods"""
+        """
+        Main game loop, which iterates over player inputs and calls appropriate methods.
+
+        Returns False if the game has been finished, and True otherwise.
+        """
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return False
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
+                # Checks if the player clicks an item in the inventory
+                if pg.mouse.get_pressed()[0] and self.player_panel.item_window_active is not None:
+                    if self.player_panel.item_window_active.collidepoint(pg.mouse.get_pos()):
+                        item_index = self.player_panel.active_item_index
+                        self.player.consume_item(item_index)
+                        self.player_panel.handle_item_consumption()
+                        self.handle_player_turn_over()
             if event.type == pg.KEYDOWN:
                 self.handle_key_presses(event.key)
-                # At this point, key-presses signify the end of the player turn, so now we move on to the enemy turn
-                self.start_enemy_turn()
-                self.handle_turn_end()
-                self.player_panel.refresh_hp_mp()
-                self.load_game_board()
+                self.handle_player_turn_over()
 
         return True
