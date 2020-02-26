@@ -4,11 +4,19 @@ import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
     TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
-from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30
+from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
+from rendering.window_renderer import MAIN_WINDOW,FONT_10, FONT_15, FONT_20, FONT_30, FONT_ARIAL_15
 
 
-PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2)
-PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
+PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)
+PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)
+
+# Inventory measurements
+INVENTORY_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
+INVENTORY_TOP_LEFT_X = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PANEL_TOP_LEFT_X
+INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
+INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
+ITEM_SIZE = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)
 
 
 def render_player_panel(player_dict):
@@ -20,6 +28,8 @@ def render_player_panel(player_dict):
     draw_conditions(player_dict['conditions'])
     draw_attributes(player_dict['attributes'])
     draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
+
+    return pg.Rect(PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
 
 
 def draw_level_and_experience(level, type, experience, refresh=False):
@@ -81,3 +91,52 @@ def draw_conditions(conditions, refresh=False):
             condition_indicator = font.render(condition.upper(), 1, color)
             MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
+
+def draw_inventory(inventory, refresh=False):
+    inventory_label = FONT_20.render("INVENTORY", 1, colors.WHITE)
+    MAIN_WINDOW.blit(inventory_label, (INVENTORY_TOP_LEFT_X, INVENTORY_TOP_LEFT_Y - 25))
+    inventory_rect = pg.Rect(INVENTORY_TOP_LEFT_X, INVENTORY_TOP_LEFT_Y,
+                             ITEM_SIZE * int(INVENTORY_LIMIT / INVENTORY_NUM_ROWS), ITEM_SIZE * INVENTORY_NUM_ROWS)
+    if refresh:
+        MAIN_WINDOW.fill(color=colors.BLACK, rect=inventory_rect)
+    inventory_tiles = list()
+    for y in range(INVENTORY_NUM_ROWS):
+        for x in range(int(INVENTORY_LIMIT / INVENTORY_NUM_ROWS)):
+            item_tile = pg.Rect((x * ITEM_SIZE) + INVENTORY_TOP_LEFT_X,
+                                (y * ITEM_SIZE) + INVENTORY_TOP_LEFT_Y, ITEM_SIZE, ITEM_SIZE)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
+            if len(inventory) >= (y * 10) + x + 1:
+                MAIN_WINDOW.fill(color=colors.ORANGE, rect=((x * ITEM_SIZE) + INVENTORY_TOP_LEFT_X + 1,
+                                                            (y * ITEM_SIZE) + INVENTORY_TOP_LEFT_Y + 1,
+                                                             ITEM_SIZE - 2, ITEM_SIZE - 2))
+                inventory_tiles.append(item_tile)
+    return inventory_tiles, inventory_rect
+
+def draw_item_info(item_dict, mouse_pos):
+    """
+    Function to draw a small window displaying item info. The top-left of the window will be determined by the position
+    of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
+    the item to be invisible. Thus we have the window to appear to the left of the cursor if the item is in the right
+    half of the inventory, and to the right of the cursor if the item is in the left half. The location of the mouse
+    cursor is used to determine this.
+    """
+    item_window_length = int(INVENTORY_LENGTH / 2)
+    item_window_height = ITEM_SIZE * 2
+    top_left_y = INVENTORY_TOP_LEFT_Y
+    if mouse_pos[0] < PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+        # Cursor is on the left side of the inventory
+        top_left_x = mouse_pos[0]
+    else:
+        # Cursor is on the right side of the inventory
+        top_left_x = mouse_pos[0] - item_window_length
+    MAIN_WINDOW.fill(colors.NAVY, (top_left_x, top_left_y, item_window_length, item_window_height))
+    item_name = FONT_20.render(item_dict['name'].upper(), 1, colors.WHITE)
+    # ['description'] and ['details'] are both lists of strings which we concatenate to add in a single loop
+    item_string_list = item_dict['description'] + ['---'] + item_dict['details']
+    item_details = [FONT_ARIAL_15.render(string, 1, colors.WHITE) for string in item_string_list]
+    MAIN_WINDOW.blit(item_name, (top_left_x + 2, top_left_y + 2))
+    for i, detail in enumerate(item_details):
+        MAIN_WINDOW.blit(detail, (top_left_x + 5, top_left_y + 27 + (i *16)))
+    pg.display.update()
+
+

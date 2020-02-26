@@ -3,14 +3,14 @@ import copy
 import pygame as pg
 
 from game_elements.character import Character
-
+from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1,
                  in_combat=False, inventory=None, equipment=None, condition=None, level=1, experience=None,
                  type="adventurer"):
         super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
-        self.inventory = inventory if inventory is not None else dict()
+        self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
             'body': None,
@@ -70,6 +70,18 @@ class Player(Character):
         # Placeholder for now, might want to add extra functionality later
         pass
 
+    def pick_up_item(self, item, from_chest=False):
+        if len(self.inventory) == INVENTORY_LIMIT:
+            console_text = f'Inventory is full. You cannot pick up {item.name}.'
+            return console_text, False
+        else:
+            self.inventory.append(item)
+            if from_chest:
+                console_text = f'You open the chest to find {item.name}'
+            else:
+                console_text = f'You picked up {item.name}.'
+            return console_text, True
+
     def conditions_worsen(self):
         """
         Function to be called at the end of every turn, which will increment the condition-worsening counter, and
@@ -92,7 +104,6 @@ class Player(Character):
                 render_necessary = True
         return render_necessary
 
-
     def apply_condition_penalty(self, condition):
         if condition == 'thirsty' or condition == 'hungry':
             self.hp[0] = max(self.hp[0] - 1, 0)
@@ -103,7 +114,6 @@ class Player(Character):
             for attribute in self.attributes:
                 self.attributes[attribute] -= 2
 
-
     def check_fatigue(self):
         render_necessary = False
         if self.conditions['tired'][0] >= 0.15*self.conditions['tired'][1] and self.fatigued == 1:
@@ -112,6 +122,13 @@ class Player(Character):
                 self.attributes[attribute] += 2
             render_necessary = True
         return render_necessary
+
+    def consume_item(self, index):
+        item = self.inventory.pop(index)
+        for effect, parameter_dict in zip(item.effects, item.parameters):
+            parameter_dict['target'] = self
+            effect(**parameter_dict)
+
 
 def load_player_from_json(filename):
     with open(filename, 'r') as f:

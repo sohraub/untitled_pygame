@@ -1,7 +1,8 @@
 import pygame as pg
 
 import colors
-from config import TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, TILE_COLORS, BOARD_HEIGHT, BOARD_LENGTH
+from config import TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, TILE_COLORS
+from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering.window_renderer import MAIN_WINDOW
 
 
