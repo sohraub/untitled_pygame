@@ -1,3 +1,6 @@
+"""
+Module that stores all the colors used in the game.
+"""
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (191, 48, 48)

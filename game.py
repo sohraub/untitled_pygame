@@ -1,13 +1,7 @@
 import pygame as pg
-from time import sleep
-
-import colors
 
 from utility_functions import manhattan_distance
 from rendering import window_renderer, board_renderer
-from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
-from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 from game_elements.board import Board
 from game_elements.player import Player
 from misc_panel import MiscPanel
