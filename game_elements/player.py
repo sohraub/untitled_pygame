@@ -6,10 +6,27 @@ from game_elements.character import Character
 from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
-    def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1,
-                 in_combat=False, inventory=None, equipment=None, condition=None, level=1, experience=None,
-                 type="adventurer"):
-        super().__init__(name, x, y, hp, mp, attributes, status, move_speed, in_combat)
+    def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
+                 equipment=None, condition=None, level=1, experience=None, type="adventurer"):
+        """
+        The Player object which will be the user's avatar as they navigate the world, an extension of the Character
+        class. For explanations on the parameters used in the super() init, refer to the Character module.
+
+        :param inventory: A list containing all of the Item objects in the players inventory.
+        :param equipment: A dict showing the user's equipped items.
+        :param condition: A dict storing the levels of the player's tiredness, hunger, and thirst. The info for each
+                          condition is stored as a 3-tuple of ['current', 'max', 'counter'], where 'current' decrements
+                          by one every time 'counter' reaches a certain threshold, based on the players attributes.
+        :param level: The Player's level.
+        :param experience: The Player's current experience progress, stored as ['current', 'max']
+        :param type: The Player's class.
+
+        As well as the above, the following attributes are also set and used throughout the Player's methods:
+        :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
+                   lowered.
+        :movement_mapping: A dict that maps keyboard inputs to the proper methods and parameters which will be called.
+        """
+        super().__init__(name, x, y, hp, mp, attributes, status)
         self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
@@ -42,7 +59,8 @@ class Player(Character):
         }
 
     def to_dict(self):
-        dict = {
+        """Method which returns a dict representation of the Player object."""
+        return {
             'name': self.name,
             'hp': self.hp,
             'mp': self.mp,
@@ -55,9 +73,9 @@ class Player(Character):
             'type': self.type,
             'experience': self.experience
         }
-        return dict
 
     def perform_movement(self, input):
+        """Method that calls the appropriate method from self.movement_mapping based on the keyboard input."""
         func = self.movement_mapping[input][0]
         param = self.movement_mapping[input][1]
         if param is None:
@@ -67,26 +85,27 @@ class Player(Character):
         return self.x, self.y
 
     def wait(self):
-        # Placeholder for now, might want to add extra functionality later
+        """Method called when the Player is to wait a turn."""
+        # TODO: Placeholder for now, might want to add extra functionality later
         pass
 
     def pick_up_item(self, item, from_chest=False):
+        """Method to pick up items that the Player encounters on the board."""
         if len(self.inventory) == INVENTORY_LIMIT:
             console_text = f'Inventory is full. You cannot pick up {item.name}.'
             return console_text, False
         else:
             self.inventory.append(item)
             if from_chest:
-                console_text = f'You open the chest to find {item.name}'
+                console_text = f'The chest creaks open, and you find {item.name}'
             else:
                 console_text = f'You picked up {item.name}.'
             return console_text, True
 
     def conditions_worsen(self):
         """
-        Function to be called at the end of every turn, which will increment the condition-worsening counter, and
+        Method to be called at the end of every turn, which will increment the condition-worsening counter, and
         de-increment the current condition value if the counter reaches the threshold.
-        :return: n/a
         """
         render_necessary = False
         condition_thresholds = {
@@ -105,6 +124,7 @@ class Player(Character):
         return render_necessary
 
     def apply_condition_penalty(self, condition):
+        """Method which applies the appropriate condition penalties when its thresholds are met."""
         if condition == 'thirsty' or condition == 'hungry':
             self.hp[0] = max(self.hp[0] - 1, 0)
         if condition == 'hungry':
@@ -115,6 +135,10 @@ class Player(Character):
                 self.attributes[attribute] -= 2
 
     def check_fatigue(self):
+        """
+        Method which checks if the player is fatigued or not, and adjusts their stats accordingly.
+        :return: render_necessary, a boolean signifying if attributes have been changed, and thus need to re-render.
+        """
         render_necessary = False
         if self.conditions['tired'][0] >= 0.15*self.conditions['tired'][1] and self.fatigued == 1:
             self.fatigued = 0
@@ -124,6 +148,7 @@ class Player(Character):
         return render_necessary
 
     def consume_item(self, index):
+        """Method to consume the item located at 'index' in the player's inventory."""
         item = self.inventory.pop(index)
         for effect, parameter_dict in zip(item.effects, item.parameters):
             parameter_dict['target'] = self
@@ -131,13 +156,13 @@ class Player(Character):
 
 
 def load_player_from_json(filename):
+    """Function to initialize a Player object from a JSON file."""
     with open(filename, 'r') as f:
         character = json.load(f)
     return Player(
         name=character.get('name', 'TEST'),
         hp=character.get('hp', None),
         mp=character.get('mp', None),
-        move_speed=character.get('move_speed', None),
         attributes=character.get('attributes', None),
         status=character.get('status', None),
         condition=character.get('condition', None),

@@ -2,15 +2,14 @@ import pygame as pg
 
 import colors
 
-from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, \
-    TILE_COLORS, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
+from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
 from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30
 
 
 PANEL_TOP_LEFT_X = WINDOW_LENGTH - ((TOP_LEFT_X - SIDE_PANEL_LENGTH) / 2) - SIDE_PANEL_LENGTH
 PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) / 2)
 
-F_WINDOW_TOP_LEFT_X = PANEL_TOP_LEFT_X + int(0.02 * SIDE_PANEL_LENGTH)  # Top-left coords for the focus window
+F_WINDOW_TOP_LEFT_X = PANEL_TOP_LEFT_X + int(0.02 * SIDE_PANEL_LENGTH)  # Top-left coordinates for the focus window
 F_WINDOW_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.02 * SIDE_PANEL_HEIGHT)
 F_WINDOW_LENGTH = int(0.96 * SIDE_PANEL_LENGTH)
 F_WINDOW_HEIGHT = int(0.3 * SIDE_PANEL_HEIGHT)
@@ -26,12 +25,13 @@ def render_misc_panel():
                  (PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT), 2)
     render_focus_window()
 
-def render_focus_window(focus_info=None):
+def render_focus_window(focus_info=None, refresh=False):
     f_window_rect = (F_WINDOW_TOP_LEFT_X, F_WINDOW_TOP_LEFT_Y, F_WINDOW_LENGTH, F_WINDOW_HEIGHT)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE, f_window_rect, 1)
-    # Re-fill the area just inside the window to black, as a refresh
-    MAIN_WINDOW.fill(colors.BLACK,
-                     rect=(f_window_rect[0] + 1, f_window_rect[1] + 1, f_window_rect[2] - 2, f_window_rect[3] - 2))
+    if refresh:
+        # Re-fill the area just inside the window to black, as a refresh
+        MAIN_WINDOW.fill(colors.BLACK,
+                         rect=(f_window_rect[0] + 1, f_window_rect[1] + 1, f_window_rect[2] - 2, f_window_rect[3] - 2))
     if focus_info is not None:
         if focus_info['type'] == 'enemy':
             render_enemy_info(focus_info)
