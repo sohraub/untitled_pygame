@@ -19,8 +19,7 @@ class PlayerPanel:
         """
         self.player = player
         self.player_dict = player.to_dict()
-        self.panel_rect = player_panel_renderer.render_player_panel(self.player_dict)
-        self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
+        self.panel_rect, self.inventory_tiles, self.inventory_rect  = player_panel_renderer.render_player_panel(self.player_dict)
         self.item_window_active = None
         self.active_item_index = None
 
