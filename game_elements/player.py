@@ -113,6 +113,7 @@ class Player(Character):
             'hungry': 7 * self.attributes['end'],
             'tired': 9 * self.attributes['end']
         }
+        console_text = list()
         for condition in self.conditions:
             self.conditions[condition][2] += 1
             if self.conditions[condition][2] >= condition_thresholds[condition]:
@@ -153,6 +154,9 @@ class Player(Character):
         for effect, parameter_dict in zip(item.effects, item.parameters):
             parameter_dict['target'] = self
             effect(**parameter_dict)
+        console_text = f'You {item.verb} the {item.name}.'
+        print(self.conditions)
+        return console_text
 
 
 def load_player_from_json(filename):

@@ -43,15 +43,13 @@ class Game:
             self.player.x = old_x
             self.player.y = old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
-                # The handle_attacking_enemy function returns a text string to be displayed in the console
-                console_text.append(self.handle_attacking_enemy((new_x, new_y)))
+                # The handle_attacking_enemy function returns a list of strings to be displayed in the console
+                console_text.extend(self.handle_attacking_enemy((new_x, new_y)))
             if self.board.template[new_y][new_x] == 'T':  # Moving a tile which contains a chest opens the chest
+                # Opening a chest only returns a single string to display in the console
                 console_text.append(self.handle_opening_chest((new_x, new_y)))
 
-        if console_text:
-            self.console.update_console(console_text)
-
-        return True
+        return console_text
 
 
     def handle_opening_chest(self, chest_pos):
@@ -71,13 +69,14 @@ class Game:
         """Calls methods to update focus window, for player to attack enemy, and if enemy.hp=0, handle enemy death."""
         self.refresh_focus_window(enemy_pos)
         target_enemy = self.board.enemies[enemy_pos]
-        battle_text = self.player.basic_attack(target_enemy)
+        console_text = list()
+        console_text.extend(self.player.basic_attack(target_enemy))
         if target_enemy.hp[0] == 0:
             self.board.handle_enemy_death(enemy_pos)
             self.misc_panel.focus_tile = None
             self.refresh_focus_window()
         # Battle text is returned to be fed into the console.
-        return battle_text
+        return console_text
 
 
     def start_enemy_turn(self):
@@ -96,11 +95,11 @@ class Game:
         for enemy_coord in self.board.enemies:
             # Load all Enemy objects currently on the board into a list to iterate over
             enemies.append(self.board.enemies[enemy_coord])
+        console_text = list()
         for enemy in enemies:
-            console_text = list()
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.attack_range:
-                console_text.append(enemy.basic_attack(self.player, enemy_attack=True))
+                console_text.extend(enemy.basic_attack(self.player, enemy_attack=True))
             elif distance_to_player <= enemy.aggro_range:
                 new_position = enemy.move_towards_target((self.player.x, self.player.y), self.board.tile_mapping['O'])
                 if new_position is not None:
@@ -109,20 +108,26 @@ class Game:
                     enemy.y = new_position[1]
                     self.load_game_board()
 
-            if console_text:
-                self.console.update_console(console_text)
+        return console_text
 
+    def handle_turn_end(self, console_text=None):
+        """
+        Calls all necessary functions at the end of a turn, to check the players status and update things
+        accordingly.
 
-    def handle_turn_end(self):
-        """Calls all necessary functions at the end of a turn"""
-        # conditions_worsen() and check_fatigue() each return a boolean which determines whether any player info has
-        # changed, and thus needs re-drawing
+        conditions_worsen() and check_fatigue() each return a boolean which determines whether any player info has
+        changed, and thus needs re-drawing.
+        """
+        console_text = console_text if console_text is not None else list()
         if self.player.conditions_worsen():
             self.player_panel.refresh_hp_mp()
             self.player_panel.refresh_conditions()
             self.player_panel.refresh_attributes()
+
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
+        if console_text is not None:
+            self.console.update_console(console_text)
 
     def draw_window(self):
         """Calls functions to render board and both panels"""
@@ -150,17 +155,21 @@ class Game:
         """Calls appropriate function based on pressed key."""
         if pressed_key == pg.K_SPACE:
             self.player.wait()
+            # Not printing anything to console in this case, so just return empty list.
+            return []
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
-            self.move_player_on_board(pressed_key)
+            console_text = self.move_player_on_board(pressed_key)
+            return console_text
 
-    def handle_player_turn_over(self):
+    def handle_player_turn_over(self, console_text=None):
         """
         Method that's called when the player has performed a turn-ending action. Calls methods to progress enemy turns
         and re-render necessary parts of the screen that may have changed.
         """
-        self.start_enemy_turn()
-        self.handle_turn_end()
+        console_text = console_text if console_text is not None else list()
+        console_text.extend(self.start_enemy_turn())
+        self.handle_turn_end(console_text)
         self.player_panel.refresh_hp_mp()
         self.load_game_board()
 
@@ -173,6 +182,8 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return False
+            # List holding text to be displayed on the console after turn, if any.
+            console_text = list()
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
@@ -180,11 +191,12 @@ class Game:
                 if pg.mouse.get_pressed()[0] and self.player_panel.item_window_active is not None:
                     if self.player_panel.item_window_active.collidepoint(pg.mouse.get_pos()):
                         item_index = self.player_panel.active_item_index
-                        self.player.consume_item(item_index)
+                        console_text.append(self.player.consume_item(item_index))
                         self.player_panel.handle_item_consumption()
-                        self.handle_player_turn_over()
+                        self.handle_player_turn_over(console_text)
             if event.type == pg.KEYDOWN:
-                self.handle_key_presses(event.key)
-                self.handle_player_turn_over()
+                # This function can return multiple lines as a list, so we used extend instead of append.
+                console_text.extend(self.handle_key_presses(event.key))
+                self.handle_player_turn_over(console_text)
 
         return True

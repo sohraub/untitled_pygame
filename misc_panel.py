@@ -13,7 +13,6 @@ class MiscPanel:
         self.focus_tile = focus_tile
         misc_panel_renderer.render_misc_panel()
 
-
     def refresh_misc_panel(self):
         """Placeholder method."""
         pass
@@ -22,7 +21,7 @@ class MiscPanel:
         """Method to re-render the focus window with a new focus tile."""
         self.focus_tile = new_focus
         focus_info = self.load_focus_window()
-        misc_panel_renderer.render_focus_window(focus_info)
+        misc_panel_renderer.render_focus_window(focus_info, refresh=True)
 
     def load_focus_window(self):
         """
@@ -39,7 +38,6 @@ class MiscPanel:
             tile_type = self.board.template[self.focus_tile[1]][self.focus_tile[0]]
             focus_dict = focus_function_mapping[tile_type]()
         return focus_dict
-
 
     def load_enemy_info(self):
         """Method that returns a dict based on the enemy located at self.focus_tile."""
