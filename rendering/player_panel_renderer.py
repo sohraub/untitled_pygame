@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_15
+from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_15, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen.
@@ -183,13 +183,8 @@ def draw_item_info(item_dict, mouse_pos):
     else:
         # Cursor is on the right side of the inventory
         top_left_x = mouse_pos[0] - item_window_length
-    MAIN_WINDOW.fill(colors.NAVY, (top_left_x, top_left_y, item_window_length, item_window_height))
-    item_name = FONT_20.render(item_dict['name'].upper(), 1, colors.WHITE)
-    # ['description'] and ['details'] are both lists of strings which we concatenate to add in a single loop
-    item_string_list = item_dict['description'] + ['---'] + item_dict['details']
-    item_details = [FONT_TNR_15.render(string, 1, colors.WHITE) for string in item_string_list]
-    MAIN_WINDOW.blit(item_name, (top_left_x + 2, top_left_y + 2))
-    for i, detail in enumerate(item_details):
-        MAIN_WINDOW.blit(detail, (top_left_x + 5, top_left_y + 27 + (i *16)))
 
+    draw_detail_window(header_string=item_dict['name'].upper(),
+                       body_strings=item_dict['description'] + ['---'] + item_dict['details'],
+                       rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height))
 
