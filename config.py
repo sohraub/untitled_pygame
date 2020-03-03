@@ -17,22 +17,13 @@ SIDE_PANEL_HEIGHT = int(WINDOW_HEIGHT * 0.98)
 
 
 ###### TILE COLORS ######
-"""
-Mapping of letters to tile type is as follows:
-    P - Player
-    E - Enemy
-    O - Open tile
-    T - Treasure chest
-    D - Door
-    X - Out-of-play tile
-"""
-TILE_COLORS = {
-    'P': colors.GREEN,
-    'E': colors.RED,
-    'O': colors.GREY,
-    'T': colors.GOLD,
-    'D': colors.BROWN,
-    'X': colors.BLACK
+TILE_COLORS = {  # Mapping of letters to tile type is as follows:
+    'P': colors.GREEN,  # Player
+    'E': colors.RED,  # Enemies
+    'O': colors.GREY,  # Open tiles
+    'T': colors.GOLD,  # Treasure chests
+    'D': colors.BROWN,  # Doors
+    'X': colors.BLACK  # Walls/out-of-play tiles
 }
 
 

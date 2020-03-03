@@ -1,7 +1,5 @@
 import pygame as pg
 
-from rendering import window_renderer
-
 from game import Game
 from console import Console
 from game_elements.board import Board
@@ -9,29 +7,18 @@ from game_elements.board_templates import TEMPLATES
 from game_elements.player import Player, load_player_from_json
 
 
-def load_board():
-    template = TEMPLATES[0]
-    board = Board(template)
-    return board
+"""
+Main module of the game, which kicks things off by calling the main_menu() method.
+"""
 
 
 def main_menu():
+    """Loads the main menu screen, from which players can (eventually) navigate to the main game or other parts."""
     main_game()
 
 
-def handle_user_input():
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            return False
-
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_q:
-                return False
-
-    return True
-
-
 def main_game():
+    """Loads the main game."""
     game = Game(console=Console(), player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
     run = True
     game.draw_window()

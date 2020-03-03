@@ -5,11 +5,16 @@ from uuid import uuid4
 from game_elements.enemy import Enemy
 
 
+"""
+Module containing every Enemy as well as lists to be randomly chosen from, based on tier.
+"""
+
+
 large_rat = Enemy(name='large_rat', hp=[8, 8], mp=[1, 1],
-                  attributes={'str':6, 'dex':4, 'int': 1, 'end':4, 'vit':2, 'wis':1})
+                  attributes={'str':3, 'dex':2, 'int': 1, 'end':3, 'vit':2, 'wis':1})
 
 untitled_humanoid = Enemy(name='placeholder', hp=[10, 10], mp=[5, 5],
-                          attributes={'str':7, 'dex':5, 'int':4, 'end':4, 'vit':4, 'wis':4})
+                          attributes={'str':4, 'dex':3, 'int':2, 'end':3, 'vit':2, 'wis':2})
 
 
 # Enemies will be grouped by tier, and when enemies are generated, the Game class will pull randomly

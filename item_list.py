@@ -4,6 +4,11 @@ import copy
 import item_effects
 from game_elements.item import Item, Consumable
 
+"""
+Module containing all of the items that can be loaded into a board.
+"""
+
+#### CONSUMABLES ####
 small_hp_potion = Consumable(name='Small HP Potion',
                              description='A small potion you can drink to restore a bit of HP.',
                              effects=[item_effects.increase_hp, item_effects.improve_conditions],
@@ -22,9 +27,12 @@ apple = Consumable(name='Apple',
                    parameters=[{'conditions':['hungry', 'thirsty'], 'values':[10, 1]}],
                    details=['Hunger -10', 'Thirst -1'])
 
+
+#### LISTS OF CONSUMABLES ####
 tier_1 = [small_hp_potion, small_mp_potion, apple]
 
 def generate_random_item(tier):
+    """Function which returns a copy of a random item based on the tier."""
     tier_mapping = {
         1: tier_1
     }

@@ -1,3 +1,7 @@
+"""
+Config file that stores important variables which have to do with game element objects.
+"""
+
 #######################################
 ############ BOARD VALUES #############
 #######################################
