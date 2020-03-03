@@ -9,7 +9,9 @@ class PlayerPanel:
         module.
         :param player: the Player object being controlled by the user.
 
-        Throughout the methods of this class, the following attributes are also set:
+        In the init method of this class, functions in the player_panel_render module are called to draw the individual
+        components, and all of these functions return the Rect object that encloses their subject areas. These Rects
+        are saved as attributes for the PlayerPanel to detect and handle mouseovers.
         :player_dict: A dict containing all of the necessary info about the Player.
         :panel_rect: The dimensions of the player panel rectangle.
         :inventory_tiles: The dimensions of all of the inventory tiles which actually hold and item.
@@ -19,7 +21,14 @@ class PlayerPanel:
         """
         self.player = player
         self.player_dict = player.to_dict()
-        self.panel_rect, self.inventory_tiles, self.inventory_rect  = player_panel_renderer.render_player_panel(self.player_dict)
+        self.panel_rect = player_panel_renderer.draw_player_panel(self.player_dict)
+        self.hp_mp_rect = player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'])
+        self.conditions_rect = player_panel_renderer.draw_conditions(self.player_dict['conditions'])
+        self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'])
+        self.level_and_exp_rect = player_panel_renderer.draw_level_and_experience(self.player_dict['level'],
+                                                                                  self.player_dict['type'],
+                                                                                  self.player_dict['experience'])
+        self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
         self.item_window_active = None
         self.active_item_index = None
 
