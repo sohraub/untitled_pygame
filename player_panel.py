@@ -16,8 +16,10 @@ class PlayerPanel:
         :panel_rect: The dimensions of the player panel rectangle.
         :inventory_tiles: The dimensions of all of the inventory tiles which actually hold and item.
         :inventory_rect: The dimensions of the inventory rectangle.
-        :item_window_active: A flag signifying whether or not the item display window is currently showing.
-        :active_item_index: The index of the currently displayed item in the player's inventory.
+        :detail_window_focus: If a detail window is active, this will hold the Rect of the focus of the window. If there
+                              are no detail windows active, this will be set to None.
+        :active_item_index: The index of the currently displayed item in the player's inventory, also used when
+                            to tell the Player object which item is being clicked on.
         """
         self.player = player
         self.player_dict = player.to_dict()
@@ -29,7 +31,7 @@ class PlayerPanel:
                                                                                   self.player_dict['type'],
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
-        self.item_window_active = None
+        self.detail_window_focus = None
         self.active_item_index = None
 
     def refresh_hp_mp(self):
@@ -61,15 +63,19 @@ class PlayerPanel:
         Method to handle the player mousing over the player panel, to display specific information on what is being
         moused over.
         """
-        # This condition checks if the mouse is on the inventory and no item info is currently being displayed
-        if self.inventory_rect.collidepoint(mouse.get_pos()) and not self.item_window_active:
+        mouse_pos = mouse.get_pos()
+        # These conditions check if the mouse is on a panel element that can show a detail window, and that no detail
+        # window is currently being displayed.
+        if self.inventory_rect.collidepoint(mouse_pos) and not self.detail_window_focus:
             self.handle_inventory_mouseover()
-        # This condition checks if an item info window is still displaying even if the mouse is no longer
-        # on that item, and if so, refreshes the inventory to get rid of the item info
-        if self.item_window_active is not None and \
-                not self.item_window_active.collidepoint(mouse.get_pos()):
+        if self.conditions_rect.collidepoint(mouse_pos) and not self.detail_window_focus:
+            self.handle_conditions_mouseover()
+        if self.detail_window_focus is not None and \
+                not self.detail_window_focus.collidepoint(mouse_pos):
+            # This condition checks if an item info window is still displaying even if the mouse is no longer
+            # on that item, and if so, refreshes the inventory to get rid of the item info
             self.refresh_inventory()
-            self.item_window_active = None
+            self.detail_window_focus = None
             self.active_item_index = None
 
     def handle_inventory_mouseover(self):
@@ -85,12 +91,19 @@ class PlayerPanel:
                 break
 
         if item_index is not None:
-            self.item_window_active = item_tile
+            self.detail_window_focus = item_tile
             self.active_item_index = item_index
-            player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict(), mouse.get_pos())
+            player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict())
+
+    def handle_conditions_mouseover(self):
+        """
+        Method to handle the case when the mouse is over the player's conditions, calling the rendering method to draw
+        the detail window.
+        """
+        player_panel_renderer.draw_condition_details(self.player_dict['conditions'], self.conditions_rect)
 
     def handle_item_consumption(self):
         """Method to reset the necessary attributes and refresh the inventory when an item is consumed."""
-        self.item_window_active = None
+        self.detail_window_focus = None
         self.active_item_index = None
         self.refresh_inventory()

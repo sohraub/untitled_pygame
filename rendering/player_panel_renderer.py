@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_15, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_13, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -169,7 +169,7 @@ def draw_inventory(inventory, refresh=False):
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
 
-def draw_item_info(item_dict, mouse_pos):
+def draw_item_info(item_dict):
     """
     Function to draw a small window displaying item info. The top-left of the window will be determined by the position
     of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
@@ -177,6 +177,8 @@ def draw_item_info(item_dict, mouse_pos):
     half of the inventory, and to the right of the cursor if the item is in the left half. The location of the mouse
     cursor is used to determine this.
     """
+
+    mouse_pos = pg.mouse.get_pos()
     item_window_length = int(INVENTORY_LENGTH / 2)
     item_window_height = ITEM_LENGTH * 2
     top_left_y = INVENTORY_TOP_LEFT_Y
@@ -191,3 +193,25 @@ def draw_item_info(item_dict, mouse_pos):
                        rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
                        header_string=item_dict['name'].upper())
 
+def draw_condition_details(conditions_dict, conditions_rect):
+    """
+    Function to display details on the players conditions when they are moused over.
+    :param conditions_dict: A dict containing the player's condition info
+    :param conditions_rect: The Rect enclosing the condition info, for positioning purposes
+    """
+    adj_to_noun = {  # A dict to map the conditions to nouns for display in the item detail windows
+        'thirsty': 'Thirst',
+        'hungry': 'Hunger',
+        'tired': 'Tiredness'
+    }
+    top_left_x = conditions_rect[0] - 150
+    top_left_y = conditions_rect[1]
+    width = 145
+    height = conditions_rect[3] - 30
+    window_body = list()
+    for condition in conditions_dict:
+        current = conditions_dict[condition][0]
+        max = conditions_dict[condition][1]
+        window_body.append(f'{adj_to_noun[condition]} level: {current} / {max}')
+
+    draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)
