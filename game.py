@@ -29,7 +29,6 @@ class Game:
         self.player_panel = None
         self.misc_panel = None
 
-
     def move_player_on_board(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
         console_text = list()
@@ -51,7 +50,6 @@ class Game:
 
         return console_text
 
-
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
         target_chest = self.board.chests[chest_pos]
@@ -63,7 +61,6 @@ class Game:
             self.board.handle_chest_has_been_opened(chest_pos)
             self.player_panel.refresh_inventory()
         return console_text
-
 
     def handle_attacking_enemy(self, enemy_pos):
         """Calls methods to update focus window, for player to attack enemy, and if enemy.hp=0, handle enemy death."""
@@ -77,7 +74,6 @@ class Game:
             self.refresh_focus_window()
         # Battle text is returned to be fed into the console.
         return console_text
-
 
     def start_enemy_turn(self):
         """
@@ -109,6 +105,20 @@ class Game:
                     self.load_game_board()
 
         return console_text
+
+    def handle_item_use(self):
+        """
+        Calls necessary functions and methods to handle the player using an item.
+
+        :returns: New lines to be displayed in the console
+        """
+        console_text = list()
+        item_index = self.player_panel.active_item_index
+        console_text.append(self.player.consume_item(item_index))
+        self.player_panel.handle_item_consumption()
+
+        return console_text
+
 
     def handle_turn_end(self, console_text=None):
         """
@@ -187,14 +197,16 @@ class Game:
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
-                # Checks if the player clicks an item in the inventory
-                if pg.mouse.get_pressed()[0] and self.player_panel.item_window_active is not None:
-                    if self.player_panel.item_window_active.collidepoint(pg.mouse.get_pos()):
-                        item_index = self.player_panel.active_item_index
-                        console_text.append(self.player.consume_item(item_index))
-                        self.player_panel.handle_item_consumption()
+            if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
+                mouse_pos = pg.mouse.get_pos()
+                # If a tooltip focus window is active, means a player has clicked on something that might have
+                # a function when clicked.
+                if self.player_panel.tooltip_focus is not None:
+                    # If the user has clicked on the inventory with the tooltip window active, they have clicked an item
+                    if self.player_panel.inventory_rect.collidepoint(mouse_pos):
+                        console_text.extend(self.handle_item_use())
                         self.handle_player_turn_over(console_text)
-            if event.type == pg.KEYDOWN:
+            if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 # This function can return multiple lines as a list, so we used extend instead of append.
                 console_text.extend(self.handle_key_presses(event.key))
                 self.handle_player_turn_over(console_text)

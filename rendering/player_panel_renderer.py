@@ -4,10 +4,12 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_15
+from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_13, draw_detail_window
 
 """
-Module for rendering the player panel on the left side of the screen.
+Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
+that's enclosing their subject, to be passed back to the PlayerPanel object which uses them to detect and handle 
+mouseovers.
 
 The following are the dimensions for all the rectangle drawn in this panel.
 """
@@ -24,26 +26,18 @@ INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
 ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles.
 
 
-def render_player_panel(player_dict):
+def draw_player_panel(player_dict):
     """
-    Renders the main window and player name, calling functions to render the player info, skills, and inventory.
+    Renders the main window and player name.
     :param player_dict:
     :return: panel_rect, the rect that makes up the main panel
-             inventory_tiles, a list of rects for each tile in the inventory
-             inventory_rect, the rect that makes up the whole inventory
-            These values are used by the PlayerPanel object to handle users mousing over the player panel.
     """
     panel_rect = pg.Rect(PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE, panel_rect, 2)
     player_name = FONT_30.render(player_dict['name'], 1, colors.WHITE)
     MAIN_WINDOW.blit(player_name, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
-    draw_hp_mp(player_dict['hp'], player_dict['mp'])
-    draw_conditions(player_dict['conditions'])
-    draw_attributes(player_dict['attributes'])
-    draw_level_and_experience(player_dict['level'], player_dict['type'], player_dict['experience'])
-    inventory_tiles, inventory_rect = draw_inventory(player_dict['inventory'])
 
-    return panel_rect, inventory_tiles, inventory_rect
+    return panel_rect
 
 
 def draw_level_and_experience(level, type, experience, refresh=False):
@@ -53,10 +47,11 @@ def draw_level_and_experience(level, type, experience, refresh=False):
     :param type: A string which is the player's current type/class.
     :param experience: A list which stores the players experience progress as [current, max].
     :param refresh: A boolean which determines if the area around this info is filled to black, as a refresh.
-    :return: n/a
+    :return: The Rect enclosing all of the level and experience info.
     """
+    level_and_exp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220, SIDE_PANEL_LENGTH - 20, 35)
     if refresh:
-        MAIN_WINDOW.fill(colors.BLACK, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220, SIDE_PANEL_LENGTH - 20, 35))
+        MAIN_WINDOW.fill(colors.BLACK, level_and_exp_rect)
     level_indicator = FONT_20.render(f"LEVEL {level} {type.upper()}", 1, colors.WHITE)
     MAIN_WINDOW.blit(level_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220))
     pg.draw.rect(MAIN_WINDOW, colors.GREY,
@@ -67,16 +62,19 @@ def draw_level_and_experience(level, type, experience, refresh=False):
         pg.draw.rect(MAIN_WINDOW, colors.PALE_YELLOW,
                      (PANEL_TOP_LEFT_X + 7, PANEL_TOP_LEFT_Y + 249, current_exp_length, 6), 0)
 
+    return level_and_exp_rect
+
 
 def draw_attributes(attributes, refresh=False):
     """
     Renders the player's attributes.
     :param attributes: A dict containing all of the players attribute values.
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
-    :return: n/a
+    :return: The Rect object enclosing the attributes.
     """
+    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, SIDE_PANEL_LENGTH - 20, 75)
     if refresh:
-        MAIN_WINDOW.fill(colors.BLACK, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, SIDE_PANEL_LENGTH - 20, 75))
+        MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
         'str': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120),
         'dex': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 145),
@@ -91,6 +89,7 @@ def draw_attributes(attributes, refresh=False):
         stat_indicator = font.render(string, 1, colors.WHITE)
         MAIN_WINDOW.blit(stat_indicator, coord_mapping[stat])
 
+    return attributes_rect
 
 def draw_hp_mp(hp, mp, refresh=False):
     """
@@ -98,14 +97,16 @@ def draw_hp_mp(hp, mp, refresh=False):
     :param hp: A list storing the player's current HP level as  [current, max]
     :param mp: A list storing the player's current MP level as  [current, max]
     :param refresh: As above.
-    :return: n/a
+    :return: The Rect object that encloses hp and mp.
     """
+    hp_mp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, PANEL_TOP_LEFT_X + 100, 50)
     if refresh:
-        MAIN_WINDOW.fill(colors.BLACK, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, PANEL_TOP_LEFT_X + 100, 50))
+        MAIN_WINDOW.fill(colors.BLACK, hp_mp_rect)
     hp_indicator = FONT_20.render("HP: {0} / {1}".format(hp[0], hp[1]), 1, colors.RED)
     mp_indicator = FONT_20.render("MP: {0} / {1}".format(mp[0], mp[1]), 1, colors.BLUE)
     MAIN_WINDOW.blit(hp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40))
     MAIN_WINDOW.blit(mp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 65))
+    return hp_mp_rect
 
 
 def draw_conditions(conditions, refresh=False):
@@ -114,10 +115,11 @@ def draw_conditions(conditions, refresh=False):
     :param conditions: A dict containing each condition and it's level as [current, max, counter]. Counter isn't
                        used in this module.
     :param refresh: As above.
-    :return: n/a
+    :return: The Rect object that encloses the conditions.
     """
+    condition_rect = (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90, PANEL_TOP_LEFT_Y + 10, 80, 90)
     if refresh:
-        MAIN_WINDOW.fill(colors.BLACK, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90, PANEL_TOP_LEFT_Y + 10, 80, 90))
+        MAIN_WINDOW.fill(colors.BLACK, condition_rect)
     condition_y_mapping = {'thirsty': 10, 'hungry': 35, 'tired': 60}
     for condition in conditions:
         # Condition names are only rendered if the level is below 50%
@@ -138,6 +140,7 @@ def draw_conditions(conditions, refresh=False):
             condition_indicator = font.render(condition.upper(), 1, color)
             MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
+    return pg.Rect(condition_rect)
 
 def draw_inventory(inventory, refresh=False):
     """
@@ -166,7 +169,7 @@ def draw_inventory(inventory, refresh=False):
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
 
-def draw_item_info(item_dict, mouse_pos):
+def draw_item_info(item_dict):
     """
     Function to draw a small window displaying item info. The top-left of the window will be determined by the position
     of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
@@ -174,6 +177,8 @@ def draw_item_info(item_dict, mouse_pos):
     half of the inventory, and to the right of the cursor if the item is in the left half. The location of the mouse
     cursor is used to determine this.
     """
+
+    mouse_pos = pg.mouse.get_pos()
     item_window_length = int(INVENTORY_LENGTH / 2)
     item_window_height = ITEM_LENGTH * 2
     top_left_y = INVENTORY_TOP_LEFT_Y
@@ -183,13 +188,30 @@ def draw_item_info(item_dict, mouse_pos):
     else:
         # Cursor is on the right side of the inventory
         top_left_x = mouse_pos[0] - item_window_length
-    MAIN_WINDOW.fill(colors.NAVY, (top_left_x, top_left_y, item_window_length, item_window_height))
-    item_name = FONT_20.render(item_dict['name'].upper(), 1, colors.WHITE)
-    # ['description'] and ['details'] are both lists of strings which we concatenate to add in a single loop
-    item_string_list = item_dict['description'] + ['---'] + item_dict['details']
-    item_details = [FONT_TNR_15.render(string, 1, colors.WHITE) for string in item_string_list]
-    MAIN_WINDOW.blit(item_name, (top_left_x + 2, top_left_y + 2))
-    for i, detail in enumerate(item_details):
-        MAIN_WINDOW.blit(detail, (top_left_x + 5, top_left_y + 27 + (i *16)))
 
+    draw_detail_window(body_strings=item_dict['description'] + ['---'] + item_dict['details'],
+                       rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
+                       header_string=item_dict['name'].upper())
 
+def draw_condition_details(conditions_dict, conditions_rect):
+    """
+    Function to display details on the players conditions when they are moused over.
+    :param conditions_dict: A dict containing the player's condition info
+    :param conditions_rect: The Rect enclosing the condition info, for positioning purposes
+    """
+    adj_to_noun = {  # A dict to map the conditions to nouns for display in the item detail windows
+        'thirsty': 'Thirst',
+        'hungry': 'Hunger',
+        'tired': 'Tiredness'
+    }
+    top_left_x = conditions_rect[0] - 150
+    top_left_y = conditions_rect[1]
+    width = 145
+    height = conditions_rect[3] - 30
+    window_body = list()
+    for condition in conditions_dict:
+        current = conditions_dict[condition][0]
+        max = conditions_dict[condition][1]
+        window_body.append(f'{adj_to_noun[condition]} level: {current} / {max}')
+
+    draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)

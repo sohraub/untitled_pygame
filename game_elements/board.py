@@ -78,8 +78,6 @@ class Board:
         for tile_type in self.tile_mapping.keys():
             for coord in self.tile_mapping[tile_type]:
                 new_template[coord[1]][coord[0]] = tile_type
-                if tile_type == 'E':
-                    print(coord)
 
         new_template[self.player_coordinates[1]][self.player_coordinates[0]] = 'P'
         self.template = new_template
