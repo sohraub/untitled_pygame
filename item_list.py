@@ -2,7 +2,7 @@ import random
 import copy
 
 import item_effects
-from game_elements.item import Item, Consumable
+from game_elements.item import Item, Consumable, Equipment
 
 """
 Module containing all of the items that can be loaded into a board.
@@ -29,12 +29,32 @@ apple = Consumable(name='Apple',
 
 
 #### LISTS OF CONSUMABLES ####
-tier_1 = [small_hp_potion, small_mp_potion, apple]
+tier_1_c = [small_hp_potion, small_mp_potion, apple]
 
-def generate_random_item(tier):
-    """Function which returns a copy of a random item based on the tier."""
+
+#### EQUIPPABLES ####
+rusty_sword = Equipment(name='Rusty Sword',
+                        description='This sword has seen better days, but could still do some damage.',
+                        slot='weapon', off_rating=2, stat_req={'str': 2, 'dex': 2})
+
+leather_cap = Equipment(name='Leather Cap',
+                        description="Doesn't offer much protection, but better than nothing.", slot='head',
+                        def_rating=1)
+
+#### LISTS OF EQUIPPABLES ####
+tier_1_e = [rusty_sword, leather_cap]
+
+def generate_random_item(tier, type='both'):
+    """
+    Function which returns a copy of a random item based on the tier and type.
+
+    :param tier: An int, signifying the tier of item to pull from.
+    :param type: A string, which can be either 'consumable', 'equipment', or 'both'.
+    """
     tier_mapping = {
-        1: tier_1
+        '1_consumable': tier_1_c,
+        '1_equipment': tier_1_e,
+        '1_both': tier_1_c + tier_1_e
     }
-    new_item = copy.deepcopy(random.choice(tier_mapping[tier]))
+    new_item = copy.deepcopy(random.choice(tier_mapping[f'{tier}_{type}']))
     return new_item

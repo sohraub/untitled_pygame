@@ -189,7 +189,11 @@ def draw_item_info(item_dict):
         # Cursor is on the right side of the inventory
         top_left_x = mouse_pos[0] - item_window_length
 
-    draw_detail_window(body_strings=item_dict['description'] + ['---'] + item_dict['details'],
+    # Body strings will be constructed differently for consumables and equipment.
+    if item_dict['type'] == 'consumable':
+        body_strings = item_dict['description'] + ['---'] + item_dict['details']
+
+    draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
                        header_string=item_dict['name'].upper())
 
