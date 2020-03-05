@@ -8,6 +8,9 @@ from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
 
+# List containing all of the keys that currently have a function
+FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a]
+
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
         """
@@ -181,6 +184,7 @@ class Game:
         console_text.extend(self.start_enemy_turn())
         self.handle_turn_end(console_text)
         self.player_panel.refresh_hp_mp()
+        self.player_panel.refresh_conditions()
         self.load_game_board()
 
     def game_loop_iteration(self):
@@ -207,8 +211,10 @@ class Game:
                         console_text.extend(self.handle_item_use())
                         self.handle_player_turn_over(console_text)
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
-                # This function can return multiple lines as a list, so we used extend instead of append.
-                console_text.extend(self.handle_key_presses(event.key))
-                self.handle_player_turn_over(console_text)
+                if event.key == pg.K_ESCAPE:  # ESC exits the game
+                    return False
+                if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
+                    console_text.extend(self.handle_key_presses(event.key))
+                    self.handle_player_turn_over(console_text)
 
         return True
