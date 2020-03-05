@@ -16,8 +16,8 @@ class PlayerPanel:
         :panel_rect: The dimensions of the player panel rectangle.
         :inventory_tiles: The dimensions of all of the inventory tiles which actually hold and item.
         :inventory_rect: The dimensions of the inventory rectangle.
-        :detail_window_focus: If a detail window is active, this will hold the Rect of the focus of the window. If there
-                              are no detail windows active, this will be set to None.
+        :tooltip_focus: If a tooltip window is active, this will hold the Rect of the focus of the window. If there
+                        is no tooltip windows active, this will be set to None.
         :active_item_index: The index of the currently displayed item in the player's inventory, also used when
                             to tell the Player object which item is being clicked on.
         """
@@ -31,7 +31,7 @@ class PlayerPanel:
                                                                                   self.player_dict['type'],
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
-        self.detail_window_focus = None
+        self.tooltip_focus = None
         self.active_item_index = None
 
     def refresh_hp_mp(self):
@@ -66,16 +66,17 @@ class PlayerPanel:
         mouse_pos = mouse.get_pos()
         # These conditions check if the mouse is on a panel element that can show a detail window, and that no detail
         # window is currently being displayed.
-        if self.inventory_rect.collidepoint(mouse_pos) and not self.detail_window_focus:
+        if self.inventory_rect.collidepoint(mouse_pos) and not self.tooltip_focus:
             self.handle_inventory_mouseover()
-        if self.conditions_rect.collidepoint(mouse_pos) and not self.detail_window_focus:
-            self.handle_conditions_mouseover()
-        if self.detail_window_focus is not None and \
-                not self.detail_window_focus.collidepoint(mouse_pos):
+        # Shelving tooltips for conditions for now, colour indication should be sufficient
+        # if self.conditions_rect.collidepoint(mouse_pos) and not self.tooltip_focus:
+        #     self.handle_conditions_mouseover()
+        if self.tooltip_focus is not None and \
+                not self.tooltip_focus.collidepoint(mouse_pos):
             # This condition checks if an item info window is still displaying even if the mouse is no longer
             # on that item, and if so, refreshes the inventory to get rid of the item info
             self.refresh_inventory()
-            self.detail_window_focus = None
+            self.tooltip_focus = None
             self.active_item_index = None
 
     def handle_inventory_mouseover(self):
@@ -91,7 +92,7 @@ class PlayerPanel:
                 break
 
         if item_index is not None:
-            self.detail_window_focus = item_tile
+            self.tooltip_focus = item_tile
             self.active_item_index = item_index
             player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict())
 
@@ -104,6 +105,6 @@ class PlayerPanel:
 
     def handle_item_consumption(self):
         """Method to reset the necessary attributes and refresh the inventory when an item is consumed."""
-        self.detail_window_focus = None
+        self.tooltip_focus = None
         self.active_item_index = None
         self.refresh_inventory()
