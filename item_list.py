@@ -46,8 +46,7 @@ leather_cap = Equipment(name='Leather Cap',
                         def_rating=1)
 
 #### LISTS OF EQUIPPABLES ####
-# tier_1_e = [rusty_sword, leather_cap]
-tier_1_e = [rusty_sword, short_sword]
+tier_1_e = [rusty_sword, leather_cap, short_sword]
 
 def generate_random_item(tier, type='both'):
     """
