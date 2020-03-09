@@ -4,26 +4,39 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_20, FONT_30, FONT_TNR_13, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
 that's enclosing their subject, to be passed back to the PlayerPanel object which uses them to detect and handle 
 mouseovers.
 
-The following are the dimensions for all the rectangle drawn in this panel.
+The following are the dimensions for all the main rectangles drawn in this panel.
 """
 
 #### MAIN PANEL ####
-PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)
-PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)
+PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)  # Currently: 38
+PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)  # Currently: 8
 
 #### INVENTORY ####
 INVENTORY_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
 INVENTORY_TOP_LEFT_X = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PANEL_TOP_LEFT_X
 INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
 INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
-ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles.
+ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles, so length = height
+
+#### EQUIPMENT ####
+EQUIP_ITEM_LENGTH = int(ITEM_LENGTH * 0.75)  # Item tiles in equipment be 3/4ths the size of items in inventory.
+EQUIPMENT_LENGTH = 4 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
+EQUIPMENT_HEIGHT = 4 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
+EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
+EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
+
+#### LEVEL/EXP INFO ####
+LEVEL_EXP_TOP_LEFT_X = int(PANEL_TOP_LEFT_X * 1.25)
+LEVEL_EXP_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
+LEVEL_EXP_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
+LEVEL_EXP_HEIGHT = int(SIDE_PANEL_HEIGHT / 21)
 
 
 def draw_player_panel(player_dict):
@@ -49,18 +62,19 @@ def draw_level_and_experience(level, type, experience, refresh=False):
     :param refresh: A boolean which determines if the area around this info is filled to black, as a refresh.
     :return: The Rect enclosing all of the level and experience info.
     """
-    level_and_exp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220, SIDE_PANEL_LENGTH - 20, 35)
+    level_and_exp_rect = (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, level_and_exp_rect)
     level_indicator = FONT_20.render(f"LEVEL {level} {type.upper()}", 1, colors.WHITE)
-    MAIN_WINDOW.blit(level_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220))
+    MAIN_WINDOW.blit(level_indicator, (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y))
     pg.draw.rect(MAIN_WINDOW, colors.GREY,
-                 (PANEL_TOP_LEFT_X + 6, PANEL_TOP_LEFT_Y + 248, SIDE_PANEL_LENGTH - 12, 8), 1)
+                 (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 24, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT - 27), 1)
+                 # (PANEL_TOP_LEFT_X + 6, PANEL_TOP_LEFT_Y + 248, SIDE_PANEL_LENGTH - 12, 8), 1)
     exp_percent = experience[0] / experience[1]
     current_exp_length = int(exp_percent * (SIDE_PANEL_LENGTH - 18 - PANEL_TOP_LEFT_X))
     if current_exp_length > 0:
         pg.draw.rect(MAIN_WINDOW, colors.PALE_YELLOW,
-                     (PANEL_TOP_LEFT_X + 7, PANEL_TOP_LEFT_Y + 249, current_exp_length, 6), 0)
+                     (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 26, current_exp_length, 6), 0)
 
     return level_and_exp_rect
 
@@ -72,24 +86,28 @@ def draw_attributes(attributes, refresh=False):
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, SIDE_PANEL_LENGTH - 20, 75)
+    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 60, 75, 150)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
         'str': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120),
         'dex': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 145),
         'int': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 170),
-        'end': (PANEL_TOP_LEFT_X + 120, PANEL_TOP_LEFT_Y + 120),
-        'vit': (PANEL_TOP_LEFT_X + 120, PANEL_TOP_LEFT_Y + 145),
-        'wis': (PANEL_TOP_LEFT_X + 120, PANEL_TOP_LEFT_Y + 170)
+        'end': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 195),
+        'vit': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220),
+        'wis': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 245)
     }
     font = pg.font.Font(font_SIL, 20)
     for stat in coord_mapping:
-        string = "{0}: {1}".format(stat.upper(), attributes[stat])
-        stat_indicator = font.render(string, 1, colors.WHITE)
-        MAIN_WINDOW.blit(stat_indicator, coord_mapping[stat])
+        # Render the stat names and values separately, so that they can be properly aligned
+        # TODO: Add logic to color stat values differently based on buffs/debuffs
+        stat_name = font.render(f"{stat.upper()}: ", 1, colors.WHITE)
+        stat_value = font.render(str(attributes[stat]), 1, colors.WHITE)
+        MAIN_WINDOW.blit(stat_name, coord_mapping[stat])
+        MAIN_WINDOW.blit(stat_value, (coord_mapping[stat][0] + 50, coord_mapping[stat][1]))
 
     return attributes_rect
+
 
 def draw_hp_mp(hp, mp, refresh=False):
     """
@@ -142,6 +160,7 @@ def draw_conditions(conditions, refresh=False):
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
 
+
 def draw_inventory(inventory, refresh=False):
     """
     Draws the player inventory.
@@ -150,12 +169,12 @@ def draw_inventory(inventory, refresh=False):
     :return: inventory_tile, a list of every item rect in the inventory, and inventory_rect the rect of the whole
              inventory
     """
-    inventory_label = FONT_20.render("INVENTORY", 1, colors.WHITE)
-    MAIN_WINDOW.blit(inventory_label, (INVENTORY_TOP_LEFT_X, INVENTORY_TOP_LEFT_Y - 25))
     inventory_rect = pg.Rect(INVENTORY_TOP_LEFT_X, INVENTORY_TOP_LEFT_Y,
                              ITEM_LENGTH * int(INVENTORY_LIMIT / INVENTORY_NUM_ROWS), ITEM_LENGTH * INVENTORY_NUM_ROWS)
     if refresh:
         MAIN_WINDOW.fill(color=colors.BLACK, rect=inventory_rect)
+    inventory_label = FONT_20.render("INVENTORY", 1, colors.WHITE)
+    MAIN_WINDOW.blit(inventory_label, (INVENTORY_TOP_LEFT_X, INVENTORY_TOP_LEFT_Y - 25))
     inventory_tiles = list()
     for y in range(INVENTORY_NUM_ROWS):
         for x in range(int(INVENTORY_LIMIT / INVENTORY_NUM_ROWS)):
@@ -168,6 +187,51 @@ def draw_inventory(inventory, refresh=False):
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
+
+
+def draw_equipment(equipment_dict, refresh=False):
+    """
+    Draws the players current equipment. Each equipment slot will be the size of an item tile in the inventory, arranged
+    in a cross formation, e.g.
+            X
+           XXX
+            X
+    To do this, we render the equipment as a 3x3 grid, but only the squares that would appear in this cross are
+    rendered, and the coordinates for this squares are mapped to the corresponding equipment slot in the
+    grid_equipment_mapping dict below.
+    :param equipment_dict: A dict containing the player's current equipment.
+    :param refresh: As above.
+    :return: equipment_tiles, a dict where the key is an equipment slot and the value is the Rect enclosing that slot.
+    """
+    equipment_rect = pg.Rect(EQUIPMENT_TOP_LEFT_X, EQUIPMENT_TOP_LEFT_Y, EQUIPMENT_LENGTH, EQUIPMENT_HEIGHT)
+    if refresh:
+        MAIN_WINDOW.fill(color=colors.BLACK, rect=equipment_rect)
+    equipment_label = FONT_20.render("EQUIPMENT", 1, colors.WHITE)
+    MAIN_WINDOW.blit(equipment_label, (EQUIPMENT_TOP_LEFT_X, EQUIPMENT_TOP_LEFT_Y - 8))
+    grid_equipment_mapping = {
+        (1, 0): 'head',
+        (0, 1): 'hands',
+        (1, 1): 'body',
+        (2, 1): 'weapon',
+        (1, 2): 'feet'
+    }
+    equipment_tiles = dict()
+    for y in range(3):
+        for x in range(3):
+            if (x, y) not in grid_equipment_mapping:
+                continue
+            item_tile = pg.Rect((0.5 + x) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_X,
+                                (0.5 + y) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_Y,
+                                EQUIP_ITEM_LENGTH, EQUIP_ITEM_LENGTH)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
+            # Check if the corresponding equipment slot currently has any items equipped.
+            if equipment_dict[grid_equipment_mapping[(x, y)]]:
+                MAIN_WINDOW.fill(color=colors.ORANGE, rect=((0.5 + x) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_X + 1,
+                                                            (0.5 + y) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_Y + 1,
+                                                            EQUIP_ITEM_LENGTH - 2, EQUIP_ITEM_LENGTH - 2))
+            equipment_tiles[equipment_dict[grid_equipment_mapping[(x, y)]]] = item_tile
+    return equipment_tiles
+
 
 def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
     """
@@ -194,17 +258,18 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
 
     # Body strings will be constructed differently for consumables and equipment.
     body_strings = list()
+    body_colors = None
     if item_dict['type'] == 'consumable':
         body_strings = item_dict['description'] + ['---'] + item_dict['details']
-        body_colors = None
 
     elif item_dict['type'] == 'equipment':
-        # In this case we outsource the logic to another function, since its a lot of logic.
+        # In this case we outsource the logic to another function, since it is a lot of logic.
         body_strings, body_colors = parse_equipment_details(item_dict, attributes_dict, current_equipment)
 
     draw_detail_window(body_strings=body_strings, body_colors=body_colors,
                        rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
                        header_string=item_dict['name'].upper())
+
 
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     """
@@ -231,7 +296,6 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
             requirement_string += f"{item_dict['stat_req'][stat]} {stat.upper()}   "
             if attributes_dict[stat] < item_dict['stat_req'][stat]:
                 requirement_color = colors.RED
-
         body_strings.append(requirement_string.strip())
         body_colors.append(requirement_color)
     # If item is a weapon we compare the off_rating, else we compare the def rating
@@ -245,10 +309,11 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
         elif item_dict[stat_to_compare] == current_equipment[item_dict['slot']][stat_to_compare]:
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
-    body_strings.append(f"{stat_to_compare[:3].upper()} +{item_dict[stat_to_compare]}")
+    body_strings.append(f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}")
     body_colors.append(compare_color)
 
     return body_strings, body_colors
+
 
 def draw_condition_details(conditions_dict, conditions_rect):
     """

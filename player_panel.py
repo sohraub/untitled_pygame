@@ -31,6 +31,7 @@ class PlayerPanel:
                                                                                   self.player_dict['type'],
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
+        self.equipment_tiles = player_panel_renderer.draw_equipment(self.player_dict['equipment'])
         self.tooltip_focus = None
         self.active_item_index = None
 
