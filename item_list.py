@@ -51,6 +51,8 @@ def generate_random_item(tier, type='both'):
     :param tier: An int, signifying the tier of item to pull from.
     :param type: A string, which can be either 'consumable', 'equipment', or 'both'.
     """
+    if type not in {'consumable', 'equipment', 'both'}:
+        raise Exception(f'Tried to generate a random item with invalid type, {type}.')
     tier_mapping = {
         '1_consumable': tier_1_c,
         '1_equipment': tier_1_e,

@@ -2,7 +2,7 @@ from item_list import generate_random_item
 
 
 class Chest:
-    def __init__(self, tier=1, type='both', item=None, opened=False):
+    def __init__(self, tier=1, type='equipment', item=None, opened=False):
         """
         Chest objects are used to store items on the board.
         :param tier: The tier used to determine the list the item will be randomly pulled from.

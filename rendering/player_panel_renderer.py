@@ -169,13 +169,16 @@ def draw_inventory(inventory, refresh=False):
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
 
-def draw_item_info(item_dict):
+def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
     """
     Function to draw a small window displaying item info. The top-left of the window will be determined by the position
     of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
     the item to be invisible. Thus we have the window to appear to the left of the cursor if the item is in the right
     half of the inventory, and to the right of the cursor if the item is in the left half. The location of the mouse
     cursor is used to determine this.
+    :param item_dict: A dict containing all of the item info necessary for rendering.
+    :param attributes_dict: A dict containing the players current attributes, used only if the item is equipment.
+    :param current_equipment: A dict containing the players current equipment, used only if the item is equipment.
     """
 
     mouse_pos = pg.mouse.get_pos()
@@ -190,15 +193,66 @@ def draw_item_info(item_dict):
         top_left_x = mouse_pos[0] - item_window_length
 
     # Body strings will be constructed differently for consumables and equipment.
+    body_strings = list()
     if item_dict['type'] == 'consumable':
         body_strings = item_dict['description'] + ['---'] + item_dict['details']
+        body_colors = None
 
-    draw_detail_window(body_strings=body_strings,
+    elif item_dict['type'] == 'equipment':
+        # In this case we outsource the logic to another function, since its a lot of logic.
+        body_strings, body_colors = parse_equipment_details(item_dict, attributes_dict, current_equipment)
+
+    draw_detail_window(body_strings=body_strings, body_colors=body_colors,
                        rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
                        header_string=item_dict['name'].upper())
 
+def parse_equipment_details(item_dict, attributes_dict, current_equipment):
+    """
+    Function to parse equipment details and player attributes to draw the detail text correctly, with appropriate colors
+    and whatnot. If the player doesn't meat the stat requirements, the string of requirements will be red. Then
+    we check if the item has better offense then what's equipped (if a weapon) or better defense (if armor), and if the
+    new item is an upgrade then the text displaying this will be green, if worse it will be red, and if equal it will be
+    white.
+    :param item_dict: Dict containing item details.
+    :param attributes_dict: Dict containing player's attribute details, to see if they meet stat requirements.
+    :param current_equipment: Dict containing player's current equipment, to see if this equipment is an upgrade.
+    :return: body_strings, a list of strings to be rendered.
+             body_colors, a list of the corresponding color each string should render in.
+    """
+    if not attributes_dict:
+        raise Exception(f"No attributes for equipment detail window: {item_dict['name']}")
+    # Initialize body_strings as the item description (already a list) and all in white.
+    body_strings = item_dict['description'] + ['---']
+    body_colors = [colors.WHITE for _ in body_strings]
+    if item_dict['stat_req']:
+        requirement_color = colors.WHITE
+        requirement_string = 'REQ: '
+        for stat in item_dict['stat_req']:
+            requirement_string += f"{item_dict['stat_req'][stat]} {stat.upper()}   "
+            if attributes_dict[stat] < item_dict['stat_req'][stat]:
+                requirement_color = colors.RED
+
+        body_strings.append(requirement_string.strip())
+        body_colors.append(requirement_color)
+    # If item is a weapon we compare the off_rating, else we compare the def rating
+    stat_to_compare = 'off_rating' if item_dict['off_rating'] > 0 else 'def_rating'
+    compare_color = colors.GREEN
+    # If no item is currently equipped in the slot, then the color defaults to green since it must be an
+    # upgrade. If there is an item equipped, we check to see if it could be worse or equal, so as to change the color.
+    if current_equipment.get(item_dict['slot'], None):
+        if item_dict[stat_to_compare] < current_equipment[item_dict['slot']][stat_to_compare]:
+            compare_color = colors.RED
+        elif item_dict[stat_to_compare] == current_equipment[item_dict['slot']][stat_to_compare]:
+            compare_color = colors.WHITE
+    # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
+    body_strings.append(f"{stat_to_compare[:3].upper()} +{item_dict[stat_to_compare]}")
+    body_colors.append(compare_color)
+
+    return body_strings, body_colors
+
 def draw_condition_details(conditions_dict, conditions_rect):
     """
+    CURRENTLY NOT IN USE
     Function to display details on the players conditions when they are moused over.
     :param conditions_dict: A dict containing the player's condition info
     :param conditions_rect: The Rect enclosing the condition info, for positioning purposes
