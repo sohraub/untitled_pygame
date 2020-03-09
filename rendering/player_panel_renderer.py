@@ -38,16 +38,22 @@ LEVEL_EXP_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
 LEVEL_EXP_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
 LEVEL_EXP_HEIGHT = int(SIDE_PANEL_HEIGHT / 21)
 
+#### ITEM TOOLTIPS ####
+ITEM_TOOLTIP_LENGTH = int(INVENTORY_LENGTH / 2)
+ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
 
-def draw_player_panel(player_dict):
+
+def draw_player_panel(player_name, refresh=False):
     """
     Renders the main window and player name.
     :param player_dict:
     :return: panel_rect, the rect that makes up the main panel
     """
     panel_rect = pg.Rect(PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
+    if refresh:
+        MAIN_WINDOW.fill(colors.BLACK, panel_rect)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE, panel_rect, 2)
-    player_name = FONT_30.render(player_dict['name'], 1, colors.WHITE)
+    player_name = FONT_30.render(player_name, 1, colors.WHITE)
     MAIN_WINDOW.blit(player_name, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
 
     return panel_rect
@@ -86,7 +92,7 @@ def draw_attributes(attributes, refresh=False):
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 60, 75, 150)
+    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
@@ -201,7 +207,8 @@ def draw_equipment(equipment_dict, refresh=False):
     grid_equipment_mapping dict below.
     :param equipment_dict: A dict containing the player's current equipment.
     :param refresh: As above.
-    :return: equipment_tiles, a dict where the key is an equipment slot and the value is the Rect enclosing that slot.
+    :return: equipment_tiles, a dict where the key is an equipment slot and the value is the Rect enclosing that slot,
+             equipment_rect, a Rect object enclosing all of the equipment info.
     """
     equipment_rect = pg.Rect(EQUIPMENT_TOP_LEFT_X, EQUIPMENT_TOP_LEFT_Y, EQUIPMENT_LENGTH, EQUIPMENT_HEIGHT)
     if refresh:
@@ -229,8 +236,9 @@ def draw_equipment(equipment_dict, refresh=False):
                 MAIN_WINDOW.fill(color=colors.ORANGE, rect=((0.5 + x) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_X + 1,
                                                             (0.5 + y) * EQUIP_ITEM_LENGTH + EQUIPMENT_TOP_LEFT_Y + 1,
                                                             EQUIP_ITEM_LENGTH - 2, EQUIP_ITEM_LENGTH - 2))
-            equipment_tiles[equipment_dict[grid_equipment_mapping[(x, y)]]] = item_tile
-    return equipment_tiles
+
+            equipment_tiles[grid_equipment_mapping[(x, y)]] = item_tile
+    return equipment_tiles, equipment_rect
 
 
 def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
@@ -246,15 +254,13 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
     """
 
     mouse_pos = pg.mouse.get_pos()
-    item_window_length = int(INVENTORY_LENGTH / 2)
-    item_window_height = ITEM_LENGTH * 2
     top_left_y = INVENTORY_TOP_LEFT_Y
     if mouse_pos[0] < PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         # Cursor is on the left side of the inventory
         top_left_x = mouse_pos[0]
     else:
         # Cursor is on the right side of the inventory
-        top_left_x = mouse_pos[0] - item_window_length
+        top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
 
     # Body strings will be constructed differently for consumables and equipment.
     body_strings = list()
@@ -267,8 +273,33 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
         body_strings, body_colors = parse_equipment_details(item_dict, attributes_dict, current_equipment)
 
     draw_detail_window(body_strings=body_strings, body_colors=body_colors,
-                       rect_dimensions=(top_left_x, top_left_y, item_window_length, item_window_height),
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
                        header_string=item_dict['name'].upper())
+
+
+def draw_equipment_info(equipped_item, slot):
+    """
+    Draws tooltip with equipment info if there is an item equipped in the slot being moused over, or draws a tooltip
+    detailing the slot if no item is equipped. Tooltip will always be drawn to the left of the mouse.
+    """
+    mouse_pos = pg.mouse.get_pos()
+    top_left_y = mouse_pos[1]
+    top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
+    if equipped_item:  # i.e. if the item in the equipment slot is not None
+        body_strings = equipped_item['description'] + ['---']
+        if equipped_item['off_rating'] > 0:
+            body_strings.append(f"OFF {equipped_item['off_rating']}")
+        else:
+            body_strings.append(f"DEF {equipped_item['def_rating']}")
+        header_string = equipped_item['name'].upper()
+
+    else:
+        body_strings = ['Nothing equipped here.']
+        header_string = slot.upper()
+
+    draw_detail_window(body_strings=body_strings,
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
+                       header_string=header_string)
 
 
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
