@@ -44,9 +44,44 @@ class Consumable(Item):
     def to_dict(self):
         """Returns a dict representation of the object, to be used in rendering modules."""
         return {
+            'type': 'consumable',
             'name': self.name,
             'description': self.description,
             'details': self.details
         }
 
 
+class Equipment(Item):
+    def __init__(self, name, description, slot, off_rating=0, def_rating=0, bonuses=None, rarity=0, stat_req=None) :
+        """
+        Subclass of Item for items that can be equipped to the character.
+
+        :param slot: Where this can be equipped, e.g. 'head', 'body', etc.
+        :param off_rating: An int, the bonus to offense given by equipping this item.
+        :param def_rating: An int, the bonus to defense given by equipping this item.
+        :param bonuses: A dict of functions and parameters, for any extra bonuses this item gives.
+        :param rarity: An int, which determines the kind of bonuses this item can have.
+        :param stat_req: A dict which has the minimum stats required to equip this item. If None, then this item has
+                         no stat requirements.
+        """
+        super().__init__(name, description)
+        self.slot = slot
+        self.off_rating = off_rating
+        self.def_rating = def_rating
+        self.bonuses = bonuses
+        self.rarity = rarity
+        self.stat_req = stat_req
+
+    def to_dict(self):
+        """Returns a dict representation of the object, to be used in rendering modules."""
+        return {
+            'type': 'equipment',
+            'name': self.name,
+            'description': self.description,
+            'slot': self.slot,
+            'off_rating': self.off_rating,
+            'def_rating': self.def_rating,
+            'bonuses': self.bonuses,
+            'rarity': self.rarity,
+            'stat_req': self.stat_req
+        }

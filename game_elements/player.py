@@ -1,4 +1,5 @@
 import json
+import random
 import copy
 import pygame as pg
 
@@ -155,9 +156,41 @@ class Player(Character):
             parameter_dict['target'] = self
             effect(**parameter_dict)
         console_text = f'You {item.verb} the {item.name}.'
-        print(self.conditions)
         return console_text
 
+    def equip_item(self, index):
+        """Equips item at 'index', replacing it in the inventory with what was previously equipped, if any."""
+        item = self.inventory[index]
+        equip_slot = item.slot
+        if self.equipment[equip_slot]:  # If the player already has an item equipped in this slot, swap them
+            temp = self.equipment[equip_slot]
+            self.equipment[equip_slot] = item
+            self.inventory[index] = temp
+        else:  # The player has nothing currently equipped at that slot
+            self.equipment[equip_slot] = self.inventory.pop(index)
+        console_text = f'You equip the {item.name}.'
+        return console_text
+
+    def basic_attack(self, target):
+        console_text = ['']
+        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
+        base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
+        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        if self.equipment.get('weapon', None):
+            base_damage += self.equipment['weapon'].off_rating
+        if random.randint(0, 100) <= crit_chance:
+            base_damage = 2 * base_damage
+            console_text[0] += 'Critical hit! '
+        elif random.randint(0, 100) >= base_accuracy:
+            base_damage = 0
+            console_text[0] += 'Miss! '
+        # The join method in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
+        console_text[0] += f"You dealt {base_damage} damage to {' '.join(target.name.split('_')[0:-1])}. "
+        target.hp[0] = max(target.hp[0] - base_damage, 0)
+        if target.hp[0] == 0:
+            from game_elements.enemy import death_phrases
+            console_text.append(random.choice(death_phrases))
+        return console_text
 
 def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
