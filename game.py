@@ -98,7 +98,7 @@ class Game:
         for enemy in enemies:
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.attack_range:
-                console_text.extend(enemy.basic_attack(self.player, enemy_attack=True))
+                console_text.extend(enemy.basic_attack(self.player))
             elif distance_to_player <= enemy.aggro_range:
                 new_position = enemy.move_towards_target((self.player.x, self.player.y), self.board.tile_mapping['O'])
                 if new_position is not None:
@@ -111,15 +111,20 @@ class Game:
 
     def handle_item_use(self):
         """
-        Calls necessary functions and methods to handle the player using an item.
+        Calls necessary functions and methods to handle the player using an item. This will differ depending on if
+        the item is a consumable or equipment.
 
         :returns: New lines to be displayed in the console
         """
         console_text = list()
         item_index = self.player_panel.active_item_index
-        console_text.append(self.player.consume_item(item_index))
-        self.player_panel.handle_item_consumption()
+        item_dict = self.player.inventory[item_index].to_dict()
+        if item_dict['type'] == 'consumable':
+            console_text.append(self.player.consume_item(item_index))
+        elif item_dict['type'] == 'equipment':
+            console_text.append(self.player.equip_item(item_index))
 
+        self.player_panel.handle_item_consumption()
         return console_text
 
 
@@ -206,7 +211,8 @@ class Game:
                 # If a tooltip focus window is active, means a player has clicked on something that might have
                 # a function when clicked.
                 if self.player_panel.tooltip_focus is not None:
-                    # If the user has clicked on the inventory with the tooltip window active, they have clicked an item
+                    # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
+                    # is on the inventory, implying that an item was clicked.
                     if self.player_panel.inventory_rect.collidepoint(mouse_pos):
                         console_text.extend(self.handle_item_use())
                         self.handle_player_turn_over(console_text)

@@ -50,30 +50,3 @@ class Character:
         """Moves the character along the x-axis"""
         self.move_to((self.x + steps, self.y))
 
-    def basic_attack(self, target, enemy_attack=False):
-        """Character performs a basic attack on target. Logic is handled slightly differently if enemy is attacking."""
-        # TODO: Might be worth creating separate attack functions for Player and Enemy
-        # console_text is a list of strings that will be returned, to be printed in the console. It's initialized as
-        # a list with just the empty string, and in most cases will just be a list of one string. If the enemy is killed
-        # we also add death text to this list, so that both will be displayed on separate lines.
-        console_text = ['']
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
-        base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
-        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        if random.randint(0, 100) <= crit_chance:
-            base_damage = 2 * base_damage
-            console_text[0] += 'Critical hit! '
-        elif random.randint(0, 100) >= base_accuracy:
-            base_damage = 0
-            console_text[0] += 'Miss! '
-        if not enemy_attack:
-            # Console text is different if attack is from the Player compared to an Enemy
-            console_text[0] += 'You dealt {0} damage to {1}. '.format(base_damage, ' '.join(target.name.split('_')[0:-1]))
-        else:
-            console_text[0] += 'The {0} attacks you for {1} damage. '.format(' '.join(self.name.split('_')[0:-1]),
-                                                                          base_damage)
-        target.hp[0] = max(target.hp[0] - base_damage, 0)
-        if target.hp[0] == 0 and not enemy_attack:
-            from game_elements.enemy import death_phrases
-            console_text.append(random.choice(death_phrases))
-        return console_text

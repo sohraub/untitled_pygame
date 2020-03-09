@@ -130,7 +130,11 @@ class PlayerPanel:
 
         if slot_moused_over:
             self.tooltip_focus = self.equipment_tiles[slot_moused_over]
-            player_panel_renderer.draw_equipment_info(self.player_dict['equipment'][slot_moused_over], slot_moused_over)
+            if self.player_dict['equipment'][slot_moused_over]:  # i.e. if there is an item equipped in the slot
+                equipment_dict = self.player_dict['equipment'][slot_moused_over].to_dict()
+            else:
+                equipment_dict = None
+            player_panel_renderer.draw_equipment_info(equipment_dict, slot_moused_over)
 
     def handle_conditions_mouseover(self):
         """
@@ -144,3 +148,4 @@ class PlayerPanel:
         self.tooltip_focus = None
         self.active_item_index = None
         self.refresh_inventory()
+        self.refresh_equipment()

@@ -277,7 +277,7 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
                        header_string=item_dict['name'].upper())
 
 
-def draw_equipment_info(equipped_item, slot):
+def draw_equipment_info(equipment_dict, slot):
     """
     Draws tooltip with equipment info if there is an item equipped in the slot being moused over, or draws a tooltip
     detailing the slot if no item is equipped. Tooltip will always be drawn to the left of the mouse.
@@ -285,13 +285,13 @@ def draw_equipment_info(equipped_item, slot):
     mouse_pos = pg.mouse.get_pos()
     top_left_y = mouse_pos[1]
     top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
-    if equipped_item:  # i.e. if the item in the equipment slot is not None
-        body_strings = equipped_item['description'] + ['---']
-        if equipped_item['off_rating'] > 0:
-            body_strings.append(f"OFF {equipped_item['off_rating']}")
+    if equipment_dict:  # i.e. if the item in the equipment slot is not None
+        body_strings = equipment_dict['description'] + ['---']
+        if equipment_dict['off_rating'] > 0:
+            body_strings.append(f"OFF {equipment_dict['off_rating']}")
         else:
-            body_strings.append(f"DEF {equipped_item['def_rating']}")
-        header_string = equipped_item['name'].upper()
+            body_strings.append(f"DEF {equipment_dict['def_rating']}")
+        header_string = equipment_dict['name'].upper()
 
     else:
         body_strings = ['Nothing equipped here.']
@@ -335,9 +335,10 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     # If no item is currently equipped in the slot, then the color defaults to green since it must be an
     # upgrade. If there is an item equipped, we check to see if it could be worse or equal, so as to change the color.
     if current_equipment.get(item_dict['slot'], None):
-        if item_dict[stat_to_compare] < current_equipment[item_dict['slot']][stat_to_compare]:
+        current_equipment_info = current_equipment[item_dict['slot']].to_dict()
+        if item_dict[stat_to_compare] < current_equipment_info[stat_to_compare]:
             compare_color = colors.RED
-        elif item_dict[stat_to_compare] == current_equipment[item_dict['slot']][stat_to_compare]:
+        elif item_dict[stat_to_compare] == current_equipment_info[stat_to_compare]:
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
     body_strings.append(f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}")

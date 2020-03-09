@@ -37,12 +37,17 @@ rusty_sword = Equipment(name='Rusty Sword',
                         description='This sword has seen better days, but could still do some damage.',
                         slot='weapon', off_rating=2, stat_req={'str': 2, 'dex': 2})
 
+short_sword = Equipment(name='Short Sword',
+                        description='Looks quite sharp, although it does lack much reach.',
+                        slot='weapon', off_rating=3, stat_req={'str': 2, 'dex': 3})
+
 leather_cap = Equipment(name='Leather Cap',
                         description="Doesn't offer much protection, but better than nothing.", slot='head',
                         def_rating=1)
 
 #### LISTS OF EQUIPPABLES ####
-tier_1_e = [rusty_sword, leather_cap]
+# tier_1_e = [rusty_sword, leather_cap]
+tier_1_e = [rusty_sword, short_sword]
 
 def generate_random_item(tier, type='both'):
     """
