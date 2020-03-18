@@ -1,3 +1,6 @@
+"""
+Module that stores all the colors used in the game.
+"""
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (191, 48, 48)
@@ -9,3 +12,4 @@ BROWN = (153, 102, 51)
 YELLOW = (226, 222, 90)
 ORANGE = (245, 185, 106)
 PALE_YELLOW = (255, 255, 153)
+NAVY = (51, 0, 102)

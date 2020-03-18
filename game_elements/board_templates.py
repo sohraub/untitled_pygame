@@ -1,4 +1,9 @@
+"""
+Module that will contains all the templates from which boards are loaded. These templates will then be organized into
+lists that will be randomly chosen from on the creation of a new Board object.
+"""
 
+#### TEMPLATES ####
 x = ['XXXXXXXXXXXXXXX',
      'XXXXXXXXXXXXXXX',
      'XXXXXXXXXXXXDXX',
@@ -8,7 +13,7 @@ x = ['XXXXXXXXXXXXXXX',
      'XXXXXXOOOXXXXXX',
      'XXXXXXOOOXXXXXX',
      'XXXXXXOOOXXXXXX',
-     'XXXXOOOOOOOXXXX',
+     'XXXXOOOOOOTXXXX',
      'XXXXOOOPOOOXXXX',
      'XXXXXXXDXXXXXXX',
      'XXXXXXXXXXXXXXX',
@@ -27,31 +32,10 @@ y = ['XXDXXXXXXXXXDXX',
      'XOOOOXXXXXOOOOX',
      'XOOOOXXXXXOOOOX',
      'XOOOOOOOOOOOOOX',
-     'XOOOOOOOOOOOOOX',
+     'XTOOOOOOOOOOOTX',
      'XOOOOOOOPOOOOOX',
      'XXXXXXXXDXXXXXX']
 
+
+#### LISTS OF TEMPLATES ####
 TEMPLATES = [x, y]
-# x = ['XXXXXXXXXXXXDXXX',
-#      'XOOEOTOOOOOOOOOX',
-#      'XOOOOOOOOOOEOOOX',
-#      'XOOOOOEOOOOOOOOX',
-#      'XXXXXXOOOOXXXXXX',
-#      'XXXXXXOOOOXXXXXX',
-#      'XXXXXXOOOOXXXXXX',
-#      'XXXXOOOOOOOOXXXX',
-#      'XXXXOOOOPOOOXXXX',
-#      'XXXXXXXXDXXXXXXX']
-
-# y = ['XXDXXXXXXXXXXDXX',
-#      'XOOOOXXXXXXOOOOX',
-#      'XOOEOXXXXXXOEOOX',
-#      'XOOOOXXXXXXOOOOX',
-#      'XOOOOXXXXXXOOOOX',
-#      'XOOOOXXXXXXOOOOX',
-#      'XOOOOOOOOOOOOOOX',
-#      'XOOOOOOOOOOOOOOX',
-#      'XOOOOOOOOPOOOOOX',
-#      'XXXXXXXXXDXXXXXX']
-
-# TEMPLATES = [x, y]

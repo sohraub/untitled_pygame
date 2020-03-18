@@ -5,6 +5,11 @@ from config import TOP_LEFT_X, PLAY_LENGTH, font_SIL
 from rendering.window_renderer import MAIN_WINDOW, FONT_15
 
 def render_console(lines):
+    """
+    Prints every line in 'lines' to the console at the top of the screen.
+    :param lines: A list of strings.
+    :return: n/a
+    """
     #TODO: Re-do dimensions in terms of config variables
     MAIN_WINDOW.fill(colors.BLACK, rect=(TOP_LEFT_X - 20, 16, PLAY_LENGTH, (25 + (5 * 16))))
     for i, line in enumerate(lines):

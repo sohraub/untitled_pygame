@@ -4,7 +4,20 @@ from utility_functions import manhattan_distance
 
 
 class Character:
-    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, move_speed=1, in_combat=False):
+    """
+    Base class for Players and Enemies. Can perform all the basic actions such as moving and attacking.
+    """
+    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None):
+        """
+        Initialize a Character object. This is only ever called through super() for Player and Enemies.
+        :param name: Name of the character
+        :param x: Character's x-coordinate
+        :param y: Character's y-coordinate
+        :param hp: Character's HP represented as a list: [current, max]
+        :param mp: Character's MP, represented same as hp.
+        :param attributes: Dict containing the character's attributes.
+        :param status: Dict containing a list of buffs and debuffs affecting this character
+        """
         self.name = name
         self.x = x
         self.y = y
@@ -22,42 +35,18 @@ class Character:
             'buffs': list(),
             'debuffs': list()
         }
-        self.move_speed = move_speed
-        self.in_combat = in_combat
 
     def move_to(self, destination):
-        if self.in_combat:
-            if manhattan_distance((self.x, self.y), destination) > self.move_speed:
-                return False
+        """Sets the characters position to 'destination'"""
         self.x = destination[0]
         self.y = destination[1]
 
     def move_up(self, steps=1):
-        # Note that (0, 0) is the top left corner, so we subtract from
-        # the y position to move up
+        """Moves the character along the y-axis"""
+        # Note that (0, 0) is the top left corner, so we subtract from  the y position to move up
         self.move_to((self.x, self.y - steps))
 
     def move_right(self, steps=1):
+        """Moves the character along the x-axis"""
         self.move_to((self.x + steps, self.y))
 
-    def basic_attack(self, target, enemy_attack=False):
-        console_text = ''
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 0)
-        base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
-        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        if random.randint(0, 100) <= crit_chance:
-            base_damage = 2 * base_damage
-            console_text += 'Critical hit! '
-        elif random.randint(0, 100) >= base_accuracy:
-            base_damage = 0
-            console_text += 'Miss! '
-        if not enemy_attack:
-            console_text += 'You dealt {0} damage to {1}. '.format(base_damage, ' '.join(target.name.split('_')[0:-1]))
-        else:
-            console_text += 'The {0} attacks you for {1} damage. '.format(' '.join(self.name.split('_')[0:-1]),
-                                                                          base_damage)
-        target.hp[0] = max(target.hp[0] - base_damage, 0)
-        if target.hp[0] == 0 and not enemy_attack:
-            from game_elements.enemy import death_phrases
-            console_text += random.choice(death_phrases)
-        return console_text
