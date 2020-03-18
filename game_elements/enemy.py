@@ -50,13 +50,10 @@ class Enemy(Character):
 
     def basic_attack(self, target):
         console_text = ['']
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
+        # Enemies will always deal at least 1 damage, unless they miss
+        base_damage = max(self.attributes['str'] - target.attributes['end'] - target.def_rating, 1)
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        # Check if the target player is wearing equipment that might mitigate damage.
-        for slot in target.equipment:
-            if slot is not 'weapon' and target.equipment.get(slot, None):
-                base_damage -= target.equipment[slot].def_rating
 
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage

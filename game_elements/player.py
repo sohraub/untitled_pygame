@@ -26,6 +26,8 @@ class Player(Character):
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
                    lowered.
         :movement_mapping: A dict that maps keyboard inputs to the proper methods and parameters which will be called.
+        :off_rating: An int which represents the player's total offensive rating after factoring equipment bonuses
+        :def_rating: Similar to off_rating, but for defense.
         """
         super().__init__(name, x, y, hp, mp, attributes, status)
         self.inventory = inventory if inventory is not None else list()
@@ -36,6 +38,9 @@ class Player(Character):
             'hands': None,
             'feet': None
         }
+        self.off_rating = 0
+        self.def_rating = 0
+        self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
             'tired': [10, 10, 0],
             'hungry': [10, 10, 0],
@@ -58,6 +63,7 @@ class Player(Character):
             pg.K_LEFT: (self.move_right, -1),
             pg.K_a: (self.move_right, -1)
         }
+
 
     def to_dict(self):
         """Method which returns a dict representation of the Player object."""
@@ -169,28 +175,35 @@ class Player(Character):
         else:  # The player has nothing currently equipped at that slot
             self.equipment[equip_slot] = self.inventory.pop(index)
         console_text = f'You equip the {item.name}.'
+        self.update_off_def_ratings()
         return console_text
 
     def basic_attack(self, target):
         console_text = ['']
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
+        base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        if self.equipment.get('weapon', None):
-            base_damage += self.equipment['weapon'].off_rating
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
             console_text[0] += 'Miss! '
-        # The join method in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
+        # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
+        # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
         console_text[0] += f"You dealt {base_damage} damage to {' '.join(target.name.split('_')[0:-1])}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
             from game_elements.enemy import death_phrases
             console_text.append(random.choice(death_phrases))
         return console_text
+
+    def update_off_def_ratings(self):
+        """Sets the players offensive and defensive rating based on current equipment."""
+        self.off_rating = self.equipment['weapon'].off_rating
+        self.def_rating = 0
+        for slot in ['head', 'body', 'hands', 'feet']:
+            self.def_rating += self.equipment[slot].def_rating
 
 def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
