@@ -199,11 +199,15 @@ class Player(Character):
         return console_text
 
     def update_off_def_ratings(self):
-        """Sets the players offensive and defensive rating based on current equipment."""
-        self.off_rating = self.equipment['weapon'].off_rating
+        """Sets the players offensive and defensive rating based on current equipment, if any."""
+        if self.equipment.get('weapon', None):
+            self.off_rating = self.equipment['weapon'].off_rating
+        else:
+            self.off_rating = 0
         self.def_rating = 0
         for slot in ['head', 'body', 'hands', 'feet']:
-            self.def_rating += self.equipment[slot].def_rating
+            if self.equipment.get(slot, None):
+                self.def_rating += self.equipment[slot].def_rating
 
 def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""

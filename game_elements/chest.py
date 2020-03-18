@@ -1,4 +1,4 @@
-from item_list import generate_random_item
+from element_lists.item_list import generate_random_item
 
 
 class Chest:

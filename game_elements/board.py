@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-import enemy_list
+from element_lists import enemy_list
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 from game_elements.chest import Chest
@@ -9,7 +9,7 @@ from game_elements.chest import Chest
 def choose_random_board():
     """Function which just returns a random board template from the board_templates.py module."""
     import random
-    from game_elements.board_templates import TEMPLATES
+    from element_lists.board_templates import TEMPLATES
     return random.choice(TEMPLATES)
 
 
