@@ -1,9 +1,11 @@
 from uuid import uuid4
 
 from element_lists import enemy_list
+from game_elements import trap
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from game_elements.enemy import Enemy
 from game_elements.chest import Chest
+
 
 
 def choose_random_board():
@@ -49,13 +51,15 @@ class Board:
         self.player_coordinates = None
         self.enemies = dict()
         self.chests = dict()
+        self.traps = dict()
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Wall tiles
             'E': list(),  # Enemies
             'D': list(),  # Doors
             'T': list(),  # Treasure
-            'O': list()   # Open tiles
+            'O': list(),  # Open tiles
+            'R': list()   # Traps
         }
         for y in range(len(self.template)):
             for x in range(len(self.template[y])):
@@ -68,6 +72,8 @@ class Board:
             self.enemies[coord] = enemy_list.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
         for coord in self.tile_mapping['T']:
             self.chests[coord] = Chest(tier=self.tier)
+        for coord in self.tile_mapping['R']:
+            self.traps[coord] =
 
     def rebuild_template(self):
         """
