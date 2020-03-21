@@ -23,7 +23,8 @@ TILE_COLORS = {  # Mapping of letters to tile type is as follows:
     'O': colors.GREY,  # Open tiles
     'T': colors.GOLD,  # Treasure chests
     'D': colors.BROWN,  # Doors
-    'X': colors.BLACK  # Walls/out-of-play tiles
+    'X': colors.BLACK,  # Walls/out-of-play tiles
+    'R': colors.DARK_GREEN  # Traps
 }
 
 

@@ -98,15 +98,16 @@ class Player(Character):
 
     def pick_up_item(self, item, from_chest=False):
         """Method to pick up items that the Player encounters on the board."""
+        console_text = list()
         if len(self.inventory) == INVENTORY_LIMIT:
-            console_text = f'Inventory is full. You cannot pick up {item.name}.'
+            console_text.append(f'Inventory is full. You cannot pick up {item.name}.')
             return console_text, False
         else:
             self.inventory.append(item)
             if from_chest:
-                console_text = f'The chest creaks open, and you find {item.name}'
+                console_text.append(f'The chest creaks open, and you find {item.name}')
             else:
-                console_text = f'You picked up {item.name}.'
+                console_text.append(f'You picked up {item.name}.')
             return console_text, True
 
     def conditions_worsen(self):
@@ -191,7 +192,7 @@ class Player(Character):
             console_text[0] += 'Miss! '
         # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
         # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
-        console_text[0] += f"You dealt {base_damage} damage to {' '.join(target.name.split('_')[0:-1])}. "
+        console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
             from game_elements.enemy import death_phrases

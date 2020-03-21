@@ -1,10 +1,9 @@
 from uuid import uuid4
 
-from element_lists import enemy_list
+from game_elements import enemy
 from game_elements import trap
+from game_elements import chest
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
-from game_elements.enemy import Enemy
-from game_elements.chest import Chest
 
 
 
@@ -69,11 +68,11 @@ class Board:
                     self.tile_mapping[self.template[y][x]].append((x, y))
         self.enemies = dict()
         for coord in self.tile_mapping['E']:
-            self.enemies[coord] = enemy_list.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
+            self.enemies[coord] = enemy.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
         for coord in self.tile_mapping['T']:
-            self.chests[coord] = Chest(tier=self.tier)
+            self.chests[coord] = chest.generate_chest(tier=self.tier)
         for coord in self.tile_mapping['R']:
-            self.traps[coord] =
+            self.traps[coord] = trap.generate_random_trap(coord)
 
     def rebuild_template(self):
         """
@@ -120,3 +119,9 @@ class Board:
         chest = self.chests[chest_pos]
         chest.opened = True
         # TODO: Add some kind of rendering logic to make open chests look different
+
+    def handle_trap_triggered(self, trap_pos):
+        """Removes trap from board if triggered."""
+        del self.traps[trap_pos]
+        self.tile_mapping['R'].remove(trap_pos)
+        self.tile_mapping['O'].append(trap_pos)

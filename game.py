@@ -1,4 +1,5 @@
 import pygame as pg
+import random
 
 from utility_functions import manhattan_distance
 from rendering import window_renderer, board_renderer
@@ -45,13 +46,45 @@ class Game:
             self.player.x = old_x
             self.player.y = old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
-                # The handle_attacking_enemy function returns a list of strings to be displayed in the console
                 console_text.extend(self.handle_attacking_enemy((new_x, new_y)))
-            if self.board.template[new_y][new_x] == 'T':  # Moving a tile which contains a chest opens the chest
-                # Opening a chest only returns a single string to display in the console
-                console_text.append(self.handle_opening_chest((new_x, new_y)))
+            elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
+                console_text.extend(self.handle_opening_chest((new_x, new_y)))
+            elif self.board.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
+                self.player.x = new_x
+                self.player.y = new_y
+                self.board.player_coordinates = (new_x, new_y)
+                console_text.extend(self.handle_step_on_trap((new_x, new_y), self.player))
+                self.board.rebuild_template()
 
         return console_text
+
+    def handle_step_on_trap(self, trap_pos, target):
+        """
+        Check to see if trap is triggered, and if so, applies the trap effect and handles removing the trap from
+        the board
+        :param trap_pos: Coordinates of the trap
+        :param target: The Character which triggered the trap.
+        :returns: New lines for console.
+        """
+        enemy_target = True if target.__class__.__name__ == 'Enemy' else False
+        console_text = list()
+        trap = self.board.traps[trap_pos]
+        if enemy_target:
+            console_text.append(f'The {target.display_name} steps on a {trap.type} trap, ')
+        else:
+            console_text.append(f'You step on a {trap.type} trap, ')
+        avoid_probability = 100*(1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
+        if random.randint(0, 100) > avoid_probability:
+            if trap.category == 'direct':
+                damage = trap.function(target)
+                target.hp[0] = max(0, target.hp[0] - damage)
+                console_text[0] += f'taking {damage} damage.'
+            self.board.handle_trap_triggered(trap_pos)
+
+        else:
+            console_text[0] += f'but avoid{"s" if enemy_target else ""} triggering it.'
+        return console_text
+
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -100,11 +133,17 @@ class Game:
             if distance_to_player <= enemy.attack_range:
                 console_text.extend(enemy.basic_attack(self.player))
             elif distance_to_player <= enemy.aggro_range:
-                new_position = enemy.move_towards_target((self.player.x, self.player.y), self.board.tile_mapping['O'])
+                # Enemies can move onto either open tiles or traps.
+                open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
+                new_position = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
                 if new_position is not None:
-                    self.board.update_enemy_position((enemy.x, enemy.y), new_position)
+                    if new_position in self.board.tile_mapping['O']:
+                        self.board.update_enemy_position((enemy.x, enemy.y), new_position)
+                    else:
+                        self.handle_step_on_trap(trap_pos=new_position, target=enemy)
                     enemy.x = new_position[0]
                     enemy.y = new_position[1]
+                    print(new_position)
                     self.load_game_board()
 
         return console_text

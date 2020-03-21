@@ -9,7 +9,7 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
 
 class Enemy(Character):
     def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, attack_range=1, role='attacker',
-                 aggro_range=3, retreat_probability=0.3, flavour_text=None):
+                 aggro_range=3, retreat_probability=0.3, flavour_text=None, display_name=''):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
         super(), refer to the Character module.
@@ -18,6 +18,7 @@ class Enemy(Character):
         :param aggro_range: Denotes from how far an enemy will notice a player and start acting.
         :param retreat_probability: Probability of an enemy retreating when it is weak.
         :param flavour_text: Some flavour text that is displayed in the focus window.
+        :param display_name: Enemy's name in a nicer format for display purposes.
         """
         super().__init__(name, x, y, hp, mp, attributes, status)
         self.aggro_range = aggro_range
@@ -25,6 +26,7 @@ class Enemy(Character):
         self.retreat_probability = retreat_probability
         self.role = role
         self.flavour_text = flavour_text if flavour_text is not None else 'This is placeholder flavour text'
+        self.display_name = display_name
 
     def check_aggro(self, player):
         """Method to check if the player is within the enemy's aggro range."""
@@ -62,10 +64,22 @@ class Enemy(Character):
             base_damage = 0
             console_text[0] += 'Miss! '
 
-        console_text[0] += f"The {' '.join(self.name.split('_')[0:-1])} attacks you for {base_damage} damage. "
+        console_text[0] += f"The {self.display_name} attacks you for {base_damage} damage. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         return console_text
 
 
+def generate_new_enemy(x, y, tier):
+    import copy
+    from uuid import uuid4
+    from element_lists import enemy_list
+    tier_mapping = {
+        1: enemy_list.tier_1
+    }
+    new_enemy = copy.deepcopy(random.choice(tier_mapping[tier]))
+    new_enemy.name = new_enemy.name + '_{}'.format(str(uuid4()))
+    new_enemy.x = x
+    new_enemy.y = y
+    return new_enemy
 
 

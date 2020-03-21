@@ -15,9 +15,6 @@ class Trap:
         :param trigger_prob: Probability of the trap to trigger when stepped on.
         :param trigger_avoid_coeff: Coefficient for victim's dex attributed used to calculate the probability of the
                                     trap not triggering.
-        :param def_rating_coeff: Coefficient for the victim's defensive rating, used to calculate final damage of
-                                 certain traps (only relevant for Players, Enemies do not have a defensive rating).
-        :active: Always set to True when initialized, then to False after triggered.
         """
         self.x = x
         self.y = y
@@ -26,8 +23,6 @@ class Trap:
         self.function = function
         self.trigger_prob = trigger_prob
         self.trigger_avoid_coeff = trigger_avoid_coeff
-        self.def_rating_coeff = def_rating_coeff
-        self.active = True
 
 
 # Traps will be split into two categories, those that deal direct damage once, and those that inflict a debuff.
@@ -48,5 +43,4 @@ def generate_random_trap(coord):
         category = 'debuff'
     trap_config = trap_map[type]
     return Trap(x=coord[0], y=coord[1], type=type, category=category, function=trap_config['function'],
-                trigger_prob=trap_config['trigger_prob'], trigger_avoid_coeff=trap_config['trigger_avoid_coeff'],
-                def_rating_coeff=trap_config['def_rating_coeff'])
+                trigger_prob=trap_config['trigger_prob'], trigger_avoid_coeff=trap_config['trigger_avoid_coeff'])

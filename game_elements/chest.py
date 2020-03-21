@@ -12,3 +12,12 @@ class Chest:
         """
         self.item = item if item is not None else generate_random_item(tier, type)
         self.opened = opened
+
+def generate_chest(tier, type='both'):
+    """
+    Returns a Chest object of the given tier.
+    :param tier: Int representing the tier of item in the chest.
+    :param type: The type of item to be in the chest.
+    :return: A Chest object.
+    """
+    return Chest(tier=tier, type=type)
