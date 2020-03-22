@@ -39,8 +39,11 @@ class Game:
         old_x = self.player.x
         old_y = self.player.y
         new_x, new_y = self.player.perform_movement(input)
-        if self.board.template[new_y][new_x] == 'O':  # Checks if player is moving to an open tile
+        # Checks if player is moving to an open tile or trap
+        if self.board.template[new_y][new_x] == 'O' or self.board.template[new_y][new_x] == 'R':
             self.board.player_coordinates = (new_x, new_y)
+            if self.board.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
+                console_text.extend(self.handle_step_on_trap((new_x, new_y), self.player))
             self.board.rebuild_template()
         else:
             self.player.x = old_x
@@ -49,12 +52,6 @@ class Game:
                 console_text.extend(self.handle_attacking_enemy((new_x, new_y)))
             elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
                 console_text.extend(self.handle_opening_chest((new_x, new_y)))
-            elif self.board.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
-                self.player.x = new_x
-                self.player.y = new_y
-                self.board.player_coordinates = (new_x, new_y)
-                console_text.extend(self.handle_step_on_trap((new_x, new_y), self.player))
-                self.board.rebuild_template()
 
         return console_text
 
@@ -84,7 +81,6 @@ class Game:
         else:
             console_text[0] += f'but avoid{"s" if enemy_target else ""} triggering it.'
         return console_text
-
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -135,15 +131,15 @@ class Game:
             elif distance_to_player <= enemy.aggro_range:
                 # Enemies can move onto either open tiles or traps.
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
-                new_position = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
-                if new_position is not None:
-                    if new_position in self.board.tile_mapping['O']:
-                        self.board.update_enemy_position((enemy.x, enemy.y), new_position)
-                    else:
-                        self.handle_step_on_trap(trap_pos=new_position, target=enemy)
-                    enemy.x = new_position[0]
-                    enemy.y = new_position[1]
-                    print(new_position)
+                new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
+                print(1)
+                if new_x is not None:  # Check if a valid movement was found
+                    if (new_x, new_y) in self.board.tile_mapping['R']:
+                        console_text.extend(self.handle_step_on_trap(trap_pos=(new_x, new_y), target=enemy))
+                    self.board.update_enemy_position((enemy.x, enemy.y), (new_x, new_y))
+                    enemy.x = new_x
+                    enemy.y = new_y
+                    print(new_x, new_y)
                     self.load_game_board()
 
         return console_text

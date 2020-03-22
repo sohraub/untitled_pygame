@@ -54,11 +54,11 @@ class Board:
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Wall tiles
-            'E': list(),  # Enemies
             'D': list(),  # Doors
             'T': list(),  # Treasure
             'O': list(),  # Open tiles
-            'R': list()   # Traps
+            'R': list(),  # Traps
+            'E': list()   # Enemies
         }
         for y in range(len(self.template)):
             for x in range(len(self.template[y])):
@@ -80,6 +80,8 @@ class Board:
         position of an object on the board changes, so that the board can be re-rendered based off of the new template.
         """
         new_template = [['O' for _ in range(BOARD_LENGTH)] for _ in range(BOARD_HEIGHT)]
+        print(BOARD_HEIGHT)
+        print(BOARD_LENGTH)
         for tile_type in self.tile_mapping.keys():
             for coord in self.tile_mapping[tile_type]:
                 new_template[coord[1]][coord[0]] = tile_type
@@ -105,13 +107,14 @@ class Board:
         Method called when an enemy has moved, updating it's entry in the enemies and tile_mapping dicts and
         rebuilding the template
         """
+        if new_pos in set(self.tile_mapping['O']):
+            self.tile_mapping['O'].remove(new_pos)
+            self.tile_mapping['O'].append(old_pos)
         self.enemies[new_pos] = self.enemies.pop(old_pos)
         self.enemies[new_pos].x = new_pos[0]
         self.enemies[new_pos].y = new_pos[1]
         self.tile_mapping['E'].remove(old_pos)
         self.tile_mapping['E'].append(new_pos)
-        self.tile_mapping['O'].remove(new_pos)
-        self.tile_mapping['O'].append(old_pos)
         self.rebuild_template()
 
     def handle_chest_has_been_opened(self, chest_pos):
