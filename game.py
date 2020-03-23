@@ -132,15 +132,13 @@ class Game:
                 # Enemies can move onto either open tiles or traps.
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
                 new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
-                print(1)
                 if new_x is not None:  # Check if a valid movement was found
                     if (new_x, new_y) in self.board.tile_mapping['R']:
                         console_text.extend(self.handle_step_on_trap(trap_pos=(new_x, new_y), target=enemy))
                     self.board.update_enemy_position((enemy.x, enemy.y), (new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
-                    print(new_x, new_y)
-                    self.load_game_board()
+                    self.board.rebuild_template()
 
         return console_text
 
@@ -161,7 +159,6 @@ class Game:
 
         self.player_panel.handle_item_consumption()
         return console_text
-
 
     def handle_turn_end(self, console_text=None):
         """

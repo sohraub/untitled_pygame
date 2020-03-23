@@ -39,11 +39,11 @@ class Enemy(Character):
     def move_towards_target(self, point, open_tiles):
         """Method to move the enemy towards a target coordinate."""
         # First check if it can close the x-distance, and then the y-distance
-        if point[0] - self.x != 0:
+        if point[0] != self.x:
             next_step_x = int((point[0] - self.x) / abs(point[0] - self.x))  # This will be either 1 or -1
             if (self.x + next_step_x, self.y) in set(open_tiles):
                 return self.x + next_step_x, self.y
-        if point[1] - self.y != 0:
+        if point[1] != self.y:
             next_step_y = int((point[1] - self.y) / abs(point[1] - self.y))  # This will be either 1 or -1
             if (self.x, self.y + next_step_y) in set(open_tiles):
                 return self.x, self.y + next_step_y
