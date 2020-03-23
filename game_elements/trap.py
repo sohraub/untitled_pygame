@@ -31,7 +31,7 @@ class Trap:
 # call the appropriate function.
 
 DIRECT_DAMAGE_TRAPS = {'spike'}
-DEBUFF_TRAPS = {}
+DEBUFF_TRAPS = {'l_poison'}
 
 def generate_random_trap(coord):
     import random

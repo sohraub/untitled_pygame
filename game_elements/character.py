@@ -50,3 +50,23 @@ class Character:
         """Moves the character along the x-axis"""
         self.move_to((self.x + steps, self.y))
 
+    def apply_status(self, status):
+        """Adds a new status, and applies attribute effects, if any."""
+        self.status[f'{status.type}s'].append(status)
+        if status.attribute_effects:
+            for attribute in status.attribute_effects:
+                self.attributes[attribute] += status.attribute_effects[attribute]
+
+    def remove_status(self, status):
+        """Removes an expired status, and removes attribute effects, if any."""
+        self.status[f'{status.type}s'].remove(status)
+        if status.attribute_effects:
+            for attribute in status.attribute_effects:
+                self.attributes[attribute] -= status.attribute_effects[attribute]
+
+    def apply_end_of_turn_status_effects(self):
+        """Applies effects of any end-of-turn statuses."""
+        for status in self.status['buffs'] + self.status['debuffs']:
+            if status.end_of_turn_effect:
+                status.end_of_turn_effect(self)
+

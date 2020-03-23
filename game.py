@@ -76,6 +76,9 @@ class Game:
                 damage = trap.function(target)
                 target.hp[0] = max(0, target.hp[0] - damage)
                 console_text[0] += f'taking {damage} damage.'
+            elif trap.category == 'debuff':
+                effect = trap.function(target)
+                console_text[0] += f'and become{"s" if enemy_target else ""} {effect}.'
             self.board.handle_trap_triggered(trap_pos)
 
         else:
