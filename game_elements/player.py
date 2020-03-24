@@ -64,7 +64,6 @@ class Player(Character):
             pg.K_a: (self.move_right, -1)
         }
 
-
     def to_dict(self):
         """Method which returns a dict representation of the Player object."""
         return {
@@ -73,7 +72,8 @@ class Player(Character):
             'mp': self.mp,
             'attributes': self.attributes,
             'status': {
-                'buffs': {}
+                'buffs': {buff.to_dict() for buff in self.status['buffs']},
+                'debuffs': {debuff.to_dict() for debuff in self.status['debuffs']}
             },
             'inventory': self.inventory,
             'equipment': self.equipment,

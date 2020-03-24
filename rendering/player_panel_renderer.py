@@ -123,7 +123,7 @@ def draw_hp_mp(hp, mp, refresh=False):
     :param refresh: As above.
     :return: The Rect object that encloses hp and mp.
     """
-    hp_mp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, PANEL_TOP_LEFT_X + 100, 50)
+    hp_mp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, 100, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, hp_mp_rect)
     hp_indicator = FONT_20.render("HP: {0} / {1}".format(hp[0], hp[1]), 1, colors.RED)
@@ -132,6 +132,29 @@ def draw_hp_mp(hp, mp, refresh=False):
     MAIN_WINDOW.blit(mp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 65))
     return hp_mp_rect
 
+def draw_status(buffs, debuffs, refresh=False):
+    """
+    Draws indicators for player buffs and debuffs
+    :param buffs: List of dict representations of every buff.
+    :param debuffs: List of dict representations of every debuff.
+    :param refresh: Same as above.
+    :return: Lists of each rect for the buff and debuff indicators.
+    """
+    status_rect = (PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 200, 50)
+    if refresh:
+        MAIN_WINDOW.fill(colors.BLACK, status_rect)
+    buff_rects = list()
+    debuff_rects = list()
+
+    for i, buff in enumerate(buffs):
+        buff_indicator = pg.Rect((i*12) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 10, 10)
+        buff_rects.append(buff_indicator)
+        pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
+
+    for i, debuff in enumerate(debuffs):
+        debuff_indicator = pg.Rect((i*12) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 52, 10, 10)
+        debuff_rects.append(debuff_indicator)
+        pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 
 def draw_conditions(conditions, refresh=False):
     """
@@ -166,7 +189,6 @@ def draw_conditions(conditions, refresh=False):
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
 
-
 def draw_inventory(inventory, refresh=False):
     """
     Draws the player inventory.
@@ -193,7 +215,6 @@ def draw_inventory(inventory, refresh=False):
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
-
 
 def draw_equipment(equipment_dict, refresh=False):
     """
