@@ -23,5 +23,5 @@ def lesser_poison_effect(target):
 
 #### STATUSES ####
 
-lesser_poison = Status(name='lesser_poison', type='debuff', duration=5, end_of_turn_effect=lesser_poison_effect)
+lesser_poison = Status(name='l_poison', type='debuff', duration=5, end_of_turn_effect=lesser_poison_effect)
 

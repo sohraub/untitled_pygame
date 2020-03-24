@@ -142,7 +142,7 @@ class Game:
                     enemy.x = new_x
                     enemy.y = new_y
                     self.board.rebuild_template()
-            console_text.exend(enemy.apply_end_of_turn_status_effects())
+            console_text.extend(enemy.apply_end_of_turn_status_effects())
 
         return console_text
 

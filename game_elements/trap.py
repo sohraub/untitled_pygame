@@ -32,7 +32,7 @@ class Trap:
 
 # DIRECT_DAMAGE_TRAPS = {'spike'}
 DIRECT_DAMAGE_TRAPS = {}
-DEBUFF_TRAPS = {'l_poison'}
+DEBUFF_TRAPS = {'lesser poison'}
 
 def generate_random_trap(coord):
     import random

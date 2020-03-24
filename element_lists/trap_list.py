@@ -34,7 +34,7 @@ trap_map = {
         'trigger_prob': 0.8,
         'trigger_avoid_coeff': 1
     },
-    'l_poison': {
+    'lesser poison': {
         'function': lesser_poison_trap,
         'trigger_prob': 0.7,
         'trigger_avoid_coeff': 0.5
