@@ -72,7 +72,9 @@ class Player(Character):
             'hp': self.hp,
             'mp': self.mp,
             'attributes': self.attributes,
-            'status': self.status,
+            'status': {
+                'buffs': {}
+            },
             'inventory': self.inventory,
             'equipment': self.equipment,
             'conditions': self.conditions,
