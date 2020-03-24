@@ -142,6 +142,7 @@ class Game:
                     enemy.x = new_x
                     enemy.y = new_y
                     self.board.rebuild_template()
+            console_text.exend(enemy.apply_end_of_turn_status_effects())
 
         return console_text
 
@@ -221,6 +222,7 @@ class Game:
         and re-render necessary parts of the screen that may have changed.
         """
         console_text = console_text if console_text is not None else list()
+        console_text.extend(self.player.apply_end_of_turn_status_effects())
         console_text.extend(self.start_enemy_turn())
         self.handle_turn_end(console_text)
         self.player_panel.refresh_hp_mp()

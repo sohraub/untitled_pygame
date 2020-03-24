@@ -66,7 +66,12 @@ class Character:
 
     def apply_end_of_turn_status_effects(self):
         """Applies effects of any end-of-turn statuses."""
+        console_text = list()
         for status in self.status['buffs'] + self.status['debuffs']:
+            if status.turns_left == 0:
+                self.remove_status(status)
             if status.end_of_turn_effect:
-                status.end_of_turn_effect(self)
+                console_text.append(status.end_of_turn_effect(self))
+            status.turns_left -= 1
 
+        return console_text

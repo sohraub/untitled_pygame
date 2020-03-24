@@ -30,7 +30,8 @@ class Trap:
 # each type will be handled differently, when a trap is triggered we check to see which category it falls into, and
 # call the appropriate function.
 
-DIRECT_DAMAGE_TRAPS = {'spike'}
+# DIRECT_DAMAGE_TRAPS = {'spike'}
+DIRECT_DAMAGE_TRAPS = {}
 DEBUFF_TRAPS = {'l_poison'}
 
 def generate_random_trap(coord):
