@@ -225,8 +225,7 @@ class Game:
         console_text.extend(self.player.apply_end_of_turn_status_effects())
         console_text.extend(self.start_enemy_turn())
         self.handle_turn_end(console_text)
-        self.player_panel.refresh_hp_mp()
-        self.player_panel.refresh_conditions()
+        self.player_panel.refresh_player_panel()
         self.load_game_board()
 
     def game_loop_iteration(self):

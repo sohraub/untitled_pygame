@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_10, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -58,7 +58,6 @@ def draw_player_panel(player_name, refresh=False):
 
     return panel_rect
 
-
 def draw_level_and_experience(level, type, experience, refresh=False):
     """
     Renders the players level, type, and experience bar.
@@ -68,7 +67,7 @@ def draw_level_and_experience(level, type, experience, refresh=False):
     :param refresh: A boolean which determines if the area around this info is filled to black, as a refresh.
     :return: The Rect enclosing all of the level and experience info.
     """
-    level_and_exp_rect = (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
+    level_and_exp_rect = pg.Rect(LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, level_and_exp_rect)
     level_indicator = FONT_20.render(f"LEVEL {level} {type.upper()}", 1, colors.WHITE)
@@ -84,7 +83,6 @@ def draw_level_and_experience(level, type, experience, refresh=False):
 
     return level_and_exp_rect
 
-
 def draw_attributes(attributes, refresh=False):
     """
     Renders the player's attributes.
@@ -92,7 +90,7 @@ def draw_attributes(attributes, refresh=False):
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
+    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
@@ -114,7 +112,6 @@ def draw_attributes(attributes, refresh=False):
 
     return attributes_rect
 
-
 def draw_hp_mp(hp, mp, refresh=False):
     """
     Renders the player's HP and MP.
@@ -123,7 +120,7 @@ def draw_hp_mp(hp, mp, refresh=False):
     :param refresh: As above.
     :return: The Rect object that encloses hp and mp.
     """
-    hp_mp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, 100, 50)
+    hp_mp_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, 100, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, hp_mp_rect)
     hp_indicator = FONT_20.render("HP: {0} / {1}".format(hp[0], hp[1]), 1, colors.RED)
@@ -134,27 +131,37 @@ def draw_hp_mp(hp, mp, refresh=False):
 
 def draw_status(buffs, debuffs, refresh=False):
     """
-    Draws indicators for player buffs and debuffs
+    Draws indicators for player buffs and debuffs. Each will be represented by a 15x15 square, green for buffs and red
+    for debuffs. Buffs will all go along one row, and debuffs along another row below.
     :param buffs: List of dict representations of every buff.
     :param debuffs: List of dict representations of every debuff.
     :param refresh: Same as above.
     :return: Lists of each rect for the buff and debuff indicators.
     """
-    status_rect = (PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 200, 50)
+    status_rect = pg.Rect(PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 200, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, status_rect)
     buff_rects = list()
     debuff_rects = list()
 
     for i, buff in enumerate(buffs):
-        buff_indicator = pg.Rect((i*12) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 10, 10)
+        buff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 15, 15)
         buff_rects.append(buff_indicator)
+        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
 
     for i, debuff in enumerate(debuffs):
-        debuff_indicator = pg.Rect((i*12) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 52, 10, 10)
+        debuff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 57, 15, 15)
         debuff_rects.append(debuff_indicator)
+        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
+
+    print('buff rects', buff_rects)
+    print('debuff rects', debuff_rects)
+
+    return status_rect, buff_rects, debuff_rects
 
 def draw_conditions(conditions, refresh=False):
     """
@@ -183,8 +190,7 @@ def draw_conditions(conditions, refresh=False):
                 color = colors.ORANGE
             else:
                 color = colors.YELLOW
-            font = pg.font.Font(font_SIL, 20)
-            condition_indicator = font.render(condition.upper(), 1, color)
+            condition_indicator = FONT_20.render(condition.upper(), 1, color)
             MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
@@ -391,3 +397,10 @@ def draw_condition_details(conditions_dict, conditions_rect):
         window_body.append(f'{adj_to_noun[condition]} level: {current} / {max}')
 
     draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)
+
+def draw_status_details(status):
+    """Function to draw a tooltip providing details on the status currently being hovered over."""
+    window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
+    draw_detail_window(header_string=status['name'], body_strings=window_body,
+                       rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
+                                        ITEM_TOOLTIP_HEIGHT))

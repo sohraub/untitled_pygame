@@ -72,8 +72,8 @@ class Player(Character):
             'mp': self.mp,
             'attributes': self.attributes,
             'status': {
-                'buffs': {buff.to_dict() for buff in self.status['buffs']},
-                'debuffs': {debuff.to_dict() for debuff in self.status['debuffs']}
+                'buffs': [buff.to_dict() for buff in self.status['buffs']],
+                'debuffs': [debuff.to_dict() for debuff in self.status['debuffs']]
             },
             'inventory': self.inventory,
             'equipment': self.equipment,

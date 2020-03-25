@@ -1,6 +1,7 @@
 from math import ceil
 
 from game_elements.status import Status
+from utility_functions import parse_description
 
 
 """
@@ -23,7 +24,7 @@ def lesser_poison_effect(target):
 
 #### STATUSES ####
 
-lesser_poison = Status(name='l_poison', type='debuff', duration=5,
-                       description='Take a small amount of poison damage every turn.',
+lesser_poison = Status(name='Lesser Poison', type='debuff', duration=5,
+                       description=parse_description('Take a small amount of poison damage every turn.'),
                        end_of_turn_effect=lesser_poison_effect)
 
