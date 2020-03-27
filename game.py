@@ -1,4 +1,5 @@
 import pygame as pg
+import random
 
 from utility_functions import manhattan_distance
 from rendering import window_renderer, board_renderer
@@ -38,19 +39,50 @@ class Game:
         old_x = self.player.x
         old_y = self.player.y
         new_x, new_y = self.player.perform_movement(input)
-        if self.board.template[new_y][new_x] == 'O':  # Checks if player is moving to an open tile
+        # Checks if player is moving to an open tile or trap
+        if self.board.template[new_y][new_x] == 'O' or self.board.template[new_y][new_x] == 'R':
             self.board.player_coordinates = (new_x, new_y)
+            if self.board.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
+                console_text.extend(self.handle_step_on_trap((new_x, new_y), self.player))
             self.board.rebuild_template()
         else:
             self.player.x = old_x
             self.player.y = old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
-                # The handle_attacking_enemy function returns a list of strings to be displayed in the console
                 console_text.extend(self.handle_attacking_enemy((new_x, new_y)))
-            if self.board.template[new_y][new_x] == 'T':  # Moving a tile which contains a chest opens the chest
-                # Opening a chest only returns a single string to display in the console
-                console_text.append(self.handle_opening_chest((new_x, new_y)))
+            elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
+                console_text.extend(self.handle_opening_chest((new_x, new_y)))
 
+        return console_text
+
+    def handle_step_on_trap(self, trap_pos, target):
+        """
+        Check to see if trap is triggered, and if so, applies the trap effect and handles removing the trap from
+        the board
+        :param trap_pos: Coordinates of the trap
+        :param target: The Character which triggered the trap.
+        :returns: New lines for console.
+        """
+        enemy_target = True if target.__class__.__name__ == 'Enemy' else False
+        console_text = list()
+        trap = self.board.traps[trap_pos]
+        if enemy_target:
+            console_text.append(f'The {target.display_name} steps on a {trap.name} trap, ')
+        else:
+            console_text.append(f'You step on a {trap.name} trap, ')
+        avoid_probability = 100*(1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
+        if random.randint(0, 100) > avoid_probability:
+            if trap.type == 'direct':
+                damage = trap.function(target)
+                target.hp[0] = max(0, target.hp[0] - damage)
+                console_text[0] += f'taking {damage} damage.'
+            elif trap.type == 'debuff':
+                effect = trap.function(target)
+                console_text[0] += f'and become{"s" if enemy_target else ""} {effect}.'
+            self.board.handle_trap_triggered(trap_pos)
+
+        else:
+            console_text[0] += f'but avoid{"s" if enemy_target else ""} triggering it.'
         return console_text
 
     def handle_opening_chest(self, chest_pos):
@@ -100,12 +132,17 @@ class Game:
             if distance_to_player <= enemy.attack_range:
                 console_text.extend(enemy.basic_attack(self.player))
             elif distance_to_player <= enemy.aggro_range:
-                new_position = enemy.move_towards_target((self.player.x, self.player.y), self.board.tile_mapping['O'])
-                if new_position is not None:
-                    self.board.update_enemy_position((enemy.x, enemy.y), new_position)
-                    enemy.x = new_position[0]
-                    enemy.y = new_position[1]
-                    self.load_game_board()
+                # Enemies can move onto either open tiles or traps.
+                open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
+                new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
+                if new_x is not None:  # Check if a valid movement was found
+                    if (new_x, new_y) in self.board.tile_mapping['R']:
+                        console_text.extend(self.handle_step_on_trap(trap_pos=(new_x, new_y), target=enemy))
+                    self.board.update_enemy_position((enemy.x, enemy.y), (new_x, new_y))
+                    enemy.x = new_x
+                    enemy.y = new_y
+                    self.board.rebuild_template()
+            console_text.extend(enemy.apply_end_of_turn_status_effects())
 
         return console_text
 
@@ -126,7 +163,6 @@ class Game:
 
         self.player_panel.handle_item_consumption()
         return console_text
-
 
     def handle_turn_end(self, console_text=None):
         """
@@ -186,10 +222,10 @@ class Game:
         and re-render necessary parts of the screen that may have changed.
         """
         console_text = console_text if console_text is not None else list()
+        console_text.extend(self.player.apply_end_of_turn_status_effects())
         console_text.extend(self.start_enemy_turn())
         self.handle_turn_end(console_text)
-        self.player_panel.refresh_hp_mp()
-        self.player_panel.refresh_conditions()
+        self.player_panel.refresh_player_panel()
         self.load_game_board()
 
     def game_loop_iteration(self):

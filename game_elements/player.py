@@ -26,6 +26,8 @@ class Player(Character):
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
                    lowered.
         :movement_mapping: A dict that maps keyboard inputs to the proper methods and parameters which will be called.
+        :off_rating: An int which represents the player's total offensive rating after factoring equipment bonuses
+        :def_rating: Similar to off_rating, but for defense.
         """
         super().__init__(name, x, y, hp, mp, attributes, status)
         self.inventory = inventory if inventory is not None else list()
@@ -36,6 +38,9 @@ class Player(Character):
             'hands': None,
             'feet': None
         }
+        self.off_rating = 0
+        self.def_rating = 0
+        self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
             'tired': [10, 10, 0],
             'hungry': [10, 10, 0],
@@ -66,7 +71,10 @@ class Player(Character):
             'hp': self.hp,
             'mp': self.mp,
             'attributes': self.attributes,
-            'status': self.status,
+            'status': {
+                'buffs': [buff.to_dict() for buff in self.status['buffs']],
+                'debuffs': [debuff.to_dict() for debuff in self.status['debuffs']]
+            },
             'inventory': self.inventory,
             'equipment': self.equipment,
             'conditions': self.conditions,
@@ -92,15 +100,16 @@ class Player(Character):
 
     def pick_up_item(self, item, from_chest=False):
         """Method to pick up items that the Player encounters on the board."""
+        console_text = list()
         if len(self.inventory) == INVENTORY_LIMIT:
-            console_text = f'Inventory is full. You cannot pick up {item.name}.'
+            console_text.append(f'Inventory is full. You cannot pick up {item.name}.')
             return console_text, False
         else:
             self.inventory.append(item)
             if from_chest:
-                console_text = f'The chest creaks open, and you find {item.name}'
+                console_text.append(f'The chest creaks open, and you find {item.name}')
             else:
-                console_text = f'You picked up {item.name}.'
+                console_text.append(f'You picked up {item.name}.')
             return console_text, True
 
     def conditions_worsen(self):
@@ -169,28 +178,39 @@ class Player(Character):
         else:  # The player has nothing currently equipped at that slot
             self.equipment[equip_slot] = self.inventory.pop(index)
         console_text = f'You equip the {item.name}.'
+        self.update_off_def_ratings()
         return console_text
 
     def basic_attack(self, target):
         console_text = ['']
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
+        base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        if self.equipment.get('weapon', None):
-            base_damage += self.equipment['weapon'].off_rating
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
             console_text[0] += 'Miss! '
-        # The join method in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
-        console_text[0] += f"You dealt {base_damage} damage to {' '.join(target.name.split('_')[0:-1])}. "
+        # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
+        # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
+        console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
             from game_elements.enemy import death_phrases
             console_text.append(random.choice(death_phrases))
         return console_text
+
+    def update_off_def_ratings(self):
+        """Sets the players offensive and defensive rating based on current equipment, if any."""
+        if self.equipment.get('weapon', None):
+            self.off_rating = self.equipment['weapon'].off_rating
+        else:
+            self.off_rating = 0
+        self.def_rating = 0
+        for slot in ['head', 'body', 'hands', 'feet']:
+            if self.equipment.get(slot, None):
+                self.def_rating += self.equipment[slot].def_rating
 
 def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
