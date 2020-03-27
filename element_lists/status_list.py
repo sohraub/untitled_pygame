@@ -13,7 +13,7 @@ Module for storing the list of every status and the possible effects.
 def lesser_poison_effect(target):
     """Target loses 10% of their max HP, rounded up."""
     damage = ceil(0.1 * target.hp[1])
-    target.hp[0] -= damage
+    target.hp[0] = max(0, target.hp[0] - damage)
     if target.__class__.__name__ == 'Enemy':
         console_text = f'The {target.display_name} takes '
     else:

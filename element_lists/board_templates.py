@@ -39,4 +39,3 @@ y = ['XXDXXXXXXXXXDXX',
 
 #### LISTS OF TEMPLATES ####
 TEMPLATES = [x, y]
-

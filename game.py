@@ -67,16 +67,16 @@ class Game:
         console_text = list()
         trap = self.board.traps[trap_pos]
         if enemy_target:
-            console_text.append(f'The {target.display_name} steps on a {trap.type} trap, ')
+            console_text.append(f'The {target.display_name} steps on a {trap.name} trap, ')
         else:
-            console_text.append(f'You step on a {trap.type} trap, ')
+            console_text.append(f'You step on a {trap.name} trap, ')
         avoid_probability = 100*(1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
         if random.randint(0, 100) > avoid_probability:
-            if trap.category == 'direct':
+            if trap.type == 'direct':
                 damage = trap.function(target)
                 target.hp[0] = max(0, target.hp[0] - damage)
                 console_text[0] += f'taking {damage} damage.'
-            elif trap.category == 'debuff':
+            elif trap.type == 'debuff':
                 effect = trap.function(target)
                 console_text[0] += f'and become{"s" if enemy_target else ""} {effect}.'
             self.board.handle_trap_triggered(trap_pos)
