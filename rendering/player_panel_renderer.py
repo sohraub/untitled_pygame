@@ -328,7 +328,6 @@ def draw_equipment_info(equipment_dict, slot):
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
                        header_string=header_string)
 
-
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     """
     Function to parse equipment details and player attributes to draw the detail text correctly, with appropriate colors
@@ -404,3 +403,16 @@ def draw_status_details(status):
     draw_detail_window(header_string=status['name'], body_strings=window_body,
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))
+
+def draw_exp_details(experience):
+    """Draws tooltip showing details about the player's current experience progress."""
+    window_body = [f'Experience: {experience[0]} / {experience[1]}']
+    mouse_pos = pg.mouse.get_pos()
+    width = int(0.4*SIDE_PANEL_LENGTH)
+    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+        top_left_x = mouse_pos[0] - width
+    else:
+        top_left_x = mouse_pos[0]
+    top_left_y = mouse_pos[1]
+    draw_detail_window(body_strings=window_body,
+                       rect_dimensions=(top_left_x, top_left_y, width, 30))

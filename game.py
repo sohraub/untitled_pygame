@@ -89,7 +89,7 @@ class Game:
         """Calls methods to set chest status to 'open' and add item to player inventory."""
         target_chest = self.board.chests[chest_pos]
         if target_chest.opened:
-            return 'This chest is empty. '
+            return ['This chest is empty. ']
         # pick_up_item returns text for the console as well as a boolean signifying the success of picking up item
         console_text, success = self.player.pick_up_item(target_chest.item)
         if success:
@@ -107,6 +107,8 @@ class Game:
             self.board.handle_enemy_death(enemy_pos)
             self.misc_panel.focus_tile = None
             self.refresh_focus_window()
+            self.player.gain_experience(target_enemy.hp)
+            self.player_panel.refresh_level_and_exp()
         # Battle text is returned to be fed into the console.
         return console_text
 

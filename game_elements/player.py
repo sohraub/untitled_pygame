@@ -3,6 +3,7 @@ import random
 import copy
 import pygame as pg
 
+import player_panel
 from game_elements.character import Character
 from game_elements.element_config_values import INVENTORY_LIMIT
 
@@ -123,7 +124,6 @@ class Player(Character):
             'hungry': 7 * self.attributes['end'],
             'tired': 9 * self.attributes['end']
         }
-        console_text = list()
         for condition in self.conditions:
             self.conditions[condition][2] += 1
             if self.conditions[condition][2] >= condition_thresholds[condition]:
@@ -212,6 +212,29 @@ class Player(Character):
             if self.equipment.get(slot, None):
                 self.def_rating += self.equipment[slot].def_rating
 
+    def gain_experience(self, enemy_hp):
+        """Called when an enemy is killed, the player gains experience based on the killed enemy's max HP"""
+        exp_gained = int(0.5 * enemy_hp[1])
+        if self.experience[0] + exp_gained >= self.experience[1]:
+            # This is where the player levels up
+            self.level_up(exp_gained)
+        else:
+            self.experience[0] += exp_gained
+
+    def level_up(self, exp_gained):
+        """
+        Increases the player level, calls necessary rendering functions for increasing attributes and skill levels,
+        and also sets new experience level based on the overflow of the previous level's experience bar.
+        """
+        exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
+        self.level += 1
+        self.experience[1] = level_to_max_exp_map[self.level]
+        if exp_overflow > self.experience[1]:  # Handles the case when a player can gain multiple levels from one kill.
+            self.level_up(exp_overflow)
+            return
+        self.experience[0] = exp_overflow
+
+
 def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
     with open(filename, 'r') as f:
@@ -228,4 +251,10 @@ def load_player_from_json(filename):
         experience=character.get('experience', None)
     )
 
-
+level_to_max_exp_map = {
+    1: 20,
+    2: 50,
+    3: 100,
+    4: 200,
+    5: 500
+}

@@ -99,6 +99,9 @@ class PlayerPanel:
                 self.handle_inventory_mouseover()
             elif self.equipment_rect.collidepoint(mouse_pos):
                 self.handle_equipment_mouseover()
+            elif self.level_and_exp_rect.collidepoint(mouse_pos):
+                self.handle_level_exp_mouseover()
+
             # Shelving tooltips for conditions for now, colour indication should be sufficient
             # if self.conditions_rect.collidepoint(mouse_pos) and not self.tooltip_focus:
             #     self.handle_conditions_mouseover()
@@ -187,6 +190,11 @@ class PlayerPanel:
         the detail window.
         """
         player_panel_renderer.draw_condition_details(self.player_dict['conditions'], self.conditions_rect)
+
+    def handle_level_exp_mouseover(self):
+        """Handles displaying tooltip when user mouses over their level or experience bar."""
+        self.tooltip_focus = self.level_and_exp_rect
+        player_panel_renderer.draw_exp_details(self.player_dict['experience'])
 
     def handle_item_consumption(self):
         """Method to reset the necessary attributes and refresh the inventory when an item is consumed."""
