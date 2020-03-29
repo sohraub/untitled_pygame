@@ -1,15 +1,13 @@
 import json
 import random
-import copy
 import pygame as pg
 
-import player_panel
 from game_elements.character import Character
 from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, level=1, experience=None, type="adventurer"):
+                 equipment=None, condition=None, abilities=None, level=1, experience=None, type="adventurer"):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -19,6 +17,7 @@ class Player(Character):
         :param condition: A dict storing the levels of the player's tiredness, hunger, and thirst. The info for each
                           condition is stored as a 3-tuple of ['current', 'max', 'counter'], where 'current' decrements
                           by one every time 'counter' reaches a certain threshold, based on the players attributes.
+        :param abilities: A list of all of the player's Ability objects.
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
         :param type: The Player's class.
@@ -47,6 +46,7 @@ class Player(Character):
             'hungry': [10, 10, 0],
             'thirsty': [10, 10, 0]
         }
+        self.abilities = abilities if abilities is not None else list()
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
         self.type = type
@@ -185,7 +185,7 @@ class Player(Character):
         console_text = ['']
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
-        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '

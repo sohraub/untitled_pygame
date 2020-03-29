@@ -21,3 +21,9 @@ def parse_description(full_string, char_limit=35):
         parsed_string_list.append(temp_string)
     return parsed_string_list
 
+
+def check_adjacent(self, target):
+    """Returns True if target is in an adjacent square to self, False otherwise."""
+    if manhattan_distance((self.x, self.y), (target.x, target.y)) != 1:
+        return False
+    return True

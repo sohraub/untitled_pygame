@@ -159,9 +159,9 @@ class PlayerPanel:
         if item_index is not None:
             self.tooltip_focus = item_tile
             self.active_item_index = item_index
-            player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict(),
-                                                 self.player_dict['attributes'],
-                                                 self.player_dict['equipment'])
+            player_panel_renderer.draw_item_details(self.player_dict['inventory'][item_index].to_dict(),
+                                                    self.player_dict['attributes'],
+                                                    self.player_dict['equipment'])
 
     def handle_equipment_mouseover(self):
         """
@@ -182,7 +182,7 @@ class PlayerPanel:
                 equipment_dict = self.player_dict['equipment'][slot_moused_over].to_dict()
             else:
                 equipment_dict = None
-            player_panel_renderer.draw_equipment_info(equipment_dict, slot_moused_over)
+            player_panel_renderer.draw_equipment_details(equipment_dict, slot_moused_over)
 
     def handle_conditions_mouseover(self):
         """

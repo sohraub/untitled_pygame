@@ -58,6 +58,7 @@ def draw_player_panel(player_name, refresh=False):
 
     return panel_rect
 
+
 def draw_level_and_experience(level, type, experience, refresh=False):
     """
     Renders the players level, type, and experience bar.
@@ -82,6 +83,7 @@ def draw_level_and_experience(level, type, experience, refresh=False):
                      (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 26, current_exp_length, 6), 0)
 
     return level_and_exp_rect
+
 
 def draw_attributes(attributes, refresh=False):
     """
@@ -112,6 +114,7 @@ def draw_attributes(attributes, refresh=False):
 
     return attributes_rect
 
+
 def draw_hp_mp(hp, mp, refresh=False):
     """
     Renders the player's HP and MP.
@@ -128,6 +131,7 @@ def draw_hp_mp(hp, mp, refresh=False):
     MAIN_WINDOW.blit(hp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40))
     MAIN_WINDOW.blit(mp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 65))
     return hp_mp_rect
+
 
 def draw_status(buffs, debuffs, refresh=False):
     """
@@ -158,10 +162,8 @@ def draw_status(buffs, debuffs, refresh=False):
         MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 
-    print('buff rects', buff_rects)
-    print('debuff rects', debuff_rects)
-
     return status_rect, buff_rects, debuff_rects
+
 
 def draw_conditions(conditions, refresh=False):
     """
@@ -195,6 +197,7 @@ def draw_conditions(conditions, refresh=False):
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
 
+
 def draw_inventory(inventory, refresh=False):
     """
     Draws the player inventory.
@@ -221,6 +224,7 @@ def draw_inventory(inventory, refresh=False):
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))
                 inventory_tiles.append(item_tile)
     return inventory_tiles, inventory_rect
+
 
 def draw_equipment(equipment_dict, refresh=False):
     """
@@ -268,7 +272,7 @@ def draw_equipment(equipment_dict, refresh=False):
     return equipment_tiles, equipment_rect
 
 
-def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
+def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
     """
     Function to draw a small window displaying item info. The top-left of the window will be determined by the position
     of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
@@ -304,7 +308,7 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
                        header_string=item_dict['name'].upper())
 
 
-def draw_equipment_info(equipment_dict, slot):
+def draw_equipment_details(equipment_dict, slot):
     """
     Draws tooltip with equipment info if there is an item equipped in the slot being moused over, or draws a tooltip
     detailing the slot if no item is equipped. Tooltip will always be drawn to the left of the mouse.
@@ -327,6 +331,7 @@ def draw_equipment_info(equipment_dict, slot):
     draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
                        header_string=header_string)
+
 
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     """
@@ -397,12 +402,14 @@ def draw_condition_details(conditions_dict, conditions_rect):
 
     draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)
 
+
 def draw_status_details(status):
     """Function to draw a tooltip providing details on the status currently being hovered over."""
     window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
     draw_detail_window(header_string=status['name'], body_strings=window_body,
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))
+
 
 def draw_exp_details(experience):
     """Draws tooltip showing details about the player's current experience progress."""
