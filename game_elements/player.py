@@ -2,12 +2,14 @@ import json
 import random
 import pygame as pg
 
+from game_elements.classes.warrior import warrior_config
 from game_elements.character import Character
 from game_elements.element_config_values import INVENTORY_LIMIT
 
+
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, abilities=None, level=1, experience=None, type="adventurer"):
+                 equipment=None, condition=None, abilities=None, level=1, experience=None, profession="warrior"):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -20,7 +22,7 @@ class Player(Character):
         :param abilities: A list of all of the player's Ability objects.
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
-        :param type: The Player's class.
+        :param profession: The Player's profession (i.e. the class, job, etc.).
 
         As well as the above, the following attributes are also set and used throughout the Player's methods:
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
@@ -49,7 +51,7 @@ class Player(Character):
         self.abilities = abilities if abilities is not None else list()
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
-        self.type = type
+        self.profession = profession
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -79,8 +81,9 @@ class Player(Character):
             'inventory': self.inventory,
             'equipment': self.equipment,
             'conditions': self.conditions,
+            'abilities': [ability.to_dict() for ability in self.abilities],
             'level': self.level,
-            'type': self.type,
+            'profession': self.profession,
             'experience': self.experience
         }
 
@@ -239,11 +242,22 @@ def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
     with open(filename, 'r') as f:
         character = json.load(f)
-    return Player(
+
+    profession = character.get('profession', 'warrior')
+    attributes = None
+    abilities = None
+    if character.get('attributes', None) is None:
+        attributes = profession_string_map[profession]['starting_attributes']
+    if character.get('abilities', None) is None:
+        abilities = profession_string_map[profession]['abilities']
+
+    player = Player(
         name=character.get('name', 'TEST'),
         hp=character.get('hp', None),
         mp=character.get('mp', None),
-        attributes=character.get('attributes', None),
+        profession=profession,
+        abilities=abilities,
+        attributes=attributes,
         status=character.get('status', None),
         condition=character.get('condition', None),
         inventory=character.get('inventory', None),
@@ -251,10 +265,17 @@ def load_player_from_json(filename):
         experience=character.get('experience', None)
     )
 
+    return player
+
+
 level_to_max_exp_map = {
     1: 20,
     2: 50,
     3: 100,
     4: 200,
     5: 500
+}
+
+profession_string_map = {
+    "warrior": warrior_config
 }

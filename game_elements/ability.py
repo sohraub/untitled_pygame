@@ -20,3 +20,11 @@ class Ability:
         self.level = level
         self.cooldown = cooldown
         self.prerequisites = prerequisites if prerequisites is not None else list()
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'active': self.active,
+            'level': self.level,
+            'cooldown': self.cooldown
+        }

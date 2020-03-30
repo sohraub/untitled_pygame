@@ -25,6 +25,10 @@ INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
 INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
 ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles, so length = height
 
+#### ITEM TOOLTIPS ####
+ITEM_TOOLTIP_LENGTH = int(INVENTORY_LENGTH / 2)
+ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
+
 #### EQUIPMENT ####
 EQUIP_ITEM_LENGTH = int(ITEM_LENGTH * 0.75)  # Item tiles in equipment be 3/4ths the size of items in inventory.
 EQUIPMENT_LENGTH = 4 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
@@ -32,15 +36,16 @@ EQUIPMENT_HEIGHT = 4 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit o
 EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
 EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
 
+#### ABILITIES ####
+ABILITY_TILE_LENGTH = 1.2 * ITEM_LENGTH
+ABILITIES_TOP_LEFT_X = INVENTORY_TOP_LEFT_X
+ABILITIES_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.7 * SIDE_PANEL_HEIGHT)
+
 #### LEVEL/EXP INFO ####
 LEVEL_EXP_TOP_LEFT_X = int(PANEL_TOP_LEFT_X * 1.25)
 LEVEL_EXP_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
 LEVEL_EXP_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
 LEVEL_EXP_HEIGHT = int(SIDE_PANEL_HEIGHT / 21)
-
-#### ITEM TOOLTIPS ####
-ITEM_TOOLTIP_LENGTH = int(INVENTORY_LENGTH / 2)
-ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
 
 
 def draw_player_panel(player_name, refresh=False):
@@ -59,11 +64,34 @@ def draw_player_panel(player_name, refresh=False):
     return panel_rect
 
 
-def draw_level_and_experience(level, type, experience, refresh=False):
+def draw_abilities(abilities, refresh=False):
+    """Renders the player's active abilities."""
+    active_abilities = [ability for ability in abilities if ability['active']]
+    abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH * 5)
+    if refresh:
+        MAIN_WINDOW.fill(color=colors.BLACK, rect=abilities_rect)
+    while len(active_abilities) < 5:  # Pad the abilities list with None until it is of length 5
+        active_abilities.append(None)
+    abilities_label = FONT_20.render('ABILITIES', 1, colors.WHITE)
+    MAIN_WINDOW.blit(abilities_label, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y - 25))
+    ability_tiles = list()
+    for i in range(5):
+        ability_tile = pg.Rect((i * ABILITY_TILE_LENGTH) + ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y,
+                               ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
+        pg.draw.rect(MAIN_WINDOW, colors.GREY, ability_tile, 1)
+        if active_abilities[i] is not None:
+            MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                      ability_tile[2] - 2, ability_tile[3] - 2))
+            ability_tiles.append(ability_tile)
+
+    return ability_tiles, abilities_rect
+
+
+def draw_level_and_experience(level, profession, experience, refresh=False):
     """
     Renders the players level, type, and experience bar.
     :param level: An int which is the player's current level.
-    :param type: A string which is the player's current type/class.
+    :param profession: A string which is the player's current profession.
     :param experience: A list which stores the players experience progress as [current, max].
     :param refresh: A boolean which determines if the area around this info is filled to black, as a refresh.
     :return: The Rect enclosing all of the level and experience info.
@@ -71,11 +99,11 @@ def draw_level_and_experience(level, type, experience, refresh=False):
     level_and_exp_rect = pg.Rect(LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, level_and_exp_rect)
-    level_indicator = FONT_20.render(f"LEVEL {level} {type.upper()}", 1, colors.WHITE)
+    level_indicator = FONT_20.render(f"LEVEL {level} {profession.upper()}", 1, colors.WHITE)
     MAIN_WINDOW.blit(level_indicator, (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y))
     pg.draw.rect(MAIN_WINDOW, colors.GREY,
                  (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 24, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT - 27), 1)
-                 # (PANEL_TOP_LEFT_X + 6, PANEL_TOP_LEFT_Y + 248, SIDE_PANEL_LENGTH - 12, 8), 1)
+
     exp_percent = experience[0] / experience[1]
     current_exp_length = int(exp_percent * (SIDE_PANEL_LENGTH - 18 - PANEL_TOP_LEFT_X))
     if current_exp_length > 0:

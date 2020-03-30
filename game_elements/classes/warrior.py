@@ -13,7 +13,7 @@ def heavy_strike_func(self, target, skill_level):
     else:
         target.y = target.y + 1 if self.y < target.y else target.y + 1
     # Now calculate the damage
-    damage = 2 * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
+    damage = (1.5 + skill_level* 0.5) * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
     if random.randint(0, 100) > 90:
         console_text += 'Critical hit! '
         damage = 2 * damage
@@ -25,7 +25,7 @@ def heavy_strike_func(self, target, skill_level):
 heavy_strike = Ability(name='Heavy Strike', active=True, targeting_function=board_renderer.highlight_adjacent_tiles,
                        function=heavy_strike_func, level=1, cooldown=5)
 
-config = {
+warrior_config = {
     'starting_attributes': {
         'str': 6,
         'dex': 4,
@@ -34,4 +34,5 @@ config = {
         'vit': 7,
         'wis': 3
     },
+    'abilities': [heavy_strike ]
 }

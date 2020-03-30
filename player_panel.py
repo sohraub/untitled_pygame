@@ -32,10 +32,11 @@ class PlayerPanel:
         self.conditions_rect = player_panel_renderer.draw_conditions(self.player_dict['conditions'])
         self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'])
         self.level_and_exp_rect = player_panel_renderer.draw_level_and_experience(self.player_dict['level'],
-                                                                                  self.player_dict['type'],
+                                                                                  self.player_dict['profession'],
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
         self.equipment_tiles, self.equipment_rect = player_panel_renderer.draw_equipment(self.player_dict['equipment'])
+        self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_abilities(self.player_dict['abilities'])
         self.tooltip_focus = None
         self.active_item_index = None
 
@@ -49,6 +50,7 @@ class PlayerPanel:
         self.refresh_conditions()
         self.refresh_equipment()
         self.refresh_inventory()
+        self.refresh_abilities()
         self.refresh_level_and_exp()
 
     def refresh_hp_mp(self):
@@ -63,7 +65,7 @@ class PlayerPanel:
 
     def refresh_level_and_exp(self):
         """Method to refresh the displayed level and experience bar."""
-        player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['type'],
+        player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['profession'],
                                                         self.player_dict['experience'], refresh=True)
 
     def refresh_attributes(self):
@@ -79,6 +81,10 @@ class PlayerPanel:
         Refresh the displayed inventory, as well as re-set self.inventory_tiles based on the occupied inventory slots.
         """
         self.inventory_tiles, _ = player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
+
+    def refresh_abilities(self):
+        """Refresh the displayed abilities."""
+        self.ability_tiles, _ = player_panel_renderer.draw_abilities(self.player_dict['abilities'], refresh=True)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
