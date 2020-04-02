@@ -9,7 +9,8 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, abilities=None, level=1, experience=None, profession="warrior"):
+                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
+                 experience=None, profession="warrior"):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -19,7 +20,8 @@ class Player(Character):
         :param condition: A dict storing the levels of the player's tiredness, hunger, and thirst. The info for each
                           condition is stored as a 3-tuple of ['current', 'max', 'counter'], where 'current' decrements
                           by one every time 'counter' reaches a certain threshold, based on the players attributes.
-        :param abilities: A list of all of the player's Ability objects.
+        :param active_abilities: A list of all of the player's Ability objects which are active.
+        :param passive_abilities: A list of all of the player's Ability objects which are passive.
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
         :param profession: The Player's profession (i.e. the class, job, etc.).
@@ -48,7 +50,8 @@ class Player(Character):
             'hungry': [10, 10, 0],
             'thirsty': [10, 10, 0]
         }
-        self.abilities = abilities if abilities is not None else list()
+        self.active_abilities = active_abilities if active_abilities is not None else list()
+        self.passive_abilities = passive_abilities if passive_abilities is not None else list()
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
         self.profession = profession
@@ -81,7 +84,8 @@ class Player(Character):
             'inventory': self.inventory,
             'equipment': self.equipment,
             'conditions': self.conditions,
-            'abilities': [ability.to_dict() for ability in self.abilities],
+            'active_abilities': [ability.to_dict() for ability in self.active_abilities],
+            'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
             'level': self.level,
             'profession': self.profession,
             'experience': self.experience
@@ -245,18 +249,22 @@ def load_player_from_json(filename):
 
     profession = character.get('profession', 'warrior')
     attributes = None
-    abilities = None
+    active_abilities = None
+    passive_abilities = None
     if character.get('attributes', None) is None:
         attributes = profession_string_map[profession]['starting_attributes']
-    if character.get('abilities', None) is None:
-        abilities = profession_string_map[profession]['abilities']
+    if character.get('active_abilities', None) is None:
+        active_abilities = profession_string_map[profession]['active_abilities']
+    if character.get('passive_abilities', None) is None:
+        passive_abilities = profession_string_map[profession]['passive_abilities']
 
     player = Player(
         name=character.get('name', 'TEST'),
         hp=character.get('hp', None),
         mp=character.get('mp', None),
         profession=profession,
-        abilities=abilities,
+        active_abilities=active_abilities,
+        passive_abilities=passive_abilities,
         attributes=attributes,
         status=character.get('status', None),
         condition=character.get('condition', None),

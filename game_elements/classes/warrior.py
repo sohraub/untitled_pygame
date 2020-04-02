@@ -36,5 +36,6 @@ warrior_config = {
         'vit': 7,
         'wis': 3
     },
-    'abilities': [heavy_strike ]
+    'active_abilities': [heavy_strike ],
+    'passive_abilities': [],
 }

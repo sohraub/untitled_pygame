@@ -64,14 +64,13 @@ def draw_player_panel(player_name, refresh=False):
     return panel_rect
 
 
-def draw_abilities(abilities, refresh=False):
+def draw_active_abilities(abilities, refresh=False):
     """Renders the player's active abilities."""
-    active_abilities = [ability for ability in abilities if ability['active']]
     abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
     if refresh:
         MAIN_WINDOW.fill(color=colors.BLACK, rect=abilities_rect)
-    while len(active_abilities) < 5:  # Pad the abilities list with None until it is of length 5
-        active_abilities.append(None)
+    while len(abilities) < 5:  # Pad the abilities list with None until it is of length 5
+        abilities.append(None)
     abilities_label = FONT_20.render('ABILITIES', 1, colors.WHITE)
     MAIN_WINDOW.blit(abilities_label, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y - 25))
     ability_tiles = list()
@@ -79,7 +78,7 @@ def draw_abilities(abilities, refresh=False):
         ability_tile = pg.Rect((i * ABILITY_TILE_LENGTH) + ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y,
                                ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
         pg.draw.rect(MAIN_WINDOW, colors.GREY, ability_tile, 1)
-        if active_abilities[i] is not None:
+        if abilities[i] is not None:
             MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
                                                       ability_tile[2] - 2, ability_tile[3] - 2))
             ability_tiles.append(ability_tile)
@@ -450,12 +449,12 @@ def draw_ability_details(ability):
         top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
     else:
         top_left_x = mouse_pos[0]
-    top_left_y = mouse_pos[1] - ITEM_TOOLTIP_HEIGHT
-    window_body = ability['description'] + ['----', f'Cooldown: {ability["cooldown"]}']
+    top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
+    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}']
     if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
         window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
     draw_detail_window(header_string=ability['name'], body_strings=window_body,
-                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT))
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
 
 

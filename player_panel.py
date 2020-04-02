@@ -36,7 +36,7 @@ class PlayerPanel:
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
         self.equipment_tiles, self.equipment_rect = player_panel_renderer.draw_equipment(self.player_dict['equipment'])
-        self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_abilities(self.player_dict['abilities'])
+        self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'])
         self.tooltip_focus = None
         self.active_item_index = None
 
@@ -84,7 +84,7 @@ class PlayerPanel:
 
     def refresh_abilities(self):
         """Refresh the displayed abilities."""
-        self.ability_tiles, _ = player_panel_renderer.draw_abilities(self.player_dict['abilities'], refresh=True)
+        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'], refresh=True)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
@@ -196,9 +196,6 @@ class PlayerPanel:
         Handle cases when mouse is over player abilities, listening for clicks on ability tiles and displaying tooltips.
         """
         mouse_pos = mouse.get_pos()
-        # Construct a list of all active abilities, to map the ability tile moused-over by index. I.e. if we see that
-        # the first ability in the player panel is moused-over, display info for active_abilities[0]
-        active_abilities = [ability for ability in self.player_dict['abilities'] if ability['active']]
         ability_index = None
         for index, tile in enumerate(self.ability_tiles):
             if tile.collidepoint(mouse_pos):
@@ -206,11 +203,9 @@ class PlayerPanel:
                 break
 
         # Check to make sure there are actually abilities up to that index before trying to do anymore.
-        if ability_index is not None and len(active_abilities) >= ability_index + 1:
+        if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
             self.tooltip_focus = self.ability_tiles[ability_index]
-            player_panel_renderer.draw_ability_details(active_abilities[ability_index])
-            if mouse.get_pressed()[0]:
-                print('clickity click')
+            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index])
 
 
     def handle_conditions_mouseover(self):
@@ -231,3 +226,15 @@ class PlayerPanel:
         self.active_item_index = None
         self.refresh_inventory()
         self.refresh_equipment()
+
+    def get_tooltip_index(self, element):
+        """
+        Used by the Game object to get the index of tiles which we clicked on, to be passed to the relevant Player
+        methods.
+        """
+        if element == 'inventory':
+            return self.inventory_tiles.index(self.tooltip_focus)
+        elif element == 'abilities':
+            return self.ability_tiles.index(self.tooltip_focus)
+
+        raise Exception('Incompatible element passed into get_tooltip_index() method of player_panel.')

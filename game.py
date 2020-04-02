@@ -156,7 +156,7 @@ class Game:
         :returns: New lines to be displayed in the console
         """
         console_text = list()
-        item_index = self.player_panel.active_item_index
+        item_index = self.player_panel.get_tooltip_index(element='inventory')
         item_dict = self.player.inventory[item_index].to_dict()
         if item_dict['type'] == 'consumable':
             console_text.append(self.player.consume_item(item_index))
@@ -165,6 +165,18 @@ class Game:
 
         self.player_panel.handle_item_consumption()
         return console_text
+
+    def handle_ability_use(self):
+        """
+        Calls necessary functions and methods to handle the player using an ability. Generally goes something like:
+            i.   Get ability index from player panel
+            ii.  Run ability targeting method
+            iii. Use ability on selected target
+            iv.  End player turn
+        :return: New lines to be displayed in the console
+        """
+        console_text = list()
+        ability_index = self.player_panel.get_tooltip_index(elements='abilities')
 
     def handle_turn_end(self, console_text=None):
         """
@@ -230,6 +242,26 @@ class Game:
         self.player_panel.refresh_player_panel()
         self.load_game_board()
 
+    def handle_left_clicks(self):
+        """
+        Method to handle cases in the main game loop when the left mouse button has been clicked.
+        :return console_text: New lines for the console.
+        """
+        console_text = list()
+        mouse_pos = pg.mouse.get_pos()
+        # If a tooltip focus window is active, means a player has clicked on something that might have
+        # a function when clicked.
+        if self.player_panel.tooltip_focus is not None:
+            # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
+            # is on the inventory, implying that an item was clicked.
+            if self.player_panel.inventory_rect.collidepoint(mouse_pos):
+                console_text.extend(self.handle_item_use())
+                self.handle_player_turn_over(console_text)
+            # Do the same thing to check if an ability has been clicked.
+            # elif self.player_panel.abilities_rect.collidepoint(mouse_pos):
+
+        return console_text
+
     def game_loop_iteration(self):
         """
         Main game loop, which iterates over player inputs and calls appropriate methods.
@@ -245,15 +277,7 @@ class Game:
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
             if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
-                mouse_pos = pg.mouse.get_pos()
-                # If a tooltip focus window is active, means a player has clicked on something that might have
-                # a function when clicked.
-                if self.player_panel.tooltip_focus is not None:
-                    # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
-                    # is on the inventory, implying that an item was clicked.
-                    if self.player_panel.inventory_rect.collidepoint(mouse_pos):
-                        console_text.extend(self.handle_item_use())
-                        self.handle_player_turn_over(console_text)
+                console_text.extend(self.handle_left_clicks())
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 if event.key == pg.K_ESCAPE:  # ESC exits the game
                     return False
