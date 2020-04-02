@@ -1,4 +1,5 @@
 from uuid import uuid4
+from time import sleep
 
 from game_elements import enemy
 from game_elements import trap
@@ -80,8 +81,6 @@ class Board:
         position of an object on the board changes, so that the board can be re-rendered based off of the new template.
         """
         new_template = [['O' for _ in range(BOARD_LENGTH)] for _ in range(BOARD_HEIGHT)]
-        print(BOARD_HEIGHT)
-        print(BOARD_LENGTH)
         for tile_type in self.tile_mapping.keys():
             for coord in self.tile_mapping[tile_type]:
                 new_template[coord[1]][coord[0]] = tile_type

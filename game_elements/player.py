@@ -219,6 +219,20 @@ class Player(Character):
             if self.equipment.get(slot, None):
                 self.def_rating += self.equipment[slot].def_rating
 
+    def use_ability(self, ability, target):
+        """
+        Player uses an ability on the target. If target is None, then the ability misses.
+        """
+        console_text = list()
+        if target is not None:
+            console_text.append(ability.function(self=self, target=target, skill_level=ability.level))
+            if target.hp[0] == 0:
+                from game_elements.enemy import death_phrases
+                console_text.append(random.choice(death_phrases))
+        else:
+            console_text.append([f'You used {ability.name}, but there was no target!'])
+        return console_text
+
     def gain_experience(self, enemy_hp):
         """Called when an enemy is killed, the player gains experience based on the killed enemy's max HP"""
         exp_gained = int(0.5 * enemy_hp[1])

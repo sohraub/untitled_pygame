@@ -1,7 +1,9 @@
 import pygame as pg
 import random
+from copy import copy
+from time import sleep
 
-from utility_functions import manhattan_distance
+from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
@@ -32,6 +34,8 @@ class Game:
         # These two panels are initialized at rendering time
         self.player_panel = None
         self.misc_panel = None
+        # Boolean flag showing if player is targeting an ability/item use
+        self.targeting_mode = False
 
     def move_player_on_board(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -104,13 +108,16 @@ class Game:
         console_text = list()
         console_text.extend(self.player.basic_attack(target_enemy))
         if target_enemy.hp[0] == 0:
-            self.board.handle_enemy_death(enemy_pos)
-            self.misc_panel.focus_tile = None
-            self.refresh_focus_window()
-            self.player.gain_experience(target_enemy.hp)
-            self.player_panel.refresh_level_and_exp()
+            self.handle_enemy_death(target_enemy)
         # Battle text is returned to be fed into the console.
         return console_text
+
+    def handle_enemy_death(self, enemy):
+        self.board.handle_enemy_death((enemy.x, enemy.y))
+        self.misc_panel.focus_tile = None
+        self.refresh_focus_window()
+        self.player.gain_experience(enemy.hp)
+        self.player_panel.refresh_level_and_exp()
 
     def start_enemy_turn(self):
         """
@@ -143,7 +150,7 @@ class Game:
                     self.board.update_enemy_position((enemy.x, enemy.y), (new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
-                    self.board.rebuild_template()
+                    # self.board.rebuild_template()
             console_text.extend(enemy.apply_end_of_turn_status_effects())
 
         return console_text
@@ -176,7 +183,30 @@ class Game:
         :return: New lines to be displayed in the console
         """
         console_text = list()
-        ability_index = self.player_panel.get_tooltip_index(elements='abilities')
+        ability_index = self.player_panel.get_tooltip_index(element='abilities')
+        ability = self.player.active_abilities[ability_index]
+        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y)
+        target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
+        target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
+        if target_rect is False:  # If no valid target was returned.
+            return console_text
+        else:
+            target_coords = xy_coords_from_tile(target_rect)
+            target = self.board.enemies.get(target_coords, None)
+            target_old_position = (copy(target.x), copy(target.y))
+            console_text.extend(self.player.use_ability(ability, target))
+            # Check to see if target was moved by ability, adjust position in board accordingly.
+            if (target.x, target.y) != target_old_position:
+                self.board.update_enemy_position(target_old_position, (target.x, target.y))
+                board_renderer.render_game_board(self.board.template)
+                pg.display.update()
+                sleep(0.3)
+
+            if target is not None and target.hp[0] == 0:
+                self.handle_enemy_death(target)
+
+        return console_text
+
 
     def handle_turn_end(self, console_text=None):
         """
@@ -247,7 +277,7 @@ class Game:
         Method to handle cases in the main game loop when the left mouse button has been clicked.
         :return console_text: New lines for the console.
         """
-        console_text = list()
+        new_actions = list()
         mouse_pos = pg.mouse.get_pos()
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
@@ -255,12 +285,27 @@ class Game:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):
-                console_text.extend(self.handle_item_use())
-                self.handle_player_turn_over(console_text)
+                new_actions = self.handle_item_use()
             # Do the same thing to check if an ability has been clicked.
-            # elif self.player_panel.abilities_rect.collidepoint(mouse_pos):
+            elif self.player_panel.abilities_rect.collidepoint(mouse_pos):
+                new_actions = self.handle_ability_use()
+        if new_actions != []:
+            self.handle_player_turn_over(console_text=new_actions)
+        return
 
-        return console_text
+    def enter_targeting_game_loop(self, valid_target_tiles):
+        """
+        Alternative game loop that is triggered when player enters targeting mode, to use an ability or item that
+        requires a target. If player clicks on a valid target, return that tile and apply the ability/item effect. If
+        the player clicks anywhere else, then exit targeting mode and return to neutral game state.
+        """
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    for tile in valid_target_tiles:
+                        if tile.collidepoint(pg.mouse.get_pos()):
+                            return tile
+                    return False
 
     def game_loop_iteration(self):
         """
@@ -277,7 +322,7 @@ class Game:
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
             if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
-                console_text.extend(self.handle_left_clicks())
+                self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 if event.key == pg.K_ESCAPE:  # ESC exits the game
                     return False
