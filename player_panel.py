@@ -1,4 +1,4 @@
-from pygame import mouse, event, MOUSEMOTION
+from pygame import mouse
 from rendering import player_panel_renderer
 
 class PlayerPanel:
@@ -105,6 +105,8 @@ class PlayerPanel:
                 self.handle_inventory_mouseover()
             elif self.equipment_rect.collidepoint(mouse_pos):
                 self.handle_equipment_mouseover()
+            elif self.abilities_rect.collidepoint(mouse_pos):
+                self.handle_abilities_mouseover()
             elif self.level_and_exp_rect.collidepoint(mouse_pos):
                 self.handle_level_exp_mouseover()
 
@@ -122,7 +124,6 @@ class PlayerPanel:
         """
         Handle cases when the mouse is over the statuses, to display tooltip info for buffs and debuffs.
         """
-        print('in status')
         mouse_pos = mouse.get_pos()
         buff_index = None
         debuff_index = None
@@ -189,6 +190,28 @@ class PlayerPanel:
             else:
                 equipment_dict = None
             player_panel_renderer.draw_equipment_details(equipment_dict, slot_moused_over)
+
+    def handle_abilities_mouseover(self):
+        """
+        Handle cases when mouse is over player abilities, listening for clicks on ability tiles and displaying tooltips.
+        """
+        mouse_pos = mouse.get_pos()
+        # Construct a list of all active abilities, to map the ability tile moused-over by index. I.e. if we see that
+        # the first ability in the player panel is moused-over, display info for active_abilities[0]
+        active_abilities = [ability for ability in self.player_dict['abilities'] if ability['active']]
+        ability_index = None
+        for index, tile in enumerate(self.ability_tiles):
+            if tile.collidepoint(mouse_pos):
+                ability_index = index
+                break
+
+        # Check to make sure there are actually abilities up to that index before trying to do anymore.
+        if ability_index is not None and len(active_abilities) >= ability_index + 1:
+            self.tooltip_focus = self.ability_tiles[ability_index]
+            player_panel_renderer.draw_ability_details(active_abilities[ability_index])
+            if mouse.get_pressed()[0]:
+                print('clickity click')
+
 
     def handle_conditions_mouseover(self):
         """

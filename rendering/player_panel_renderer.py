@@ -31,8 +31,8 @@ ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
 
 #### EQUIPMENT ####
 EQUIP_ITEM_LENGTH = int(ITEM_LENGTH * 0.75)  # Item tiles in equipment be 3/4ths the size of items in inventory.
-EQUIPMENT_LENGTH = 4 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
-EQUIPMENT_HEIGHT = 4 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
+EQUIPMENT_LENGTH = 3.8 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
+EQUIPMENT_HEIGHT = 3.8 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
 EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
 EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
 
@@ -67,7 +67,7 @@ def draw_player_panel(player_name, refresh=False):
 def draw_abilities(abilities, refresh=False):
     """Renders the player's active abilities."""
     active_abilities = [ability for ability in abilities if ability['active']]
-    abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH * 5)
+    abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
     if refresh:
         MAIN_WINDOW.fill(color=colors.BLACK, rect=abilities_rect)
     while len(active_abilities) < 5:  # Pad the abilities list with None until it is of length 5
@@ -439,15 +439,36 @@ def draw_status_details(status):
                                         ITEM_TOOLTIP_HEIGHT))
 
 
+def draw_ability_details(ability):
+    """
+    Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
+    player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
+    above the cursor regardless of mouse position.
+    """
+    mouse_pos = pg.mouse.get_pos()
+    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+        top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
+    else:
+        top_left_x = mouse_pos[0]
+    top_left_y = mouse_pos[1] - ITEM_TOOLTIP_HEIGHT
+    window_body = ability['description'] + ['----', f'Cooldown: {ability["cooldown"]}']
+    if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
+        window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
+    draw_detail_window(header_string=ability['name'], body_strings=window_body,
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT))
+
+
+
+
 def draw_exp_details(experience):
     """Draws tooltip showing details about the player's current experience progress."""
     window_body = [f'Experience: {experience[0]} / {experience[1]}']
     mouse_pos = pg.mouse.get_pos()
-    width = int(0.4*SIDE_PANEL_LENGTH)
+    length = int(0.4*SIDE_PANEL_LENGTH)
     if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
-        top_left_x = mouse_pos[0] - width
+        top_left_x = mouse_pos[0] - length
     else:
         top_left_x = mouse_pos[0]
     top_left_y = mouse_pos[1]
     draw_detail_window(body_strings=window_body,
-                       rect_dimensions=(top_left_x, top_left_y, width, 30))
+                       rect_dimensions=(top_left_x, top_left_y, length, 30))

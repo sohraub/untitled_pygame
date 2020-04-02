@@ -22,7 +22,9 @@ def heavy_strike_func(self, target, skill_level):
     return console_text
 
 
-heavy_strike = Ability(name='Heavy Strike', active=True, targeting_function=board_renderer.highlight_adjacent_tiles,
+heavy_strike = Ability(name='Heavy Strike',
+                       description=f'Strike an enemy with all your might, dealing massive damage and knocking them back',
+                       active=True, targeting_function=board_renderer.highlight_adjacent_tiles,
                        function=heavy_strike_func, level=1, cooldown=5)
 
 warrior_config = {
