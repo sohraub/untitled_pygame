@@ -15,7 +15,8 @@ def heavy_strike_func(self, target, skill_level):
         target.y = target.y + 1 if self.y < target.y else target.y - 1
     # Now calculate the damage
     damage = int((1.5 + skill_level* 0.5) * (self.attributes['str'] - target.attributes['end'] + self.off_rating))
-    if random.randint(0, 100) > 90:
+    crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+    if random.randint(0, 100) > crit_chance:
         console_text += 'Critical hit! '
         damage = 2 * damage
     target.hp[0] = max(0, target.hp[0] - damage)

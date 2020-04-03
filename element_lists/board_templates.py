@@ -36,6 +36,23 @@ y = ['XXDXXXXXXXXXDXX',
      'XOOOOOOOPOOOOOX',
      'XXXXXXXXDXXXXXX']
 
+testing = ['XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXOOROXXXXXX',
+           'XXXXXOOEOXXXXXX',
+           'XXXXXOOPOXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX']
+
 
 #### LISTS OF TEMPLATES ####
-TEMPLATES = [x, y]
+# TEMPLATES = [x, y]
+TEMPLATES = [testing]

@@ -106,6 +106,8 @@ class Board:
         Method called when an enemy has moved, updating it's entry in the enemies and tile_mapping dicts and
         rebuilding the template
         """
+        # We only update the tile mapping if the enemy moves to an open space, since if they're moving to a trap, we
+        # still want the tile to stay in the list of trap tiles.
         if new_pos in set(self.tile_mapping['O']):
             self.tile_mapping['O'].remove(new_pos)
             self.tile_mapping['O'].append(old_pos)

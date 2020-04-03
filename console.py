@@ -1,3 +1,4 @@
+from time import sleep
 from rendering import console_renderer
 
 
@@ -11,17 +12,23 @@ class Console:
         """
         self.lines = ['' for _ in range(5)]
 
-    def update_console(self, new_lines):
-        """
-        A method to update the console with new lines. Console only displays 5 lines at a time, so adding a new
-        line pops the oldest one in the list.
-        """
-        for new_line in new_lines:
-            self.lines.pop(0)
-            self.lines.append(new_line)
-        self.refresh_console()
-
     def refresh_console(self):
         """Method to call the console renderer with the new lines."""
         console_renderer.render_console(self.lines)
 
+    def update(self, lines):
+        """
+        Accepts new lines, casting it to a single-item list if lines is just a string. Then adds new lines to console
+        and refreshes it
+        """
+        if type(lines) == str:
+            new_lines = [lines]
+        else:
+            new_lines = lines
+
+        if new_lines:
+            for new_line in new_lines:
+                self.lines.pop(0)
+                self.lines.append(new_line)
+                self.refresh_console()
+                sleep(0.25)
