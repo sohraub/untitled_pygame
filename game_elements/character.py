@@ -36,19 +36,21 @@ class Character:
             'debuffs': list()
         }
 
-    def move_to(self, destination):
-        """Sets the characters position to 'destination'"""
-        self.x = destination[0]
-        self.y = destination[1]
+    # def move_to(self, destination):
+    #     """Sets the characters position to 'destination'"""
+    #     self.x = destination[0]
+    #     self.y = destination[1]
 
     def move_up(self, steps=1):
         """Moves the character along the y-axis"""
         # Note that (0, 0) is the top left corner, so we subtract from  the y position to move up
-        self.move_to((self.x, self.y - steps))
+        print(f'moving up {steps} steps')
+        return self.x, self.y - steps
 
     def move_right(self, steps=1):
         """Moves the character along the x-axis"""
-        self.move_to((self.x + steps, self.y))
+        print(f'moving right {steps} steps')
+        return self.x + steps, self.y
 
     def apply_status(self, status):
         """

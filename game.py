@@ -37,60 +37,24 @@ class Game:
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
 
-    def move_player_on_board(self, input):
+    def handle_character_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
         # console_text = list()
-        old_x = self.player.x
-        old_y = self.player.y
+        old_x, old_y = self.player.x, self.player.y
+        # The following function reads the user input and updates the Player x and y attributes, but only in the player
+        # class. If it's found to not be a valid movement, gets reset below.
         new_x, new_y = self.player.perform_movement(input)
         # Checks if player is moving to an open tile or trap
-        if self.board.template[new_y][new_x] == 'O' or self.board.template[new_y][new_x] == 'R':
-            self.board.player_coordinates = (new_x, new_y)
-            if self.board.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
-                self.console.update(self.handle_step_on_trap((new_x, new_y), self.player))
-                # console_text.extend(self.handle_step_on_trap((new_x, new_y), self.player))
-            self.board.rebuild_template()
+        if self.board.tile_is_open(new_x, new_y):
+            self.board.move_character(character=self.player, new_x=new_x, new_y=new_y)
         else:
-            self.player.x = old_x
-            self.player.y = old_y
+            self.player.x, self.player_y = old_x, old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
                 self.console.update(self.handle_attacking_enemy((new_x, new_y)))
                 # console_text.extend(self.handle_attacking_enemy((new_x, new_y)))
             elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
                 self.console.update(self.handle_opening_chest((new_x, new_y)))
                 # console_text.extend(self.handle_opening_chest((new_x, new_y)))
-
-    def handle_step_on_trap(self, trap_pos, target):
-        """
-        Check to see if trap is triggered, and if so, applies the trap effect and handles removing the trap from
-        the board
-        :param trap_pos: Coordinates of the trap
-        :param target: The Character which triggered the trap.
-        :returns: New lines for console.
-        """
-        enemy_target = True if target.__class__.__name__ == 'Enemy' else False
-        trap = self.board.traps[trap_pos]
-        if enemy_target:
-            console_text = f'The {target.display_name} steps on a {trap.name} trap, '
-            # console_text.append(f'The {target.display_name} steps on a {trap.name} trap, ')
-        else:
-            console_text = f'You step on a {trap.name} trap, '
-            # console_text.append(f'You step on a {trap.name} trap, ')
-        avoid_probability = 100*(1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
-        if random.randint(0, 100) > avoid_probability:
-            if trap.type == 'direct':
-                damage = trap.function(target)
-                target.hp[0] = max(0, target.hp[0] - damage)
-                console_text += f'taking {damage} damage.'
-            elif trap.type == 'debuff':
-                effect = trap.function(target)
-                console_text += f'and become{"s" if enemy_target else ""} {effect}.'
-            self.board.handle_trap_triggered(trap_pos)
-
-        else:
-            console_text += f'but avoid{"s" if enemy_target else ""} triggering it.'
-
-        self.console.update(console_text)
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -147,9 +111,7 @@ class Game:
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
                 new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
                 if new_x is not None:  # Check if a valid movement was found
-                    if (new_x, new_y) in self.board.tile_mapping['R']:
-                        self.console.update(self.handle_step_on_trap(trap_pos=(new_x, new_y), target=enemy))
-                    self.board.update_enemy_position((enemy.x, enemy.y), (new_x, new_y))
+                    self.board.move_character(enemy, new_x, new_y)
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
@@ -251,7 +213,7 @@ class Game:
             return []
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
-            self.console.update(self.move_player_on_board(pressed_key))
+            self.console.update(self.handle_character_movement(pressed_key))
 
     def handle_player_turn_over(self, console_text=None):
         """

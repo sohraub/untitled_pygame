@@ -96,10 +96,10 @@ class Player(Character):
         func = self.movement_mapping[input][0]
         param = self.movement_mapping[input][1]
         if param is None:
-            func()
+            new_x, new_y = func()
         else:
-            func(param)
-        return self.x, self.y
+            new_x, new_y = func(param)
+        return new_x, new_y
 
     def wait(self):
         """Method called when the Player is to wait a turn."""

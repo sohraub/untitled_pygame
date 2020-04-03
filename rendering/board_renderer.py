@@ -41,4 +41,3 @@ def highlight_adjacent_tiles(board_template, target_x, target_y, color=colors.BL
     render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color)
     pg.display.update()
     return tiles_to_highlight
-
