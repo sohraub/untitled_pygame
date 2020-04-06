@@ -44,7 +44,7 @@ class MiscPanel:
         enemy = self.board.enemies[self.focus_tile]
         enemy_dict = {
             'type': 'enemy',
-            'name': enemy.name,
+            'name': enemy.display_name,
             'hp': enemy.hp,
             'flavour_text': enemy.flavour_text
         }

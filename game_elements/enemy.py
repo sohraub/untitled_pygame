@@ -9,7 +9,7 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
 
 class Enemy(Character):
     def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, attack_range=1, role='attacker',
-                 aggro_range=3, retreat_probability=0.3, flavour_text=None):
+                 aggro_range=3, retreat_probability=0.3, flavour_text=None, display_name=''):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
         super(), refer to the Character module.
@@ -18,6 +18,7 @@ class Enemy(Character):
         :param aggro_range: Denotes from how far an enemy will notice a player and start acting.
         :param retreat_probability: Probability of an enemy retreating when it is weak.
         :param flavour_text: Some flavour text that is displayed in the focus window.
+        :param display_name: Enemy's name in a nicer format for display purposes.
         """
         super().__init__(name, x, y, hp, mp, attributes, status)
         self.aggro_range = aggro_range
@@ -25,6 +26,7 @@ class Enemy(Character):
         self.retreat_probability = retreat_probability
         self.role = role
         self.flavour_text = flavour_text if flavour_text is not None else 'This is placeholder flavour text'
+        self.display_name = display_name
 
     def check_aggro(self, player):
         """Method to check if the player is within the enemy's aggro range."""
@@ -37,26 +39,23 @@ class Enemy(Character):
     def move_towards_target(self, point, open_tiles):
         """Method to move the enemy towards a target coordinate."""
         # First check if it can close the x-distance, and then the y-distance
-        if point[0] - self.x != 0:
+        if point[0] != self.x:
             next_step_x = int((point[0] - self.x) / abs(point[0] - self.x))  # This will be either 1 or -1
             if (self.x + next_step_x, self.y) in set(open_tiles):
-                return (self.x + next_step_x, self.y)
-        if point[1] - self.y != 0:
+                return self.x + next_step_x, self.y
+        if point[1] != self.y:
             next_step_y = int((point[1] - self.y) / abs(point[1] - self.y))  # This will be either 1 or -1
             if (self.x, self.y + next_step_y) in set(open_tiles):
-                return (self.x, self.y + next_step_y)
+                return self.x, self.y + next_step_y
         # If no valid movement, return None
-        return None
+        return None, None
 
     def basic_attack(self, target):
         console_text = ['']
-        base_damage = max(self.attributes['str'] - target.attributes['end'], 1)
+        # Enemies will always deal at least 1 damage, unless they miss
+        base_damage = max(self.attributes['str'] - target.attributes['end'] - target.def_rating, 1)
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
-        # Check if the target player is wearing equipment that might mitigate damage.
-        for slot in target.equipment:
-            if slot is not 'weapon' and target.equipment.get(slot, None):
-                base_damage -= target.equipment[slot].def_rating
 
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
@@ -65,10 +64,22 @@ class Enemy(Character):
             base_damage = 0
             console_text[0] += 'Miss! '
 
-        console_text[0] += f"The {' '.join(self.name.split('_')[0:-1])} attacks you for {base_damage} damage. "
+        console_text[0] += f"The {self.display_name} attacks you for {base_damage} damage. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         return console_text
 
 
+def generate_new_enemy(x, y, tier):
+    import copy
+    from uuid import uuid4
+    from element_lists import enemy_list
+    tier_mapping = {
+        1: enemy_list.tier_1
+    }
+    new_enemy = copy.deepcopy(random.choice(tier_mapping[tier]))
+    new_enemy.name = new_enemy.name + '_{}'.format(str(uuid4()))
+    new_enemy.x = x
+    new_enemy.y = y
+    return new_enemy
 
 

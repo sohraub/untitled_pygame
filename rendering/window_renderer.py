@@ -20,6 +20,7 @@ FONT_25 = pg.font.Font(font_SIL, 25)
 FONT_20 = pg.font.Font(font_SIL, 20)
 FONT_15 = pg.font.Font(font_SIL, 15)
 FONT_10 = pg.font.Font(font_SIL, 10)
+FONT_TNR_12 = pg.font.SysFont('timesnewroman', 12)
 FONT_TNR_13 = pg.font.SysFont('timesnewroman', 13)
 
 

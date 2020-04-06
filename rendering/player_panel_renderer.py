@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_10, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -25,22 +25,27 @@ INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
 INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
 ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles, so length = height
 
+#### ITEM TOOLTIPS ####
+ITEM_TOOLTIP_LENGTH = int(INVENTORY_LENGTH / 2)
+ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
+
 #### EQUIPMENT ####
 EQUIP_ITEM_LENGTH = int(ITEM_LENGTH * 0.75)  # Item tiles in equipment be 3/4ths the size of items in inventory.
-EQUIPMENT_LENGTH = 4 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
-EQUIPMENT_HEIGHT = 4 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
+EQUIPMENT_LENGTH = 3.8 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
+EQUIPMENT_HEIGHT = 3.8 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
 EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
 EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
+
+#### ABILITIES ####
+ABILITY_TILE_LENGTH = 1.2 * ITEM_LENGTH
+ABILITIES_TOP_LEFT_X = INVENTORY_TOP_LEFT_X
+ABILITIES_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.7 * SIDE_PANEL_HEIGHT)
 
 #### LEVEL/EXP INFO ####
 LEVEL_EXP_TOP_LEFT_X = int(PANEL_TOP_LEFT_X * 1.25)
 LEVEL_EXP_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
 LEVEL_EXP_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
 LEVEL_EXP_HEIGHT = int(SIDE_PANEL_HEIGHT / 21)
-
-#### ITEM TOOLTIPS ####
-ITEM_TOOLTIP_LENGTH = int(INVENTORY_LENGTH / 2)
-ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
 
 
 def draw_player_panel(player_name, refresh=False):
@@ -59,23 +64,45 @@ def draw_player_panel(player_name, refresh=False):
     return panel_rect
 
 
-def draw_level_and_experience(level, type, experience, refresh=False):
+def draw_active_abilities(abilities, refresh=False):
+    """Renders the player's active abilities."""
+    abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
+    if refresh:
+        MAIN_WINDOW.fill(color=colors.BLACK, rect=abilities_rect)
+    while len(abilities) < 5:  # Pad the abilities list with None until it is of length 5
+        abilities.append(None)
+    abilities_label = FONT_20.render('ABILITIES', 1, colors.WHITE)
+    MAIN_WINDOW.blit(abilities_label, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y - 25))
+    ability_tiles = list()
+    for i in range(5):
+        ability_tile = pg.Rect((i * ABILITY_TILE_LENGTH) + ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y,
+                               ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
+        pg.draw.rect(MAIN_WINDOW, colors.GREY, ability_tile, 1)
+        if abilities[i] is not None:
+            MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                      ability_tile[2] - 2, ability_tile[3] - 2))
+            ability_tiles.append(ability_tile)
+
+    return ability_tiles, abilities_rect
+
+
+def draw_level_and_experience(level, profession, experience, refresh=False):
     """
     Renders the players level, type, and experience bar.
     :param level: An int which is the player's current level.
-    :param type: A string which is the player's current type/class.
+    :param profession: A string which is the player's current profession.
     :param experience: A list which stores the players experience progress as [current, max].
     :param refresh: A boolean which determines if the area around this info is filled to black, as a refresh.
     :return: The Rect enclosing all of the level and experience info.
     """
-    level_and_exp_rect = (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
+    level_and_exp_rect = pg.Rect(LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, level_and_exp_rect)
-    level_indicator = FONT_20.render(f"LEVEL {level} {type.upper()}", 1, colors.WHITE)
+    level_indicator = FONT_20.render(f"LEVEL {level} {profession.upper()}", 1, colors.WHITE)
     MAIN_WINDOW.blit(level_indicator, (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y))
     pg.draw.rect(MAIN_WINDOW, colors.GREY,
                  (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 24, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT - 27), 1)
-                 # (PANEL_TOP_LEFT_X + 6, PANEL_TOP_LEFT_Y + 248, SIDE_PANEL_LENGTH - 12, 8), 1)
+
     exp_percent = experience[0] / experience[1]
     current_exp_length = int(exp_percent * (SIDE_PANEL_LENGTH - 18 - PANEL_TOP_LEFT_X))
     if current_exp_length > 0:
@@ -92,7 +119,7 @@ def draw_attributes(attributes, refresh=False):
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
+    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
@@ -123,7 +150,7 @@ def draw_hp_mp(hp, mp, refresh=False):
     :param refresh: As above.
     :return: The Rect object that encloses hp and mp.
     """
-    hp_mp_rect = (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, PANEL_TOP_LEFT_X + 100, 50)
+    hp_mp_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, 100, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, hp_mp_rect)
     hp_indicator = FONT_20.render("HP: {0} / {1}".format(hp[0], hp[1]), 1, colors.RED)
@@ -131,6 +158,38 @@ def draw_hp_mp(hp, mp, refresh=False):
     MAIN_WINDOW.blit(hp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40))
     MAIN_WINDOW.blit(mp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 65))
     return hp_mp_rect
+
+
+def draw_status(buffs, debuffs, refresh=False):
+    """
+    Draws indicators for player buffs and debuffs. Each will be represented by a 15x15 square, green for buffs and red
+    for debuffs. Buffs will all go along one row, and debuffs along another row below.
+    :param buffs: List of dict representations of every buff.
+    :param debuffs: List of dict representations of every debuff.
+    :param refresh: Same as above.
+    :return: Lists of each rect for the buff and debuff indicators.
+    """
+    status_rect = pg.Rect(PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 200, 50)
+    if refresh:
+        MAIN_WINDOW.fill(colors.BLACK, status_rect)
+    buff_rects = list()
+    debuff_rects = list()
+
+    for i, buff in enumerate(buffs):
+        buff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 15, 15)
+        buff_rects.append(buff_indicator)
+        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
+        pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
+
+    for i, debuff in enumerate(debuffs):
+        debuff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 57, 15, 15)
+        debuff_rects.append(debuff_indicator)
+        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
+        pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
+
+    return status_rect, buff_rects, debuff_rects
 
 
 def draw_conditions(conditions, refresh=False):
@@ -160,8 +219,7 @@ def draw_conditions(conditions, refresh=False):
                 color = colors.ORANGE
             else:
                 color = colors.YELLOW
-            font = pg.font.Font(font_SIL, 20)
-            condition_indicator = font.render(condition.upper(), 1, color)
+            condition_indicator = FONT_20.render(condition.upper(), 1, color)
             MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
                                                    PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
@@ -241,7 +299,7 @@ def draw_equipment(equipment_dict, refresh=False):
     return equipment_tiles, equipment_rect
 
 
-def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
+def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
     """
     Function to draw a small window displaying item info. The top-left of the window will be determined by the position
     of the item in the inventory, so that the window will be enclosed by the inventory rectangle while also allowing
@@ -277,7 +335,7 @@ def draw_item_info(item_dict, attributes_dict=None, current_equipment=None):
                        header_string=item_dict['name'].upper())
 
 
-def draw_equipment_info(equipment_dict, slot):
+def draw_equipment_details(equipment_dict, slot):
     """
     Draws tooltip with equipment info if there is an item equipped in the slot being moused over, or draws a tooltip
     detailing the slot if no item is equipped. Tooltip will always be drawn to the left of the mouse.
@@ -370,3 +428,46 @@ def draw_condition_details(conditions_dict, conditions_rect):
         window_body.append(f'{adj_to_noun[condition]} level: {current} / {max}')
 
     draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)
+
+
+def draw_status_details(status):
+    """Function to draw a tooltip providing details on the status currently being hovered over."""
+    window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
+    draw_detail_window(header_string=status['name'], body_strings=window_body,
+                       rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
+                                        ITEM_TOOLTIP_HEIGHT))
+
+
+def draw_ability_details(ability):
+    """
+    Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
+    player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
+    above the cursor regardless of mouse position.
+    """
+    mouse_pos = pg.mouse.get_pos()
+    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+        top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
+    else:
+        top_left_x = mouse_pos[0]
+    top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
+    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}']
+    if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
+        window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
+    draw_detail_window(header_string=ability['name'], body_strings=window_body,
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
+
+
+
+
+def draw_exp_details(experience):
+    """Draws tooltip showing details about the player's current experience progress."""
+    window_body = [f'Experience: {experience[0]} / {experience[1]}']
+    mouse_pos = pg.mouse.get_pos()
+    length = int(0.4*SIDE_PANEL_LENGTH)
+    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+        top_left_x = mouse_pos[0] - length
+    else:
+        top_left_x = mouse_pos[0]
+    top_left_y = mouse_pos[1]
+    draw_detail_window(body_strings=window_body,
+                       rect_dimensions=(top_left_x, top_left_y, length, 30))
