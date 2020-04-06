@@ -65,7 +65,10 @@ def draw_player_panel(player_name, refresh=False):
 
 
 def draw_active_abilities(abilities, refresh=False):
-    """Renders the player's active abilities."""
+    """
+    Renders the player's active abilities. If the ability is on cooldown, fill it with a darker color and also
+    draw the number of turns left in the cooldown on the tile.
+    """
     abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
     if refresh:
         MAIN_WINDOW.fill(color=colors.BLACK, rect=abilities_rect)
@@ -74,14 +77,21 @@ def draw_active_abilities(abilities, refresh=False):
     abilities_label = FONT_20.render('ABILITIES', 1, colors.WHITE)
     MAIN_WINDOW.blit(abilities_label, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y - 25))
     ability_tiles = list()
-    for i in range(5):
+    for i, ability in enumerate(abilities):
         ability_tile = pg.Rect((i * ABILITY_TILE_LENGTH) + ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y,
                                ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
         pg.draw.rect(MAIN_WINDOW, colors.GREY, ability_tile, 1)
-        if abilities[i] is not None:
-            MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
-                                                      ability_tile[2] - 2, ability_tile[3] - 2))
+        if ability is not None:
             ability_tiles.append(ability_tile)
+            if ability['turns_left'] > 0:  # Check if the ability is currently on cooldown
+                turns_left_label = FONT_30.render(str(ability['turns_left']), 1, colors.WHITE)
+                MAIN_WINDOW.fill(color=colors.DARK_BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                         ability_tile[2] - 2, ability_tile[3] - 2))
+                MAIN_WINDOW.blit(turns_left_label, (ability_tile[0] + (ABILITY_TILE_LENGTH * 0.4),
+                                                    ability_tile[1] + (ABILITY_TILE_LENGTH * 0.2)))
+            else:
+                MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                     ability_tile[2] - 2, ability_tile[3] - 2))
 
     return ability_tiles, abilities_rect
 
