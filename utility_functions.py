@@ -1,3 +1,5 @@
+from config import TOP_LEFT_X, TOP_LEFT_Y, TILE_SIZE
+
 """
 Module for storing little functions that could be useful throughout the project.
 """
@@ -21,3 +23,19 @@ def parse_description(full_string, char_limit=35):
         parsed_string_list.append(temp_string)
     return parsed_string_list
 
+
+def check_adjacent(self, target):
+    """Returns True if target is in an adjacent square to self, False otherwise."""
+    if manhattan_distance((self.x, self.y), (target.x, target.y)) != 1:
+        return False
+    return True
+
+def tile_from_xy_coords(x, y):
+    """Given the xy-coordinates of an object on the game board, returns the pg.Rect dimensions of that object."""
+    return (TOP_LEFT_X + (x * TILE_SIZE), TOP_LEFT_Y + (y * TILE_SIZE), TILE_SIZE, TILE_SIZE)
+
+def xy_coords_from_tile(tile):
+    """Given the pg.Rect dimensions of an object, returns the x,y coordinates of the object on the game board."""
+    x = int((tile[0] - TOP_LEFT_X) / TILE_SIZE)
+    y = int((tile[1] - TOP_LEFT_Y) / TILE_SIZE)
+    return x, y

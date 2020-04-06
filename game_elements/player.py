@@ -1,15 +1,16 @@
 import json
 import random
-import copy
 import pygame as pg
 
-import player_panel
+from game_elements.classes.warrior import warrior_config
 from game_elements.character import Character
 from game_elements.element_config_values import INVENTORY_LIMIT
 
+
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, level=1, experience=None, type="adventurer"):
+                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
+                 experience=None, profession="warrior"):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -19,9 +20,11 @@ class Player(Character):
         :param condition: A dict storing the levels of the player's tiredness, hunger, and thirst. The info for each
                           condition is stored as a 3-tuple of ['current', 'max', 'counter'], where 'current' decrements
                           by one every time 'counter' reaches a certain threshold, based on the players attributes.
+        :param active_abilities: A list of all of the player's Ability objects which are active.
+        :param passive_abilities: A list of all of the player's Ability objects which are passive.
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
-        :param type: The Player's class.
+        :param profession: The Player's profession (i.e. the class, job, etc.).
 
         As well as the above, the following attributes are also set and used throughout the Player's methods:
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
@@ -47,9 +50,11 @@ class Player(Character):
             'hungry': [10, 10, 0],
             'thirsty': [10, 10, 0]
         }
+        self.active_abilities = active_abilities if active_abilities is not None else list()
+        self.passive_abilities = passive_abilities if passive_abilities is not None else list()
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
-        self.type = type
+        self.profession = profession
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -79,8 +84,10 @@ class Player(Character):
             'inventory': self.inventory,
             'equipment': self.equipment,
             'conditions': self.conditions,
+            'active_abilities': [ability.to_dict() for ability in self.active_abilities],
+            'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
             'level': self.level,
-            'type': self.type,
+            'profession': self.profession,
             'experience': self.experience
         }
 
@@ -89,10 +96,10 @@ class Player(Character):
         func = self.movement_mapping[input][0]
         param = self.movement_mapping[input][1]
         if param is None:
-            func()
+            new_x, new_y = func()
         else:
-            func(param)
-        return self.x, self.y
+            new_x, new_y = func(param)
+        return new_x, new_y
 
     def wait(self):
         """Method called when the Player is to wait a turn."""
@@ -185,7 +192,7 @@ class Player(Character):
         console_text = ['']
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
-        crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
@@ -211,6 +218,22 @@ class Player(Character):
         for slot in ['head', 'body', 'hands', 'feet']:
             if self.equipment.get(slot, None):
                 self.def_rating += self.equipment[slot].def_rating
+
+    def use_ability(self, ability, target):
+        """
+        Player uses an ability on the target. If target is None, then the ability misses.
+        """
+        console_text = list()
+        if target is not None:
+            ability_outcome = ability.function(self=self, target=target, skill_level=ability.level)
+            if target.hp[0] == 0:
+                from game_elements.enemy import death_phrases
+                ability_outcome['console_text'].append(random.choice(death_phrases))
+        else:
+            ability_outcome = {
+                'console_text': [f'You used {ability.name}, but there was no target!']
+            }
+        return ability_outcome
 
     def gain_experience(self, enemy_hp):
         """Called when an enemy is killed, the player gains experience based on the killed enemy's max HP"""
@@ -239,11 +262,26 @@ def load_player_from_json(filename):
     """Function to initialize a Player object from a JSON file."""
     with open(filename, 'r') as f:
         character = json.load(f)
-    return Player(
+
+    profession = character.get('profession', 'warrior')
+    attributes = None
+    active_abilities = None
+    passive_abilities = None
+    if character.get('attributes', None) is None:
+        attributes = profession_string_map[profession]['starting_attributes']
+    if character.get('active_abilities', None) is None:
+        active_abilities = profession_string_map[profession]['active_abilities']
+    if character.get('passive_abilities', None) is None:
+        passive_abilities = profession_string_map[profession]['passive_abilities']
+
+    player = Player(
         name=character.get('name', 'TEST'),
         hp=character.get('hp', None),
         mp=character.get('mp', None),
-        attributes=character.get('attributes', None),
+        profession=profession,
+        active_abilities=active_abilities,
+        passive_abilities=passive_abilities,
+        attributes=attributes,
         status=character.get('status', None),
         condition=character.get('condition', None),
         inventory=character.get('inventory', None),
@@ -251,10 +289,17 @@ def load_player_from_json(filename):
         experience=character.get('experience', None)
     )
 
+    return player
+
+
 level_to_max_exp_map = {
     1: 20,
     2: 50,
     3: 100,
     4: 200,
     5: 500
+}
+
+profession_string_map = {
+    "warrior": warrior_config
 }

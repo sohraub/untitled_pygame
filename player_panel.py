@@ -1,4 +1,4 @@
-from pygame import mouse, event, MOUSEMOTION
+from pygame import mouse
 from rendering import player_panel_renderer
 
 class PlayerPanel:
@@ -32,10 +32,11 @@ class PlayerPanel:
         self.conditions_rect = player_panel_renderer.draw_conditions(self.player_dict['conditions'])
         self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'])
         self.level_and_exp_rect = player_panel_renderer.draw_level_and_experience(self.player_dict['level'],
-                                                                                  self.player_dict['type'],
+                                                                                  self.player_dict['profession'],
                                                                                   self.player_dict['experience'])
         self.inventory_tiles, self.inventory_rect = player_panel_renderer.draw_inventory(self.player_dict['inventory'])
         self.equipment_tiles, self.equipment_rect = player_panel_renderer.draw_equipment(self.player_dict['equipment'])
+        self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'])
         self.tooltip_focus = None
         self.active_item_index = None
 
@@ -49,6 +50,7 @@ class PlayerPanel:
         self.refresh_conditions()
         self.refresh_equipment()
         self.refresh_inventory()
+        self.refresh_abilities()
         self.refresh_level_and_exp()
 
     def refresh_hp_mp(self):
@@ -63,7 +65,7 @@ class PlayerPanel:
 
     def refresh_level_and_exp(self):
         """Method to refresh the displayed level and experience bar."""
-        player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['type'],
+        player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['profession'],
                                                         self.player_dict['experience'], refresh=True)
 
     def refresh_attributes(self):
@@ -79,6 +81,10 @@ class PlayerPanel:
         Refresh the displayed inventory, as well as re-set self.inventory_tiles based on the occupied inventory slots.
         """
         self.inventory_tiles, _ = player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
+
+    def refresh_abilities(self):
+        """Refresh the displayed abilities."""
+        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'], refresh=True)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
@@ -99,6 +105,8 @@ class PlayerPanel:
                 self.handle_inventory_mouseover()
             elif self.equipment_rect.collidepoint(mouse_pos):
                 self.handle_equipment_mouseover()
+            elif self.abilities_rect.collidepoint(mouse_pos):
+                self.handle_abilities_mouseover()
             elif self.level_and_exp_rect.collidepoint(mouse_pos):
                 self.handle_level_exp_mouseover()
 
@@ -116,7 +124,6 @@ class PlayerPanel:
         """
         Handle cases when the mouse is over the statuses, to display tooltip info for buffs and debuffs.
         """
-        print('in status')
         mouse_pos = mouse.get_pos()
         buff_index = None
         debuff_index = None
@@ -159,9 +166,9 @@ class PlayerPanel:
         if item_index is not None:
             self.tooltip_focus = item_tile
             self.active_item_index = item_index
-            player_panel_renderer.draw_item_info(self.player_dict['inventory'][item_index].to_dict(),
-                                                 self.player_dict['attributes'],
-                                                 self.player_dict['equipment'])
+            player_panel_renderer.draw_item_details(self.player_dict['inventory'][item_index].to_dict(),
+                                                    self.player_dict['attributes'],
+                                                    self.player_dict['equipment'])
 
     def handle_equipment_mouseover(self):
         """
@@ -182,7 +189,24 @@ class PlayerPanel:
                 equipment_dict = self.player_dict['equipment'][slot_moused_over].to_dict()
             else:
                 equipment_dict = None
-            player_panel_renderer.draw_equipment_info(equipment_dict, slot_moused_over)
+            player_panel_renderer.draw_equipment_details(equipment_dict, slot_moused_over)
+
+    def handle_abilities_mouseover(self):
+        """
+        Handle cases when mouse is over player abilities, listening for clicks on ability tiles and displaying tooltips.
+        """
+        mouse_pos = mouse.get_pos()
+        ability_index = None
+        for index, tile in enumerate(self.ability_tiles):
+            if tile.collidepoint(mouse_pos):
+                ability_index = index
+                break
+
+        # Check to make sure there are actually abilities up to that index before trying to do anymore.
+        if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
+            self.tooltip_focus = self.ability_tiles[ability_index]
+            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index])
+
 
     def handle_conditions_mouseover(self):
         """
@@ -202,3 +226,15 @@ class PlayerPanel:
         self.active_item_index = None
         self.refresh_inventory()
         self.refresh_equipment()
+
+    def get_tooltip_index(self, element):
+        """
+        Used by the Game object to get the index of tiles which we clicked on, to be passed to the relevant Player
+        methods.
+        """
+        if element == 'inventory':
+            return self.inventory_tiles.index(self.tooltip_focus)
+        elif element == 'abilities':
+            return self.ability_tiles.index(self.tooltip_focus)
+
+        raise Exception('Incompatible element passed into get_tooltip_index() method of player_panel.')
