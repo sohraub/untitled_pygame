@@ -223,9 +223,9 @@ class Player(Character):
         """
         Player uses an ability on the target. If target is None, then the ability misses.
         """
-        console_text = list()
         if target is not None:
             ability_outcome = ability.function(self=self, target=target, skill_level=ability.level)
+            ability.turns_left = ability.cooldown
             if target.hp[0] == 0:
                 from game_elements.enemy import death_phrases
                 ability_outcome['console_text'].append(random.choice(death_phrases))
@@ -256,6 +256,20 @@ class Player(Character):
             self.level_up(exp_overflow)
             return
         self.experience[0] = exp_overflow
+
+    def decrement_ability_cooldowns(self):
+        """
+        Decrements the # of turns left for each ability that is on cooldown.
+        :return: Boolean flag will be true if any ability is on cooldown and had its turns left decremented, so that
+                 player_panel renderer knows to refresh the ability tooltips.
+        """
+        refresh_necessary = False
+        for ability in self.active_abilities:
+            if ability.turns_left > 0:
+                ability.turns_left -= 1
+                refresh_necessary = True
+
+        return refresh_necessary
 
 
 def load_player_from_json(filename):

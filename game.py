@@ -132,6 +132,7 @@ class Game:
         elif item_dict['type'] == 'equipment':
             self.console.update(self.player.equip_item(item_index))
         self.player_panel.handle_item_consumption()
+        return True
 
     def get_targets(self, targeting_function):
         """
@@ -145,9 +146,11 @@ class Game:
             return None
         else:
             target_coords = xy_coords_from_tile(target_rect)
-            self.refresh_focus_window(target_coords)
-            target = self.board.enemies.get(target_coords, None)
-            return target
+            if self.board.enemies.get(target_coords, None):
+                target = self.board.enemies[target_coords]
+                self.refresh_focus_window(target_coords)
+                return target
+            return None
 
     def handle_ability_use(self):
         """
@@ -161,6 +164,9 @@ class Game:
         """
         ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
+        if ability.turns_left > 0:
+            # This ability is still on cooldown, so do nothing
+            return False
         target = self.get_targets(ability.targeting_function)
         if target is not None:
             # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
@@ -182,12 +188,15 @@ class Game:
                 if self.board.template[new_y][new_x] in {'O', 'R'}:
                     self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
                                                                   new_y=new_y))
-                    board_renderer.render_game_board(self.board.template)
+                    self.load_game_board()
                     pg.display.update()
                     sleep(0.3)
 
             if target is not None and target.hp[0] == 0:
                 self.handle_enemy_death(target)
+            return True
+        self.load_game_board()  # Refresh board to get rid of targeting mode render
+        return False
 
     def handle_turn_end(self):
         """
@@ -201,6 +210,9 @@ class Game:
             self.player_panel.refresh_hp_mp()
             self.player_panel.refresh_conditions()
             self.player_panel.refresh_attributes()
+
+        if self.player.decrement_ability_cooldowns():
+            self.player_panel.refresh_abilities()
 
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
@@ -260,15 +272,16 @@ class Game:
         mouse_pos = pg.mouse.get_pos()
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
+        action_taken = False
         if self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):
-                new_actions = self.handle_item_use()
+                action_taken = self.handle_item_use()
             # Do the same thing to check if an ability has been clicked.
             elif self.player_panel.abilities_rect.collidepoint(mouse_pos):
-                new_actions = self.handle_ability_use()
-        if new_actions != []:
+                action_taken = self.handle_ability_use()
+        if action_taken:
             self.handle_player_turn_over(console_text=new_actions)
         return
 
