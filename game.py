@@ -37,7 +37,7 @@ class Game:
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
 
-    def handle_character_movement(self, input):
+    def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
         # console_text = list()
         old_x, old_y = self.player.x, self.player.y
@@ -46,7 +46,9 @@ class Game:
         new_x, new_y = self.player.perform_movement(input)
         # Checks if player is moving to an open tile or trap
         if self.board.tile_is_open(new_x, new_y):
-            self.board.move_character(character=self.player, new_x=new_x, new_y=new_y)
+            new_lines = self.board.move_character(character=self.player, new_x=new_x, new_y=new_y)
+            print(new_lines)
+            self.console.update(new_lines)
         else:
             self.player.x, self.player_y = old_x, old_y
             if self.board.template[new_y][new_x] == 'E':  # Moving to a tile which contains an enemy attacks the enemy
@@ -111,7 +113,7 @@ class Game:
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
                 new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
                 if new_x is not None:  # Check if a valid movement was found
-                    self.board.move_character(enemy, new_x, new_y)
+                    self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
@@ -131,6 +133,22 @@ class Game:
             self.console.update(self.player.equip_item(item_index))
         self.player_panel.handle_item_consumption()
 
+    def get_targets(self, targeting_function):
+        """
+        Given a targeting function from an ability or item, enter the targeting loop to find a target, and return
+        the chosen target, if any.
+        """
+        target_tile_coordinates = targeting_function(self.board.template, self.player.x, self.player.y)
+        target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
+        target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
+        if target_rect is False:  # If no valid target was returned.
+            return None
+        else:
+            target_coords = xy_coords_from_tile(target_rect)
+            self.refresh_focus_window(target_coords)
+            target = self.board.enemies.get(target_coords, None)
+            return target
+
     def handle_ability_use(self):
         """
         Calls necessary functions and methods to handle the player using an ability. Generally goes something like:
@@ -143,26 +161,30 @@ class Game:
         """
         ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
-        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y)
-        target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
-        target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
-        if target_rect is False:  # If no valid target was returned.
-            return
-        else:
-            target_coords = xy_coords_from_tile(target_rect)
-            target = self.board.enemies.get(target_coords, None)
-            target_old_position = (copy(target.x), copy(target.y))
-            self.console.update(self.player.use_ability(ability, target))
+        target = self.get_targets(ability.targeting_function)
+        if target is not None:
+            # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
+            # any movements of the player or target(s), etc.
+            ability_outcome = self.player.use_ability(ability, target)
+            if ability_outcome.get('console_text', None):
+                self.console.update(ability_outcome['console_text'])
             # Check to see if target was moved by ability, adjust position in board accordingly.
-            if (target.x, target.y) != target_old_position:
+            # If no movements were found, loop over an empty list, i.e. do nothing
+            for movement in ability_outcome.get('movements', list()):
+                # Each movement entry in the ability_outcome dict will look like
+                # { 'subject': The character object that's being moved
+                #   'new_position': (new_x, new_y) }
+                # Only bother moving the subject of the movement if they weren't outright killed by the ability
+                if movement['subject'].hp[0] == 0:
+                    continue
+                new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
-                if self.board.template[target.y][target.x] in {'O', 'R'}:
-                    self.board.update_enemy_position(target_old_position, (target.x, target.y))
+                if self.board.template[new_y][new_x] in {'O', 'R'}:
+                    self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
+                                                                  new_y=new_y))
                     board_renderer.render_game_board(self.board.template)
                     pg.display.update()
                     sleep(0.3)
-                else:
-                    target.x, target.y = target_old_position
 
             if target is not None and target.hp[0] == 0:
                 self.handle_enemy_death(target)
@@ -213,7 +235,7 @@ class Game:
             return []
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
-            self.console.update(self.handle_character_movement(pressed_key))
+            self.console.update(self.handle_player_movement(pressed_key))
 
     def handle_player_turn_over(self, console_text=None):
         """

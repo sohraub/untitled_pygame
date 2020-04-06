@@ -44,12 +44,10 @@ class Character:
     def move_up(self, steps=1):
         """Moves the character along the y-axis"""
         # Note that (0, 0) is the top left corner, so we subtract from  the y position to move up
-        print(f'moving up {steps} steps')
         return self.x, self.y - steps
 
     def move_right(self, steps=1):
         """Moves the character along the x-axis"""
-        print(f'moving right {steps} steps')
         return self.x + steps, self.y
 
     def apply_status(self, status):

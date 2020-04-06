@@ -10,18 +10,30 @@ def heavy_strike_func(self, target, skill_level):
     console_text = ''
     # First determine the relative positions to find the knockback.
     if self.x != target.x:
-        target.x = target.x + 1 if self.x < target.x else target.x - 1
+        new_x = target.x + 1 if self.x < target.x else target.x - 1
+        new_y = target.y
     else:
-        target.y = target.y + 1 if self.y < target.y else target.y - 1
+        new_y = target.y + 1 if self.y < target.y else target.y - 1
+        new_x = target.x
     # Now calculate the damage
     damage = int((1.5 + skill_level* 0.5) * (self.attributes['str'] - target.attributes['end'] + self.off_rating))
     crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
-    if random.randint(0, 100) > crit_chance:
+    if crit_chance > random.randint(0, 100):
         console_text += 'Critical hit! '
         damage = 2 * damage
     target.hp[0] = max(0, target.hp[0] - damage)
     console_text += f'You use Heavy Strike on the {target.display_name}, dealing {damage} damage and knocking them back.'
-    return console_text
+
+    ability_outcomes = {
+        'console_text': [console_text],
+        'movements': [
+            {
+                'subject': target,
+                'new_position': (new_x, new_y)
+            }
+        ]
+    }
+    return ability_outcomes
 
 
 heavy_strike = Ability(name='Heavy Strike',

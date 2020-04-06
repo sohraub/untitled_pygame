@@ -11,7 +11,7 @@ def render_console(lines):
     :return: n/a
     """
     #TODO: Re-do dimensions in terms of config variables
-    console_rect = (TOP_LEFT_X * 0.956, TOP_LEFT_Y * 0.128, PLAY_LENGTH, TOP_LEFT_Y * 0.84)
+    console_rect = (TOP_LEFT_X * 0.956, TOP_LEFT_Y * 0.128, PLAY_LENGTH * 1.05, TOP_LEFT_Y * 0.84)
     MAIN_WINDOW.fill(colors.BLACK, rect=console_rect)
     for i, line in enumerate(lines):
         # Add an effect so that most recent lines in the console are brightest, and oldest get gradually darker

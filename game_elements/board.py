@@ -111,13 +111,23 @@ class Board:
         # still want the tile to stay in the list of trap tiles.
         if new_pos in set(self.tile_mapping['O']):
             self.tile_mapping['O'].remove(new_pos)
-            self.tile_mapping['O'].append(old_pos)
-        self.enemies[new_pos] = self.enemies.pop(old_pos)
-        self.enemies[new_pos].x = new_pos[0]
+        self.tile_mapping['O'].append(old_pos)
+        self.enemies[new_pos] = self.enemies.pop(old_pos)  # Updates the key-value pair of the actual Enemy object
+        self.enemies[new_pos].x = new_pos[0]  # Updates the Enemy object's coordinate values
         self.enemies[new_pos].y = new_pos[1]
         self.tile_mapping['E'].remove(old_pos)
         self.tile_mapping['E'].append(new_pos)
         self.rebuild_template()
+
+    def update_player_position(self, old_pos, new_pos):
+        """
+        Updates the position values in the Board class to reflect player movement, i.e. updating the player_coordinate
+        values and adding the old position to the set of open tiles.
+        """
+        if new_pos in set(self.tile_mapping['O']):  # Don't want to remove coordinates if the player steps on a trap
+            self.tile_mapping['O'].remove(new_pos)
+        self.tile_mapping['O'].append(old_pos)
+        self.player_coordinates = new_pos
 
     def handle_chest_has_been_opened(self, chest_pos):
         """Method called when a chest has been opened, modifying the chest in the chests dict."""
@@ -133,14 +143,13 @@ class Board:
 
     def move_character(self, character, new_x, new_y):
         console_text = list()
-        if character.__class__.__name__ == 'Player':
-            self.player_coordinates = (new_x, new_y)
-        elif character.__class__.__name__ == 'Enemy':
-            self.update_enemy_position((character.x, character.y), (new_x, new_y))
-        character.x, character.y = new_x, new_y
         if self.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
             console_text.append(self.handle_step_on_trap((new_x, new_y), character))
-            # console_text.extend(self.handle_step_on_trap((new_x, new_y), player))
+        if character.__class__.__name__ == 'Player':
+            self.update_player_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
+        elif character.__class__.__name__ == 'Enemy':
+            self.update_enemy_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
+        character.x, character.y = new_x, new_y
         self.rebuild_template()
 
         return console_text
@@ -161,7 +170,7 @@ class Board:
         else:
             console_text = f'You step on a {trap.name} trap, '
             # console_text.append(f'You step on a {trap.name} trap, ')
-        avoid_probability = 100*(1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
+        avoid_probability = 100 * (1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
         if random.randint(0, 100) > avoid_probability:
             if trap.type == 'direct':
                 damage = trap.function(target)

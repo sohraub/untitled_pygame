@@ -31,4 +31,5 @@ class Console:
                 self.lines.pop(0)
                 self.lines.append(new_line)
                 self.refresh_console()
-                sleep(0.25)
+                if len(new_lines) > 1:
+                    sleep(0.25)
