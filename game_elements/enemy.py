@@ -19,9 +19,14 @@ class Enemy(Character):
         :param retreat_probability: Probability of an enemy retreating when it is weak.
         :param flavour_text: Some flavour text that is displayed in the focus window.
         :param display_name: Enemy's name in a nicer format for display purposes.
+
+        In addition to the above, the following attributes are also initialized for each Enemy:
+        :aggro: Boolean which determines if the player has ever entered the the Enemy's aggro range. If ever set to
+                True, will never go back to False even if the player moves away, under normal circumstances.
         """
         super().__init__(name, x, y, hp, mp, attributes, status)
         self.aggro_range = aggro_range
+        self.aggro = False
         self.attack_range = attack_range
         self.retreat_probability = retreat_probability
         self.role = role
@@ -36,15 +41,15 @@ class Enemy(Character):
             return True
         return False
 
-    def move_towards_target(self, point, open_tiles):
+    def move_towards_target(self, target_coords, open_tiles):
         """Method to move the enemy towards a target coordinate."""
         # First check if it can close the x-distance, and then the y-distance
-        if point[0] != self.x:
-            next_step_x = int((point[0] - self.x) / abs(point[0] - self.x))  # This will be either 1 or -1
+        if target_coords[0] != self.x:
+            next_step_x = int((target_coords[0] - self.x) / abs(target_coords[0] - self.x))  # This will be either 1 or -1
             if (self.x + next_step_x, self.y) in set(open_tiles):
                 return self.x + next_step_x, self.y
-        if point[1] != self.y:
-            next_step_y = int((point[1] - self.y) / abs(point[1] - self.y))  # This will be either 1 or -1
+        if target_coords[1] != self.y:
+            next_step_y = int((target_coords[1] - self.y) / abs(target_coords[1] - self.y))  # This will be either 1 or -1
             if (self.x, self.y + next_step_y) in set(open_tiles):
                 return self.x, self.y + next_step_y
         # If no valid movement, return None

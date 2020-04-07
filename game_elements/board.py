@@ -117,7 +117,6 @@ class Board:
         self.enemies[new_pos].y = new_pos[1]
         self.tile_mapping['E'].remove(old_pos)
         self.tile_mapping['E'].append(new_pos)
-        self.rebuild_template()
 
     def update_player_position(self, old_pos, new_pos):
         """

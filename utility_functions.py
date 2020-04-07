@@ -1,3 +1,4 @@
+import copy
 from config import TOP_LEFT_X, TOP_LEFT_Y, TILE_SIZE
 
 """
@@ -39,3 +40,43 @@ def xy_coords_from_tile(tile):
     x = int((tile[0] - TOP_LEFT_X) / TILE_SIZE)
     y = int((tile[1] - TOP_LEFT_Y) / TILE_SIZE)
     return x, y
+
+def find_min_steps(start, target, open_tiles):
+    """
+    Used primarily for enemy path-finding, this algorithm determines the next step for the character at 'position' to
+    take if it wants to get to target. For enemy movement, this function is only called if the most obvious movements
+    in pursuit of a target go through non-open tiles. For a detailed explanation, read the code along with comments.
+    :param start: xy-coordinates of the start position
+    :param target: xy-coordinates of the target
+    :param open_tiles: list of xy-coordinates of open tiles in the board
+    :return: min_steps, the minimum # of steps to reach the target
+             next_step, the xy-coordinates of the next step along the minimum path
+    """
+    x, y = start
+    # First build a list of the 4 tiles immediately adjacent to 'position'
+    adjacent_tiles = ([(x + i, y) for i in [-1, 1]] + [(x, y + i) for i in [-1, 1]])
+    # Then filter that list against the list of open tiles on the board
+    adj_open_tiles = [tile for tile in adjacent_tiles if tile in set(open_tiles)]
+    min_steps = 1000  # Initialize min_steps to a big number, in this case 1000
+    next_step = (None, None)
+    # First loop through every adj_open_tile to see if any are directly next to the target, in which case that will
+    # be our next step
+    for tile in adj_open_tiles:
+        if manhattan_distance(tile, target) == 1:
+            return 1, tile
+
+    # If not, move on to going through each adj_open_tile and recursively finding the path with the smallest amount
+    # of steps, and returning the next step along that path
+    for tile in adj_open_tiles:
+        new_open_tiles = copy.copy(open_tiles)
+        # We remove the tile in question from open_tiles when recursively calling the function where position=tile, to
+        # speed up the calculations since its unlikely that the ideal path involves that level of backtracking
+        new_open_tiles.remove(tile)
+        new_steps, new_tile = find_min_steps(tile, target, new_open_tiles)
+        steps_to_target = 1 + new_steps
+        # Once we've found the shortest path evolving from each of the adj_open_tiles, we return the number of steps
+        # (to keep consistent with the recursive function call) and the actual coordinates of the next step.
+        if steps_to_target < min_steps:
+            min_steps = steps_to_target
+            next_step = tile
+    return min_steps, next_step
