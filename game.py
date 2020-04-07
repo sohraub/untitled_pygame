@@ -3,7 +3,7 @@ import random
 from copy import copy
 from time import sleep
 
-from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile
+from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_min_steps
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
@@ -99,19 +99,26 @@ class Game:
         else
             wait
         """
-        enemies = list()
-        for enemy_coord in self.board.enemies:
-            # Load all Enemy objects currently on the board into a list to iterate over
-            enemies.append(self.board.enemies[enemy_coord])
-        console_text = list()
+        enemies = list(self.board.enemies.values())
         for enemy in enemies:
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
+            if distance_to_player <= enemy.aggro_range:
+                enemy.aggro = True
             if distance_to_player <= enemy.attack_range:
                 self.console.update(enemy.basic_attack(self.player))
-            elif distance_to_player <= enemy.aggro_range:
+            else:
                 # Enemies can move onto either open tiles or traps.
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
-                new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
+                new_x, new_y = None, None
+                if enemy.aggro:
+                    _, (new_x, new_y) = find_min_steps(start=(enemy.x, enemy.y), target=(self.player.x ,self.player.y),
+                                                       open_tiles=open_tiles)
+
+                elif random.randint(0, 100) > 50:
+                    # If enemy is not aggro'd, give a 50% chance to move one tile in a random direction
+                    adjacent_tiles = ([(enemy.x + i, enemy.y) for i in [-1, 1]] +
+                                      [(enemy.x, enemy.y + i) for i in [-1, 1]])
+                    new_x, new_y = random.choice([tile for tile in adjacent_tiles if tile in set(open_tiles)])
                 if new_x is not None:  # Check if a valid movement was found
                     self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
@@ -224,7 +231,7 @@ class Game:
         self.load_misc_panel()
 
     def load_game_board(self):
-        """Calls initial render of the game board"""
+        """Calls render of the game board"""
         board_renderer.render_game_board(self.board.template)
 
     def load_player_panel(self):
@@ -258,6 +265,8 @@ class Game:
         if console_text:
             self.console.update(console_text)
         self.console.update(self.player.apply_end_of_turn_status_effects())
+        self.load_game_board()
+        sleep(0.3)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
         self.start_enemy_turn()
         self.handle_turn_end()
         self.player_panel.refresh_player_panel()

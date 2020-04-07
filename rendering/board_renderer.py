@@ -26,6 +26,7 @@ def render_game_board(board_template, tiles_to_highlight=None, highlight_color=c
                          (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE,
                  (TOP_LEFT_X - 4, TOP_LEFT_Y - 4, PLAY_LENGTH + 8, PLAY_HEIGHT + 8), 4)
+    pg.display.update((TOP_LEFT_X, TOP_LEFT_Y, PLAY_LENGTH, PLAY_HEIGHT))
 
 
 def highlight_adjacent_tiles(board_template, target_x, target_y, color=colors.BLACK):
