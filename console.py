@@ -28,6 +28,8 @@ class Console:
 
         if new_lines:
             for new_line in new_lines:
+                if new_line == '':
+                    continue
                 self.lines.pop(0)
                 self.lines.append(new_line)
                 self.refresh_console()

@@ -157,6 +157,9 @@ class Game:
                 target = self.board.enemies[target_coords]
                 self.refresh_focus_window(target_coords)
                 return target
+            elif self.board.player_coordinates == target_coords:
+                target = self.player
+                return target
             return None
 
     def handle_ability_use(self):
