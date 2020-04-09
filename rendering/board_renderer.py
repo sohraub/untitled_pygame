@@ -50,3 +50,15 @@ def highlight_self(board_template, target_x, target_y, color=colors.BLACK):
     render_game_board(board_template, tiles_to_highlight={(target_x, target_y)}, highlight_color=color,
                       targetable_tile_types={'P'})
     return [(target_x, target_y)]
+
+
+def highlight_all_with_splash_target(board_template, *args, color=colors.BLACK):
+    """
+    Targets every open/trap tile on the board, and returns as a list of targets every tile directly adjacent to the
+    tile selected.
+    """
+    tiles_to_highlight = [(x, y) for x in range(0, BOARD_LENGTH) for y in range(0, BOARD_HEIGHT)
+                          if board_template[y][x] in {'O', 'R'}]
+    render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
+                      targetable_tile_types={'O', 'R'})
+    return tiles_to_highlight

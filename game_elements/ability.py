@@ -2,8 +2,8 @@ from utility_functions import parse_description
 
 
 class Ability:
-    def __init__(self, name, description, active, targeting_function, targetable_tile_types, function, level=0,
-                 cooldown=0, prerequisites=None):
+    def __init__(self, name, description, active, targeting_function, targetable_tile_types, function,
+                 multi_target=None, level=0, cooldown=0, prerequisites=None):
         """
         Abilities are used by the player to make their lives easier.
         :param name: String, the name of the ability.
@@ -13,6 +13,8 @@ class Ability:
                                    square that this ability can target, if the ability is active.
         :param targetable_tile_types: A list of tile types that this ability can target.
         :param function: A function that will apply the ability effect.
+        :param multi_target: If ability can target multiple tiles, then this will be a list of every targetted tile
+                             relative to the target chosen through the targeting function. Otherwise None
         :param level: Int, the level of the skill which determines the numbers behind its effectiveness.
         :param cooldown: Int, the number of turns it takes for this ability to recharge.
         :param prerequisites: A list of abilities, which the player must have before they can use this ability.
@@ -26,6 +28,7 @@ class Ability:
         self.active = active
         self.targeting_function = targeting_function if self.active else None
         self.targetable_tile_types = targetable_tile_types if self.active else None
+        self.multi_target = multi_target
         self.function = function
         self.level = level
         self.cooldown = cooldown
