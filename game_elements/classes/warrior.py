@@ -36,11 +36,26 @@ def heavy_strike_func(self, target, skill_level):
     return ability_outcomes
 
 
+def trolls_blood_func(self, skill_level, **kwargs):
+    from element_lists.status_list import health_regen
+    trolls_blood_regen = copy.copy(health_regen)
+    trolls_blood_regen.params = {'value': skill_level}
+    self.apply_status(trolls_blood_regen)
+    return {
+        'console_text': ["You cast Troll's Blood on yourself."]
+    }
+
+
 heavy_strike = Ability(name='Heavy Strike',
                        description=f'Strike an enemy with all your might, dealing massive damage and knocking them back',
                        active=True, targeting_function=board_renderer.highlight_adjacent_tiles,
                        targetable_tile_types=['E'],
                        function=heavy_strike_func, level=1, cooldown=5)
+
+trolls_blood = Ability(name="Troll's Blood",
+                       description=f'Cast a spell on yourself to gain some passive health regeneration.',
+                       active=True, targeting_function=board_renderer.highlight_self, targetable_tile_types=['P'],
+                       function=trolls_blood_func, level=1, cooldown=15)
 
 warrior_config = {
     'starting_attributes': {
@@ -51,6 +66,6 @@ warrior_config = {
         'vit': 7,
         'wis': 3
     },
-    'active_abilities': [copy.copy(heavy_strike)],
+    'active_abilities': [copy.copy(x) for x in [heavy_strike, trolls_blood]],
     'passive_abilities': [],
 }

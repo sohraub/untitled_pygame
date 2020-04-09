@@ -82,7 +82,7 @@ class Character:
         console_text = list()
         for status in self.status['buffs'] + self.status['debuffs']:
             if status.end_of_turn_effect:
-                console_text.append(status.end_of_turn_effect(self))
+                console_text.append(status.end_of_turn_effect(target=self, **status.params))
             status.turns_left -= 1
             if status.turns_left == 0:
                 self.remove_status(status)
