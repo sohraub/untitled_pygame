@@ -22,9 +22,20 @@ def lesser_poison_effect(target):
     return console_text
 
 
+def health_regen_effect(target, value):
+    """Target regains 'value' HP every turn."""
+    target.hp[0] = min(target.hp[0] + value, target.hp[1])
+    return ''  # No console output for regenerating health
+
 #### STATUSES ####
 
 lesser_poison = Status(name='Lesser Poison', type='debuff', duration=5,
                        description=parse_description('Take a small amount of poison damage every turn.'),
-                       end_of_turn_effect=lesser_poison_effect)
+                       end_of_turn_effect=lesser_poison_effect, params={})
+
+health_regen = Status(name='Health Regen', type='buff', duration=7,
+                      description=parse_description('Heal a small amount of health every turn.'),
+                      end_of_turn_effect=health_regen_effect, params={'value': 1})
+
+
 

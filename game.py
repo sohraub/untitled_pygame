@@ -3,7 +3,7 @@ import random
 from copy import copy
 from time import sleep
 
-from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile
+from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_min_steps
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
@@ -99,19 +99,26 @@ class Game:
         else
             wait
         """
-        enemies = list()
-        for enemy_coord in self.board.enemies:
-            # Load all Enemy objects currently on the board into a list to iterate over
-            enemies.append(self.board.enemies[enemy_coord])
-        console_text = list()
+        enemies = list(self.board.enemies.values())
         for enemy in enemies:
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
+            if distance_to_player <= enemy.aggro_range:
+                enemy.aggro = True
             if distance_to_player <= enemy.attack_range:
                 self.console.update(enemy.basic_attack(self.player))
-            elif distance_to_player <= enemy.aggro_range:
+            else:
                 # Enemies can move onto either open tiles or traps.
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
-                new_x, new_y = enemy.move_towards_target((self.player.x, self.player.y), open_tiles)
+                new_x, new_y = None, None
+                if enemy.aggro:
+                    _, (new_x, new_y) = find_min_steps(start=(enemy.x, enemy.y), target=(self.player.x ,self.player.y),
+                                                       open_tiles=open_tiles)
+
+                elif random.randint(0, 100) > 50:
+                    # If enemy is not aggro'd, give a 50% chance to move one tile in a random direction
+                    adjacent_tiles = ([(enemy.x + i, enemy.y) for i in [-1, 1]] +
+                                      [(enemy.x, enemy.y + i) for i in [-1, 1]])
+                    new_x, new_y = random.choice([tile for tile in adjacent_tiles if tile in set(open_tiles)])
                 if new_x is not None:  # Check if a valid movement was found
                     self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
@@ -132,6 +139,7 @@ class Game:
         elif item_dict['type'] == 'equipment':
             self.console.update(self.player.equip_item(item_index))
         self.player_panel.handle_item_consumption()
+        return True
 
     def get_targets(self, targeting_function):
         """
@@ -145,9 +153,14 @@ class Game:
             return None
         else:
             target_coords = xy_coords_from_tile(target_rect)
-            self.refresh_focus_window(target_coords)
-            target = self.board.enemies.get(target_coords, None)
-            return target
+            if self.board.enemies.get(target_coords, None):
+                target = self.board.enemies[target_coords]
+                self.refresh_focus_window(target_coords)
+                return target
+            elif self.board.player_coordinates == target_coords:
+                target = self.player
+                return target
+            return None
 
     def handle_ability_use(self):
         """
@@ -161,6 +174,9 @@ class Game:
         """
         ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
+        if ability.turns_left > 0:
+            # This ability is still on cooldown, so do nothing
+            return False
         target = self.get_targets(ability.targeting_function)
         if target is not None:
             # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
@@ -182,12 +198,15 @@ class Game:
                 if self.board.template[new_y][new_x] in {'O', 'R'}:
                     self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
                                                                   new_y=new_y))
-                    board_renderer.render_game_board(self.board.template)
+                    self.load_game_board()
                     pg.display.update()
                     sleep(0.3)
 
             if target is not None and target.hp[0] == 0:
                 self.handle_enemy_death(target)
+            return True
+        self.load_game_board()  # Refresh board to get rid of targeting mode render
+        return False
 
     def handle_turn_end(self):
         """
@@ -202,6 +221,9 @@ class Game:
             self.player_panel.refresh_conditions()
             self.player_panel.refresh_attributes()
 
+        if self.player.decrement_ability_cooldowns():
+            self.player_panel.refresh_abilities()
+
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
 
@@ -212,7 +234,7 @@ class Game:
         self.load_misc_panel()
 
     def load_game_board(self):
-        """Calls initial render of the game board"""
+        """Calls render of the game board"""
         board_renderer.render_game_board(self.board.template)
 
     def load_player_panel(self):
@@ -246,6 +268,8 @@ class Game:
         if console_text:
             self.console.update(console_text)
         self.console.update(self.player.apply_end_of_turn_status_effects())
+        self.load_game_board()
+        sleep(0.3)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
         self.start_enemy_turn()
         self.handle_turn_end()
         self.player_panel.refresh_player_panel()
@@ -260,15 +284,16 @@ class Game:
         mouse_pos = pg.mouse.get_pos()
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
+        action_taken = False
         if self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):
-                new_actions = self.handle_item_use()
+                action_taken = self.handle_item_use()
             # Do the same thing to check if an ability has been clicked.
             elif self.player_panel.abilities_rect.collidepoint(mouse_pos):
-                new_actions = self.handle_ability_use()
-        if new_actions != []:
+                action_taken = self.handle_ability_use()
+        if action_taken:
             self.handle_player_turn_over(console_text=new_actions)
         return
 
