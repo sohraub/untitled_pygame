@@ -141,21 +141,21 @@ class Game:
         self.player_panel.handle_item_consumption()
         return True
 
-    def get_targets(self, targeting_function, multi_target):
+    def get_targets(self, ability):
         """
         Given a targeting function from an ability or item, enter the targeting loop to find a target, and return
         the chosen target, if any.
         """
         targets = list()
-        target_tile_coordinates = targeting_function(self.board.template, self.player.x, self.player.y)
+        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y)
         target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
         target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
         if target_rect is False:  # If no valid target was returned.
             return targets
         else:
             target_coords = [targeted_coord := xy_coords_from_tile(target_rect)]
-            if multi_target:
-                for coord in multi_target:
+            if ability.multi_target:
+                for coord in ability.multi_target:
                     target_coords.append((targeted_coord[0] + coord[0], targeted_coord[1] + coord[1]))
             for target_coord in target_coords:
                 if self.board.enemies.get(target_coord, None):
@@ -164,6 +164,8 @@ class Game:
                 elif self.board.player_coordinates == target_coord:
                     target = self.player
                     targets.append(target)
+            if ability.save_target:
+                targets.append(targeted_coord)
             return targets
 
     def handle_ability_use(self):
@@ -181,32 +183,31 @@ class Game:
         if ability.turns_left > 0:
             # This ability is still on cooldown, so do nothing
             return False
-        targets = self.get_targets(ability.targeting_function, ability.multi_target)
+        targets = self.get_targets(ability)
         if targets:
-            for target in targets:
-                # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
-                # any movements of the player or target(s), etc.
-                ability_outcome = self.player.use_ability(ability, target)
-                if ability_outcome.get('console_text', None):
-                    self.console.update(ability_outcome['console_text'])
-                # Check to see if target was moved by ability, adjust position in board accordingly.
-                # If no movements were found, loop over an empty list, i.e. do nothing
-                for movement in ability_outcome.get('movements', list()):
-                    # Each movement entry in the ability_outcome dict will look like
-                    # { 'subject': The character object that's being moved
-                    #   'new_position': (new_x, new_y) }
+            # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
+            # any movements of the player or target(s), etc.
+            ability_outcome = self.player.use_ability(ability, targets)
+            if ability_outcome.get('console_text', None):
+                self.console.update(ability_outcome['console_text'])
+            # Check to see if target was moved by ability, adjust position in board accordingly.
+            # If no movements were found, loop over an empty list, i.e. do nothing
+            for movement in ability_outcome.get('movements', list()):
+                # Each movement entry in the ability_outcome dict will look like
+                # { 'subject': The character object that's being moved
+                #   'new_position': (new_x, new_y) }
+                if movement['subject'].hp[0] == 0:
                     # Only bother moving the subject of the movement if they weren't outright killed by the ability
-                    if movement['subject'].hp[0] == 0:
-                        continue
-                    new_x, new_y = movement['new_position']
-                    # Target is only moved if the new space is open or a trap
-                    if self.board.template[new_y][new_x] in {'O', 'R'}:
-                        self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
-                                                                      new_y=new_y))
-                        self.load_game_board()
-                        pg.display.update()
-                        sleep(0.3)
-
+                    continue
+                new_x, new_y = movement['new_position']
+                # Target is only moved if the new space is open or a trap
+                if self.board.template[new_y][new_x] in {'O', 'R'}:
+                    self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
+                                                                  new_y=new_y))
+                    self.load_game_board()
+                    pg.display.update()
+                    # sleep(0.3)
+            for target in targets:
                 if target is not None and target.hp[0] == 0:
                     self.handle_enemy_death(target)
             return True
