@@ -45,7 +45,7 @@ testing = ['XXXXXXXXXXXXXXX',
            'XXXXXXXOXXOXXXX',
            'XXXXXOEOXXOXXXX',
            'XXXXXOOEXXOXXXX',
-           'XXXXXXXXOXOXXXX',
+           'XXXXXXXOOXOXXXX',
            'XXXXXOOPOOOXXXX',
            'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
@@ -54,5 +54,5 @@ testing = ['XXXXXXXXXXXXXXX',
 
 
 #### LISTS OF TEMPLATES ####
-# TEMPLATES = [x, y]
-TEMPLATES = [testing]
+TEMPLATES = [x, y]
+# TEMPLATES = [testing]
