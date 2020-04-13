@@ -80,3 +80,19 @@ def find_min_steps(start, target, open_tiles):
             min_steps = steps_to_target
             next_step = tile
     return min_steps, next_step
+
+def get_knockback(self_x, self_y, target, knockback=1):
+    """
+    Determines the position of the target after direct knockback applied by self.
+    :param self: The Character object knocking back target
+    :param target: The Character object knocked back by self
+    :param knockback: Number of tiles to be knocked back
+    :return: (new_x, new_y) the position of target after the knockback
+    """
+    if self_x != target.x:
+        new_x = target.x + knockback if self_x < target.x else target.x - knockback
+        new_y = target.y
+    else:
+        new_y = target.y + knockback if self_y < target.y else target.y - knockback
+        new_x = target.x
+    return new_x, new_y

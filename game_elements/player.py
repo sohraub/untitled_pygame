@@ -219,16 +219,17 @@ class Player(Character):
             if self.equipment.get(slot, None):
                 self.def_rating += self.equipment[slot].def_rating
 
-    def use_ability(self, ability, target):
+    def use_ability(self, ability, targets):
         """
         Player uses an ability on the target. If target is None, then the ability misses.
         """
-        if target is not None:
-            ability_outcome = ability.function(self=self, target=target, skill_level=ability.level)
+        if targets is not None:
+            ability_outcome = ability.function(self=self, targets=targets, skill_level=ability.level)
             ability.turns_left = ability.cooldown
-            if target.hp[0] == 0:
-                from game_elements.enemy import death_phrases
-                ability_outcome['console_text'].append(random.choice(death_phrases))
+            for target in targets:
+                if target.hp[0] == 0:
+                    from game_elements.enemy import death_phrases
+                    ability_outcome['console_text'].append(random.choice(death_phrases))
         else:
             ability_outcome = {
                 'console_text': [f'You used {ability.name}, but there was no target!']
