@@ -81,7 +81,7 @@ def leap_slam_func(self, targets, skill_level):
     else:
         console_text += f', hitting {len(targets)} target{"s" if len(targets) > 1 else ""} and knocking ' \
                         f'{"them" if len(targets) > 1 else "it"} back.'
-    ability_outcomes['console_text'] = console_text
+    ability_outcomes['console_text'] = [console_text]
     return ability_outcomes
 
 leap_slam = Ability(name='Leap Slam',

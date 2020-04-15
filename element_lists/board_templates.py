@@ -56,3 +56,12 @@ testing = ['XXXXXXXXXXXXXXX',
 #### LISTS OF TEMPLATES ####
 TEMPLATES = [x, y]
 # TEMPLATES = [testing]
+
+TEMPLATE_LIST_MAP = {
+    1: [x, y],
+    0: [testing]
+}
+
+def get_board_list(tier):
+    """Function which returns a list of every board template for a given tier."""
+    return TEMPLATE_LIST_MAP[tier]

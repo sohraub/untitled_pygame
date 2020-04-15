@@ -7,6 +7,7 @@ from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
+from element_lists.board_templates import get_board_list
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
@@ -36,6 +37,18 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
+        self.set_board_transitions()
+
+    def set_board_transitions(self, tier=1):
+        """For each door in the current board, determine what the next board will be one a player enters that door."""
+        board_list = copy(get_board_list(tier=tier))
+        for door_coordinate in self.board.tile_mapping['D']:
+            board_choice = random.choice(board_list)
+            self.board.doors[door_coordinate] = board_choice
+            if len(board_list) > 1:
+                board_list.remove(board_choice)
+        return
+
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -47,7 +60,6 @@ class Game:
         # Checks if player is moving to an open tile or trap
         if self.board.tile_is_open(new_x, new_y):
             new_lines = self.board.move_character(character=self.player, new_x=new_x, new_y=new_y)
-            print(new_lines)
             self.console.update(new_lines)
         else:
             self.player.x, self.player_y = old_x, old_y
@@ -57,6 +69,8 @@ class Game:
             elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
                 self.console.update(self.handle_opening_chest((new_x, new_y)))
                 # console_text.extend(self.handle_opening_chest((new_x, new_y)))
+            elif self.board.template[new_y][new_x] == 'D':  # Moving to a tile which is a door to the next board
+                self.handle_board_transition(door_coordinates=(new_x, new_y))
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -103,6 +117,8 @@ class Game:
         for enemy in enemies:
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
+                if not enemy.aggro:
+                    self.console.update(f"{enemy.display_name} has noticed you.")
                 enemy.aggro = True
             if distance_to_player <= enemy.attack_range:
                 self.console.update(enemy.basic_attack(self.player))
@@ -275,7 +291,7 @@ class Game:
             self.console.update(console_text)
         self.console.update(self.player.apply_end_of_turn_status_effects())
         self.load_game_board()
-        sleep(0.3)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
+        sleep(0.2)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
         self.start_enemy_turn()
         self.handle_turn_end()
         self.player_panel.refresh_player_panel()
@@ -302,6 +318,16 @@ class Game:
         if action_taken:
             self.handle_player_turn_over(console_text=new_actions)
         return
+
+    def handle_board_transition(self, door_coordinates):
+        """Handles all the necessary updates when the Player steps on a door and transitions to the next board."""
+        new_template = self.board.doors[door_coordinates]
+        new_board = Board(board_template=new_template, tier=self.board.tier)
+        self.board = new_board
+        self.misc_panel.board = new_board
+        self.player.x, self.player.y = self.board.player_coordinates
+        self.set_board_transitions()
+        self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
         """
