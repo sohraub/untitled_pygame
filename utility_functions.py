@@ -1,4 +1,6 @@
 import copy
+from heapq import heapify, heappush, heappop
+
 from config import TOP_LEFT_X, TOP_LEFT_Y, TILE_SIZE
 
 """
@@ -31,9 +33,11 @@ def check_adjacent(self, target):
         return False
     return True
 
+
 def tile_from_xy_coords(x, y):
     """Given the xy-coordinates of an object on the game board, returns the pg.Rect dimensions of that object."""
     return (TOP_LEFT_X + (x * TILE_SIZE), TOP_LEFT_Y + (y * TILE_SIZE), TILE_SIZE, TILE_SIZE)
+
 
 def xy_coords_from_tile(tile):
     """Given the pg.Rect dimensions of an object, returns the x,y coordinates of the object on the game board."""
@@ -41,45 +45,6 @@ def xy_coords_from_tile(tile):
     y = int((tile[1] - TOP_LEFT_Y) / TILE_SIZE)
     return x, y
 
-def find_min_steps(start, target, open_tiles):
-    """
-    Used primarily for enemy path-finding, this algorithm determines the next step for the character at 'position' to
-    take if it wants to get to target. For enemy movement, this function is only called if the most obvious movements
-    in pursuit of a target go through non-open tiles. For a detailed explanation, read the code along with comments.
-    :param start: xy-coordinates of the start position
-    :param target: xy-coordinates of the target
-    :param open_tiles: list of xy-coordinates of open tiles in the board
-    :return: min_steps, the minimum # of steps to reach the target
-             next_step, the xy-coordinates of the next step along the minimum path
-    """
-    x, y = start
-    # First build a list of the 4 tiles immediately adjacent to 'position'
-    adjacent_tiles = ([(x + i, y) for i in [-1, 1]] + [(x, y + i) for i in [-1, 1]])
-    # Then filter that list against the list of open tiles on the board
-    adj_open_tiles = [tile for tile in adjacent_tiles if tile in set(open_tiles)]
-    min_steps = 1000  # Initialize min_steps to a big number, in this case 1000
-    next_step = (None, None)
-    # First loop through every adj_open_tile to see if any are directly next to the target, in which case that will
-    # be our next step
-    for tile in adj_open_tiles:
-        if manhattan_distance(tile, target) == 1:
-            return 1, tile
-
-    # If not, move on to going through each adj_open_tile and recursively finding the path with the smallest amount
-    # of steps, and returning the next step along that path
-    for tile in adj_open_tiles:
-        new_open_tiles = copy.copy(open_tiles)
-        # We remove the tile in question from open_tiles when recursively calling the function where position=tile, to
-        # speed up the calculations since its unlikely that the ideal path involves that level of backtracking
-        new_open_tiles.remove(tile)
-        new_steps, new_tile = find_min_steps(tile, target, new_open_tiles)
-        steps_to_target = 1 + new_steps
-        # Once we've found the shortest path evolving from each of the adj_open_tiles, we return the number of steps
-        # (to keep consistent with the recursive function call) and the actual coordinates of the next step.
-        if steps_to_target < min_steps:
-            min_steps = steps_to_target
-            next_step = tile
-    return min_steps, next_step
 
 def get_knockback(self_x, self_y, target, knockback=1):
     """
@@ -96,3 +61,76 @@ def get_knockback(self_x, self_y, target, knockback=1):
         new_y = target.y + knockback if self_y < target.y else target.y - knockback
         new_x = target.x
     return new_x, new_y
+
+
+def reconstruct_path(came_from, current):
+    """
+    Called by find_best_step() below when an optimal path has been found, to retrace the steps taken to get to that path
+    and return the first step along that path.
+    :param came_from: A dict that will be in the format
+                        {(x, y): coordinate immediately proceeding (x, y)}
+                      for each step which was explored throughout find_best_step()
+    :param current: The current step being looked at. Will be initialized the position of goal, and steps will be traced
+                    backwards along came_from.
+    :return: The second-last element of the 'path'. This list will hold every step going backwards from the goal, so
+             that path[0] is the goal and path[-1] is the start, hence we return path[-2] to be the next step.
+    """
+    path = [current]
+    while current in set(came_from.keys()):
+        current_temp = came_from[current]
+        del came_from[current]
+        current = current_temp
+        path.append(current)
+
+    return path[-2]
+
+
+def find_best_step(start, goal, open_tiles):
+    """
+    An implementation of the A* search algorithm to find the best next step for a character at start trying to get to
+    goal. Additional details will be provided in in-line comments.
+    For more info check out https://en.wikipedia.org/wiki/A*_search_algorithm
+    :param start: (x,y)-coordinates of the character's starting position
+    :param goal: (x,y)-coordinates of the goal position
+    :param open_tiles: A list of the coordinates of every open tile on the board
+    :return: (x,y) coordinates of the best next step, or None, None if no path was found.
+    """
+    # We add 'goal' to the list of open tiles because this algorithm will terminate when it steps to goal, so it needs
+    # to be available as an option.
+    open_tiles.append(goal)
+    # g_scores will be the manhattan_distance from the start to each tile. Initialize every value to 1000
+    g_scores = {tile: 1000 for tile in open_tiles}
+    g_scores[start] = 0
+    # f_scores will be, for each tile, the g_score of that tile + manhattan_distance(tile, goal), i.e. an estimate
+    # of the number of steps to reach the goal going through this tile.
+    f_scores = {tile: 1000 for tile in open_tiles}
+    f_scores[start] = manhattan_distance(start, goal)
+    # came_from will be a dict where each key is a tile and the value is the tile immediately proceeding it on our path
+    came_from = {}
+    # open_set will be a min-heap of each tile, sorted by their f_scores. Stored as a tuple of (f_score, (x, y))
+    open_set = []
+    heapify(open_set)
+    heappush(open_set, (f_scores[start], start))
+    while open_set:
+        # current will always be set to the tile in open_set with the smallest f_score
+        current = open_set[0][1]
+        if current == goal:
+            # If we reach here, then we're done
+            return reconstruct_path(came_from, current)
+
+        heappop(open_set)
+        # Build a list of every neighbour of current
+        adjacent_tiles = ([(current[0] + i, current[1]) for i in [-1, 1]] + [(current[0], current[1] + i) for i in [-1, 1]])
+        adj_open_tiles = [tile for tile in adjacent_tiles if tile in set(open_tiles)]
+        for neighbour in adj_open_tiles:
+            temp_g_score = g_scores[current] + manhattan_distance(current, neighbour)
+            # If temp_g_score is lower than what we have stored, then we've found a shorter path through neighbour
+            # than we had previously.
+            if temp_g_score < g_scores[neighbour]:
+                came_from[neighbour] = current
+                g_scores[neighbour] = temp_g_score
+                f_scores[neighbour] = g_scores[neighbour] + manhattan_distance(neighbour, goal)
+                if (neighbour, f_scores[neighbour]) not in open_set:
+                    heappush(open_set, (f_scores[neighbour], neighbour))
+
+    return None, None

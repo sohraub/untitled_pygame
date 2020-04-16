@@ -37,20 +37,20 @@ y = ['XXDXXXXXXXXXDXX',
      'XXXXXXXXDXXXXXX']
 
 testing = ['XXXXXXXXXXXXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
            'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXOOOOXXXX',
-           'XXXXXXXOXXOXXXX',
-           'XXXXXOEOXXOXXXX',
-           'XXXXXOOEXXOXXXX',
-           'XXXXXXXOOXOXXXX',
-           'XXXXXOOPOOOXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX']
+           'XOOOOOXEOOOXXXX',
+           'XOOOOOXXOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XXXXXXXPXXXXXXX',
+           'XXXXXXXOXXXXXXX',
+           'XXXXXXXOXXXXXXX',
+           'XXXXXXOOOXXXXXX']
 
 
 #### LISTS OF TEMPLATES ####
@@ -59,7 +59,7 @@ TEMPLATES = [x, y]
 
 TEMPLATE_LIST_MAP = {
     1: [x, y],
-    0: [testing]
+    # 1: [testing]
 }
 
 def get_board_list(tier):

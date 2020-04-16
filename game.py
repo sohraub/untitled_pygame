@@ -3,7 +3,8 @@ import random
 from copy import copy
 from time import sleep
 
-from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_min_steps
+
+from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_best_step
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
@@ -127,8 +128,8 @@ class Game:
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
                 new_x, new_y = None, None
                 if enemy.aggro:
-                    _, (new_x, new_y) = find_min_steps(start=(enemy.x, enemy.y), target=(self.player.x ,self.player.y),
-                                                       open_tiles=open_tiles)
+                    new_x, new_y = find_best_step(start=(enemy.x, enemy.y), goal=(self.player.x, self.player.y),
+                                                  open_tiles=open_tiles)
 
                 elif random.randint(0, 100) > 50:
                     # If enemy is not aggro'd, give a 50% chance to move one tile in a random direction
@@ -140,6 +141,7 @@ class Game:
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
+
 
     def handle_item_use(self):
         """
