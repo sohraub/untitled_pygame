@@ -37,22 +37,31 @@ y = ['XXDXXXXXXXXXDXX',
      'XXXXXXXXDXXXXXX']
 
 testing = ['XXXXXXXXXXXXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
+           'XXOOOOOOOOOXXXX',
            'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXOOOOXXXX',
-           'XXXXXXXOXXOXXXX',
-           'XXXXXOEOXXOXXXX',
-           'XXXXXOOEXXOXXXX',
-           'XXXXXXXOOXOXXXX',
-           'XXXXXOOPOOOXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XXXXXXXXXXXXXXX']
+           'XOOOOOXEOOOXXXX',
+           'XOOOOOXXOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XOOOOOOOOOOXXXX',
+           'XXXXXXXPXXXXXXX',
+           'XXXXXXXOXXXXXXX',
+           'XXXXXXXOXXXXXXX',
+           'XXXXXXOOOXXXXXX']
 
 
 #### LISTS OF TEMPLATES ####
 TEMPLATES = [x, y]
 # TEMPLATES = [testing]
+
+TEMPLATE_LIST_MAP = {
+    1: [x, y],
+    # 1: [testing]
+}
+
+def get_board_list(tier):
+    """Function which returns a list of every board template for a given tier."""
+    return TEMPLATE_LIST_MAP[tier]

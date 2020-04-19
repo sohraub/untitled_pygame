@@ -68,6 +68,7 @@ class Board:
                     self.player_coordinates = (x, y)
                 elif self.template[y][x] in self.tile_mapping.keys():
                     self.tile_mapping[self.template[y][x]].append((x, y))
+        self.doors = dict()  # This will be initialized by the Game object
         self.enemies = dict()
         for coord in self.tile_mapping['E']:
             self.enemies[coord] = enemy.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)

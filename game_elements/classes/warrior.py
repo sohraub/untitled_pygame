@@ -81,13 +81,13 @@ def leap_slam_func(self, targets, skill_level):
     else:
         console_text += f', hitting {len(targets)} target{"s" if len(targets) > 1 else ""} and knocking ' \
                         f'{"them" if len(targets) > 1 else "it"} back.'
-    ability_outcomes['console_text'] = console_text
+    ability_outcomes['console_text'] = [console_text]
     return ability_outcomes
 
 leap_slam = Ability(name='Leap Slam',
                     description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
                     active=True, targeting_function=board_renderer.highlight_all_with_splash_target,
-                    function=leap_slam_func, level=1, cooldown=18, save_target=True,
+                    function=leap_slam_func, level=1, cooldown=1, save_target=True,
                     multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
 warrior_config = {
