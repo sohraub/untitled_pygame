@@ -114,8 +114,8 @@ class Game:
         else
             wait
         """
-        enemies = list(self.board.enemies.values())
-        for enemy in enemies:
+        # enemies = list(self.board.enemies.values())
+        for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
                 if not enemy.aggro:
@@ -165,7 +165,8 @@ class Game:
         the chosen target, if any.
         """
         targets = list()
-        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y)
+        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y,
+                                                             **ability.targeting_function_params)
         target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
         target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
         if target_rect is False:  # If no valid target was returned.

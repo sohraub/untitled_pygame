@@ -37,20 +37,20 @@ y = ['XXDXXXXXXXXXDXX',
      'XXXXXXXXDXXXXXX']
 
 testing = ['XXXXXXXXXXXXXXX',
-           'XXOOOOOOOOOXXXX',
-           'XXOOOOOOOOOXXXX',
-           'XXOOOOOOOOOXXXX',
-           'XXOOOOOOOOOXXXX',
-           'XXXXXXXXXXXXXXX',
-           'XOOOOOXEOOOXXXX',
-           'XOOOOOXXOOOXXXX',
-           'XOOOOOOOOOOXXXX',
-           'XOOOOOOOOOOXXXX',
-           'XOOOOOOOOOOXXXX',
-           'XXXXXXXPXXXXXXX',
-           'XXXXXXXOXXXXXXX',
-           'XXXXXXXOXXXXXXX',
-           'XXXXXXOOOXXXXXX']
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOPOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XOOOOOOOOOOOOOX',
+           'XXXXXXXXXXXXXXX']
 
 
 #### LISTS OF TEMPLATES ####
