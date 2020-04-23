@@ -3,16 +3,19 @@ import random
 from copy import copy
 from time import sleep
 
-from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_min_steps
+
+from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_best_step
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
+from element_lists.board_templates import get_board_list
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
 
 # List containing all of the keys that currently have a function
-FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a]
+FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -36,6 +39,18 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
+        self.set_board_transitions()
+
+    def set_board_transitions(self, tier=1):
+        """For each door in the current board, determine what the next board will be one a player enters that door."""
+        board_list = copy(get_board_list(tier=tier))
+        for door_coordinate in self.board.tile_mapping['D']:
+            board_choice = random.choice(board_list)
+            self.board.doors[door_coordinate] = board_choice
+            if len(board_list) > 1:
+                board_list.remove(board_choice)
+        return
+
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -47,7 +62,6 @@ class Game:
         # Checks if player is moving to an open tile or trap
         if self.board.tile_is_open(new_x, new_y):
             new_lines = self.board.move_character(character=self.player, new_x=new_x, new_y=new_y)
-            print(new_lines)
             self.console.update(new_lines)
         else:
             self.player.x, self.player_y = old_x, old_y
@@ -57,6 +71,8 @@ class Game:
             elif self.board.template[new_y][new_x] == 'T':  # Moving to a tile which contains a chest opens the chest
                 self.console.update(self.handle_opening_chest((new_x, new_y)))
                 # console_text.extend(self.handle_opening_chest((new_x, new_y)))
+            elif self.board.template[new_y][new_x] == 'D':  # Moving to a tile which is a door to the next board
+                self.handle_board_transition(door_coordinates=(new_x, new_y))
 
     def handle_opening_chest(self, chest_pos):
         """Calls methods to set chest status to 'open' and add item to player inventory."""
@@ -99,10 +115,12 @@ class Game:
         else
             wait
         """
-        enemies = list(self.board.enemies.values())
-        for enemy in enemies:
+        # enemies = list(self.board.enemies.values())
+        for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
+                if not enemy.aggro:
+                    self.console.update(f"{enemy.display_name} has noticed you.")
                 enemy.aggro = True
             if distance_to_player <= enemy.attack_range:
                 self.console.update(enemy.basic_attack(self.player))
@@ -111,8 +129,8 @@ class Game:
                 open_tiles = self.board.tile_mapping['O'] + self.board.tile_mapping['R']
                 new_x, new_y = None, None
                 if enemy.aggro:
-                    _, (new_x, new_y) = find_min_steps(start=(enemy.x, enemy.y), target=(self.player.x ,self.player.y),
-                                                       open_tiles=open_tiles)
+                    new_x, new_y = find_best_step(start=(enemy.x, enemy.y), goal=(self.player.x, self.player.y),
+                                                  open_tiles=open_tiles)
 
                 elif random.randint(0, 100) > 50:
                     # If enemy is not aggro'd, give a 50% chance to move one tile in a random direction
@@ -124,6 +142,7 @@ class Game:
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
+
 
     def handle_item_use(self):
         """
@@ -141,28 +160,35 @@ class Game:
         self.player_panel.handle_item_consumption()
         return True
 
-    def get_targets(self, targeting_function):
+    def get_targets(self, ability):
         """
         Given a targeting function from an ability or item, enter the targeting loop to find a target, and return
         the chosen target, if any.
         """
-        target_tile_coordinates = targeting_function(self.board.template, self.player.x, self.player.y)
+        targets = list()
+        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y,
+                                                             **ability.targeting_function_params)
         target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
         target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
         if target_rect is False:  # If no valid target was returned.
-            return None
+            return targets
         else:
-            target_coords = xy_coords_from_tile(target_rect)
-            if self.board.enemies.get(target_coords, None):
-                target = self.board.enemies[target_coords]
-                self.refresh_focus_window(target_coords)
-                return target
-            elif self.board.player_coordinates == target_coords:
-                target = self.player
-                return target
-            return None
+            target_coords = [targeted_coord := xy_coords_from_tile(target_rect)]
+            if ability.multi_target:
+                for coord in ability.multi_target:
+                    target_coords.append((targeted_coord[0] + coord[0], targeted_coord[1] + coord[1]))
+            for target_coord in target_coords:
+                if self.board.enemies.get(target_coord, None):
+                    target = self.board.enemies[target_coord]
+                    targets.append(target)
+                elif self.board.player_coordinates == target_coord:
+                    target = self.player
+                    targets.append(target)
+            if ability.save_target:
+                targets.append(targeted_coord)
+            return targets
 
-    def handle_ability_use(self):
+    def handle_ability_use(self, ability_index=None):
         """
         Calls necessary functions and methods to handle the player using an ability. Generally goes something like:
             i.   Get ability index from player panel
@@ -170,18 +196,22 @@ class Game:
             iii. Use ability on selected target, if target is valid
             iv.  If target was moved as part of the ability, update positions on board accordingly
             v.   End player turn
+        :param ability_index: If this is None, then it means ability was used by clicking on the player panel, so we get
+                              we get the index from there. If it's not None, then ability was used by pressing the
+                              corresponding key, in which case the index is passed in by the handle_key_presses() method
         :return: New lines to be displayed in the console
         """
-        ability_index = self.player_panel.get_tooltip_index(element='abilities')
+        if ability_index is None:
+            ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
         if ability.turns_left > 0:
             # This ability is still on cooldown, so do nothing
             return False
-        target = self.get_targets(ability.targeting_function)
-        if target is not None:
+        targets = self.get_targets(ability)
+        if targets:
             # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
             # any movements of the player or target(s), etc.
-            ability_outcome = self.player.use_ability(ability, target)
+            ability_outcome = self.player.use_ability(ability, targets)
             if ability_outcome.get('console_text', None):
                 self.console.update(ability_outcome['console_text'])
             # Check to see if target was moved by ability, adjust position in board accordingly.
@@ -190,8 +220,8 @@ class Game:
                 # Each movement entry in the ability_outcome dict will look like
                 # { 'subject': The character object that's being moved
                 #   'new_position': (new_x, new_y) }
-                # Only bother moving the subject of the movement if they weren't outright killed by the ability
                 if movement['subject'].hp[0] == 0:
+                    # Only bother moving the subject of the movement if they weren't outright killed by the ability
                     continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
@@ -200,10 +230,10 @@ class Game:
                                                                   new_y=new_y))
                     self.load_game_board()
                     pg.display.update()
-                    sleep(0.3)
-
-            if target is not None and target.hp[0] == 0:
-                self.handle_enemy_death(target)
+                    # sleep(0.3)
+            for target in targets:
+                if target is not None and target.hp[0] == 0:
+                    self.handle_enemy_death(target)
             return True
         self.load_game_board()  # Refresh board to get rid of targeting mode render
         return False
@@ -258,6 +288,15 @@ class Game:
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
             self.console.update(self.handle_player_movement(pressed_key))
+        elif pressed_key in [pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]:
+            key_mapping = {
+                pg.K_1: 0,  # Map to one number lower since abilities are saved internally in a 0-indexed list
+                pg.K_2: 1,
+                pg.K_3: 2,
+                pg.K_4: 3,
+                pg.K_5: 4
+            }
+            self.handle_ability_use(ability_index=key_mapping[pressed_key])
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -269,7 +308,7 @@ class Game:
             self.console.update(console_text)
         self.console.update(self.player.apply_end_of_turn_status_effects())
         self.load_game_board()
-        sleep(0.3)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
+        sleep(0.2)  # Want a slight pause after the player movement has been rendered before the enemy actions happen
         self.start_enemy_turn()
         self.handle_turn_end()
         self.player_panel.refresh_player_panel()
@@ -296,6 +335,16 @@ class Game:
         if action_taken:
             self.handle_player_turn_over(console_text=new_actions)
         return
+
+    def handle_board_transition(self, door_coordinates):
+        """Handles all the necessary updates when the Player steps on a door and transitions to the next board."""
+        new_template = self.board.doors[door_coordinates]
+        new_board = Board(board_template=new_template, tier=self.board.tier)
+        self.board = new_board
+        self.misc_panel.board = new_board
+        self.player.x, self.player.y = self.board.player_coordinates
+        self.set_board_transitions()
+        self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
         """

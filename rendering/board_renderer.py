@@ -4,6 +4,7 @@ import colors
 from config import TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, TILE_COLORS
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering.window_renderer import MAIN_WINDOW
+from utility_functions import find_tiles_in_radius
 
 """
 Module that will handle all of the rendering logic for the game boards.
@@ -50,3 +51,18 @@ def highlight_self(board_template, target_x, target_y, color=colors.BLACK):
     render_game_board(board_template, tiles_to_highlight={(target_x, target_y)}, highlight_color=color,
                       targetable_tile_types={'P'})
     return [(target_x, target_y)]
+
+
+def highlight_radius_with_splash_target(board_template, target_x, target_y, radius, *args, color=colors.BLACK):
+    """
+    Targets every open/trap tile on the board, and returns as a list of targets every tile directly adjacent to the
+    tile selected.
+    """
+    potential_tiles_to_highlight = find_tiles_in_radius(center_x=target_x, center_y=target_y, radius=radius)
+    print(target_x)
+    print(target_y)
+    print(radius)
+    tiles_to_highlight = [(x, y) for (x, y) in potential_tiles_to_highlight if board_template[y][x] in {'O', 'R'}]
+    render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
+                      targetable_tile_types={'O', 'R'})
+    return tiles_to_highlight

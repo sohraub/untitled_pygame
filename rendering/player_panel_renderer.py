@@ -93,6 +93,10 @@ def draw_active_abilities(abilities, refresh=False):
                 MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
                                                      ability_tile[2] - 2, ability_tile[3] - 2))
 
+        ability_number = FONT_20.render(str(i + 1), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(ability_number, (ABILITIES_TOP_LEFT_X + (1 + i) * ABILITY_TILE_LENGTH - 20,
+                                          ABILITIES_TOP_LEFT_Y + ABILITY_TILE_LENGTH - 30))
+
     return ability_tiles, abilities_rect
 
 
