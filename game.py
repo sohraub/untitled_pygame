@@ -280,14 +280,17 @@ class Game:
         self.misc_panel.refresh_focus_window(focus_tile)
 
     def handle_key_presses(self, pressed_key):
-        """Calls appropriate function based on pressed key."""
+        """
+        Calls appropriate function based on pressed key. Returns a boolean which determines whether an action was
+        taken and thus the player turn should end.
+        """
         if pressed_key == pg.K_SPACE:
             self.player.wait()
-            # Not printing anything to console in this case, so just return empty list.
-            return []
+            return True
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
             self.console.update(self.handle_player_movement(pressed_key))
+            return True
         elif pressed_key in [pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]:
             key_mapping = {
                 pg.K_1: 0,  # Map to one number lower since abilities are saved internally in a 0-indexed list
@@ -296,7 +299,7 @@ class Game:
                 pg.K_4: 3,
                 pg.K_5: 4
             }
-            self.handle_ability_use(ability_index=key_mapping[pressed_key])
+            return self.handle_ability_use(ability_index=key_mapping[pressed_key])
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -354,7 +357,9 @@ class Game:
         """
         while True:
             for event in pg.event.get():
-                if event.type == pg.MOUSEBUTTONDOWN:
+                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    return False
+                elif event.type == pg.MOUSEBUTTONDOWN:
                     for tile in valid_target_tiles:
                         if tile.collidepoint(pg.mouse.get_pos()):
                             return tile
@@ -379,7 +384,8 @@ class Game:
                 if event.key == pg.K_ESCAPE:  # ESC exits the game
                     return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
-                    self.console.update(self.handle_key_presses(event.key))
-                    self.handle_player_turn_over()
+                    action_taken = self.handle_key_presses(event.key)
+                    if action_taken:
+                        self.handle_player_turn_over()
 
         return True
