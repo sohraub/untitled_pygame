@@ -2,6 +2,7 @@ import copy
 from heapq import heapify, heappush, heappop
 
 from config import TOP_LEFT_X, TOP_LEFT_Y, TILE_SIZE
+from game_elements.element_config_values import BOARD_HEIGHT, BOARD_LENGTH
 
 """
 Module for storing little functions that could be useful throughout the project.
@@ -120,7 +121,8 @@ def find_best_step(start, goal, open_tiles):
 
         heappop(open_set)
         # Build a list of every neighbour of current
-        adjacent_tiles = ([(current[0] + i, current[1]) for i in [-1, 1]] + [(current[0], current[1] + i) for i in [-1, 1]])
+        adjacent_tiles = ([(current[0] + i, current[1]) for i in [-1, 1]] + [(current[0], current[1] + i)
+                                                                             for i in [-1, 1]])
         adj_open_tiles = [tile for tile in adjacent_tiles if tile in set(open_tiles)]
         for neighbour in adj_open_tiles:
             temp_g_score = g_scores[current] + manhattan_distance(current, neighbour)
@@ -134,3 +136,14 @@ def find_best_step(start, goal, open_tiles):
                     heappush(open_set, (f_scores[neighbour], neighbour))
 
     return None, None
+
+
+def find_tiles_in_radius(center_x, center_y, radius):
+    """Returns a list of every tile that has a manhattan distance of <= radius around the tile (center_x, center_y)"""
+    tiles_in_radius = [(center_x + i, center_y + j)
+                       for i in range(-(radius + 1), radius + 1)
+                       for j in range(-(radius + 1), radius + 1)
+                       if (abs(i) + abs(j) <= radius) and
+                          (0 < (center_x + i) < BOARD_LENGTH and 0 < (center_y + j) < BOARD_HEIGHT)]
+    tiles_in_radius.remove((center_x, center_y))
+    return tiles_in_radius

@@ -14,7 +14,8 @@ from player_panel import PlayerPanel
 
 
 # List containing all of the keys that currently have a function
-FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a]
+FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -114,8 +115,8 @@ class Game:
         else
             wait
         """
-        enemies = list(self.board.enemies.values())
-        for enemy in enemies:
+        # enemies = list(self.board.enemies.values())
+        for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
                 if not enemy.aggro:
@@ -165,7 +166,8 @@ class Game:
         the chosen target, if any.
         """
         targets = list()
-        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y)
+        target_tile_coordinates = ability.targeting_function(self.board.template, self.player.x, self.player.y,
+                                                             **ability.targeting_function_params)
         target_tile_rects = [pg.Rect(tile_from_xy_coords(coords[0], coords[1])) for coords in target_tile_coordinates]
         target_rect = self.enter_targeting_game_loop(valid_target_tiles=target_tile_rects)
         if target_rect is False:  # If no valid target was returned.
@@ -186,7 +188,7 @@ class Game:
                 targets.append(targeted_coord)
             return targets
 
-    def handle_ability_use(self):
+    def handle_ability_use(self, ability_index=None):
         """
         Calls necessary functions and methods to handle the player using an ability. Generally goes something like:
             i.   Get ability index from player panel
@@ -194,9 +196,13 @@ class Game:
             iii. Use ability on selected target, if target is valid
             iv.  If target was moved as part of the ability, update positions on board accordingly
             v.   End player turn
+        :param ability_index: If this is None, then it means ability was used by clicking on the player panel, so we get
+                              we get the index from there. If it's not None, then ability was used by pressing the
+                              corresponding key, in which case the index is passed in by the handle_key_presses() method
         :return: New lines to be displayed in the console
         """
-        ability_index = self.player_panel.get_tooltip_index(element='abilities')
+        if ability_index is None:
+            ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
         if ability.turns_left > 0:
             # This ability is still on cooldown, so do nothing
@@ -274,14 +280,26 @@ class Game:
         self.misc_panel.refresh_focus_window(focus_tile)
 
     def handle_key_presses(self, pressed_key):
-        """Calls appropriate function based on pressed key."""
+        """
+        Calls appropriate function based on pressed key. Returns a boolean which determines whether an action was
+        taken and thus the player turn should end.
+        """
         if pressed_key == pg.K_SPACE:
             self.player.wait()
-            # Not printing anything to console in this case, so just return empty list.
-            return []
+            return True
         # Check if input is for a basic movement, i.e. up, down, left, right
         elif pressed_key in self.player.movement_mapping.keys():
             self.console.update(self.handle_player_movement(pressed_key))
+            return True
+        elif pressed_key in [pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]:
+            key_mapping = {
+                pg.K_1: 0,  # Map to one number lower since abilities are saved internally in a 0-indexed list
+                pg.K_2: 1,
+                pg.K_3: 2,
+                pg.K_4: 3,
+                pg.K_5: 4
+            }
+            return self.handle_ability_use(ability_index=key_mapping[pressed_key])
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -339,7 +357,9 @@ class Game:
         """
         while True:
             for event in pg.event.get():
-                if event.type == pg.MOUSEBUTTONDOWN:
+                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    return False
+                elif event.type == pg.MOUSEBUTTONDOWN:
                     for tile in valid_target_tiles:
                         if tile.collidepoint(pg.mouse.get_pos()):
                             return tile
@@ -364,7 +384,8 @@ class Game:
                 if event.key == pg.K_ESCAPE:  # ESC exits the game
                     return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
-                    self.console.update(self.handle_key_presses(event.key))
-                    self.handle_player_turn_over()
+                    action_taken = self.handle_key_presses(event.key)
+                    if action_taken:
+                        self.handle_player_turn_over()
 
         return True
