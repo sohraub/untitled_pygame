@@ -37,7 +37,7 @@ EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
 EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
 
 #### ABILITIES ####
-ABILITY_TILE_LENGTH = 1.2 * ITEM_LENGTH
+ABILITY_TILE_LENGTH = int(1.2 * ITEM_LENGTH)
 ABILITIES_TOP_LEFT_X = INVENTORY_TOP_LEFT_X
 ABILITIES_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.7 * SIDE_PANEL_HEIGHT)
 
@@ -83,21 +83,26 @@ def draw_active_abilities(abilities, refresh=False):
         pg.draw.rect(MAIN_WINDOW, colors.GREY, ability_tile, 1)
         if ability is not None:
             ability_tiles.append(ability_tile)
-            if ability['turns_left'] > 0:  # Check if the ability is currently on cooldown
-                turns_left_label = FONT_30.render(str(ability['turns_left']), 1, colors.WHITE)
-                MAIN_WINDOW.fill(color=colors.DARK_BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
-                                                         ability_tile[2] - 2, ability_tile[3] - 2))
-                MAIN_WINDOW.blit(turns_left_label, (ability_tile[0] + (ABILITY_TILE_LENGTH * 0.4),
-                                                    ability_tile[1] + (ABILITY_TILE_LENGTH * 0.2)))
-            else:
-                MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
-                                                     ability_tile[2] - 2, ability_tile[3] - 2))
+            populate_ability_tile(ability, ability_tile)
 
         ability_number = FONT_20.render(str(i + 1), 1, colors.YELLOW)
         MAIN_WINDOW.blit(ability_number, (ABILITIES_TOP_LEFT_X + (1 + i) * ABILITY_TILE_LENGTH - 20,
                                           ABILITIES_TOP_LEFT_Y + ABILITY_TILE_LENGTH - 30))
 
     return ability_tiles, abilities_rect
+
+
+def populate_ability_tile(ability, ability_tile):
+    """Adds color and cooldown timer to ability tile depending on if the ability is currently on cooldown."""
+    if ability['turns_left'] > 0:  # Check if the ability is currently on cooldown
+        turns_left_label = FONT_30.render(str(ability['turns_left']), 1, colors.WHITE)
+        MAIN_WINDOW.fill(color=colors.DARK_BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                       ability_tile[2] - 2, ability_tile[3] - 2))
+        MAIN_WINDOW.blit(turns_left_label, (ability_tile[0] + (ABILITY_TILE_LENGTH * 0.4),
+                                            ability_tile[1] + (ABILITY_TILE_LENGTH * 0.2)))
+    else:
+        MAIN_WINDOW.fill(color=colors.BLUE, rect=(ability_tile[0] + 1, ability_tile[1] + 1,
+                                                  ability_tile[2] - 2, ability_tile[3] - 2))
 
 
 def draw_level_and_experience(level, profession, experience, refresh=False):
