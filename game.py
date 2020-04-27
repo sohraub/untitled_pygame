@@ -257,6 +257,9 @@ class Game:
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
 
+        if self.misc_panel.focus_tile is not None:
+            self.misc_panel.refresh_focus_window(self.misc_panel.focus_tile)
+
     def draw_window(self):
         """Calls functions to render board and both panels"""
         self.load_game_board()

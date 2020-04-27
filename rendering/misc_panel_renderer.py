@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12
 
 """
 Module which handles all of the rendering for the miscellaneous panel on the right side of the window.
@@ -71,12 +71,32 @@ def render_enemy_info(enemy_dict):
     else:
         health_text = 'This creature is on the brink of death.'
 
-    # Enemy names are stored as {enemy type}_{uuid}, with underscores in the enemy names to separate words
-    enemy_name = FONT_30.render(' '.join(enemy_dict['name'].split('_')[0:-1]).upper(), 1, colors.WHITE)
+    enemy_name = FONT_20.render(enemy_dict['name'], 1, colors.WHITE)
     flavour_text = FONT_15.render(enemy_dict['flavour_text'], 1, colors.WHITE)
     health_indicator = FONT_15.render(health_text, 1, colors.WHITE)
 
     MAIN_WINDOW.blit(enemy_name, (PORTRAIT_TOP_LEFT_X + PORTRAIT_LENGTH + 5, PORTRAIT_TOP_LEFT_Y))
     MAIN_WINDOW.blit(flavour_text, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 3))
     MAIN_WINDOW.blit(health_indicator, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 45))
+    if len(enemy_dict['buffs']) + len(enemy_dict['debuffs']) > 0:
+        render_enemy_statuses(buffs=enemy_dict['buffs'], debuffs=enemy_dict['debuffs'])
+
+
+def render_enemy_statuses(buffs, debuffs):
+    """ Draws indicators for enemy buffs and debuffs. """
+    buff_top_left_x = PORTRAIT_TOP_LEFT_X + PORTRAIT_LENGTH + 5
+    buff_top_left_y = PORTRAIT_TOP_LEFT_Y + 25
+    for i, buff in enumerate(buffs):
+        buff_indicator = pg.Rect((i*17) + buff_top_left_x, buff_top_left_y, 15, 15)
+        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
+        pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
+
+    debuff_top_left_x = buff_top_left_x
+    debuff_top_left_y = buff_top_left_y + 17
+    for i, debuff in enumerate(debuffs):
+        debuff_indicator = pg.Rect((i*17) + debuff_top_left_x, debuff_top_left_y, 15, 15)
+        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
+        pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 

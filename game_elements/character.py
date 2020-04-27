@@ -36,6 +36,12 @@ class Character:
             'debuffs': list()
         }
 
+    def __str__(self):
+        return f'{self.name} - ({self.x}, {self.y})'
+
+    def __repr__(self):
+        return f'{self.name} - ({self.x}, {self.y})'
+
     # def move_to(self, destination):
     #     """Sets the characters position to 'destination'"""
     #     self.x = destination[0]
