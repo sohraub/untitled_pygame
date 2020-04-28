@@ -3,7 +3,6 @@ import pygame as pg
 from game import Game
 from console import Console
 from game_elements.board import Board
-from element_lists.board_templates import TEMPLATES
 from game_elements.player import Player, load_player_from_json
 
 

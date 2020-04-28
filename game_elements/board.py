@@ -1,6 +1,5 @@
 import random
-from uuid import uuid4
-from time import sleep
+import copy
 
 from game_elements import enemy
 from game_elements import trap
@@ -9,11 +8,10 @@ from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 
 
 
-def choose_random_board():
-    """Function which just returns a random board template from the board_templates.py module."""
-    import random
-    from element_lists.board_templates import TEMPLATES
-    return random.choice(TEMPLATES)
+def choose_random_board(tier=1):
+    """Function which just returns a random board template of a given tier."""
+    from element_lists.board_templates import get_board_list
+    return random.choice(copy.copy(get_board_list(tier=tier)))
 
 
 class Board:
@@ -47,7 +45,7 @@ class Board:
         :tile_mapping: A dict that contains entries for each tile type, the value of which is a list of all the
                        coordinates of tiles of that type.
         """
-        self.template = board_template if board_template is not None else choose_random_board()
+        self.template = board_template if board_template is not None else choose_random_board(tier)
         self.tier = tier
         self.player_coordinates = None
         self.enemies = dict()
