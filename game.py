@@ -257,6 +257,9 @@ class Game:
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
 
+        if self.misc_panel.focus_tile is not None:
+            self.misc_panel.refresh_focus_window(self.misc_panel.focus_tile)
+
     def draw_window(self):
         """Calls functions to render board and both panels"""
         self.load_game_board()
@@ -353,7 +356,7 @@ class Game:
         """
         Alternative game loop that is triggered when player enters targeting mode, to use an ability or item that
         requires a target. If player clicks on a valid target, return that tile and apply the ability/item effect. If
-        the player clicks anywhere else, then exit targeting mode and return to neutral game state.
+        the player clicks anywhere else, or presses ESC, then exit targeting mode and return to neutral game state.
         """
         while True:
             for event in pg.event.get():

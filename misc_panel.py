@@ -46,6 +46,8 @@ class MiscPanel:
             'type': 'enemy',
             'name': enemy.display_name,
             'hp': enemy.hp,
-            'flavour_text': enemy.flavour_text
+            'flavour_text': enemy.flavour_text,
+            'buffs': [buff.to_dict() for buff in enemy.status['buffs']],
+            'debuffs': [debuff.to_dict() for debuff in enemy.status['debuffs']]
         }
         return enemy_dict
