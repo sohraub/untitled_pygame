@@ -27,6 +27,12 @@ class Status:
         self.attribute_effects = attribute_effects
         self.params = params
 
+    def __str__(self):
+        return f'{self.name} - {self.turns_left} turns left'
+
+    def __repr__(self):
+        return f'{self.name} - {self.turns_left} turns left'
+
     def to_dict(self):
         """Returns a dict representation of the status, for rendering purposes mostly."""
         return {

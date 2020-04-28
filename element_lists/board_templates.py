@@ -37,25 +37,21 @@ y = ['XXDXXXXXXXXXDXX',
      'XXXXXXXXDXXXXXX']
 
 testing = ['XXXXXXXXXXXXXXX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOPOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
-           'XOOOOOOOOOOOOOX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXEXXXXXXX',
+           'XXXXXXXRXXXXXXX',
+           'XXXXXXXPXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX']
 
-
-#### LISTS OF TEMPLATES ####
-TEMPLATES = [x, y]
-# TEMPLATES = [testing]
 
 TEMPLATE_LIST_MAP = {
     1: [x, y],

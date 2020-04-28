@@ -35,4 +35,5 @@ lesser_poison_trap = Trap(type='debuff', name='lesser poison', function=trigger_
                           trigger_avoid_coeff=0.5)
 
 
-TRAP_LIST = [spike_trap, lesser_poison_trap]
+# TRAP_LIST = [spike_trap, lesser_poison_trap]
+TRAP_LIST = [lesser_poison_trap]

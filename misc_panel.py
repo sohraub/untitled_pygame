@@ -36,6 +36,9 @@ class MiscPanel:
             }
             # Get the letter representation of the tile from the board template
             tile_type = self.board.template[self.focus_tile[1]][self.focus_tile[0]]
+            # If focus is on an empty tile, return None so that nothing is rendered in the focus window
+            if tile_type == 'O':
+                return None
             focus_dict = focus_function_mapping[tile_type]()
         return focus_dict
 
@@ -46,6 +49,8 @@ class MiscPanel:
             'type': 'enemy',
             'name': enemy.display_name,
             'hp': enemy.hp,
-            'flavour_text': enemy.flavour_text
+            'flavour_text': enemy.flavour_text,
+            'buffs': [buff.to_dict() for buff in enemy.status['buffs']],
+            'debuffs': [debuff.to_dict() for debuff in enemy.status['debuffs']]
         }
         return enemy_dict
