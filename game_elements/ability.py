@@ -3,7 +3,7 @@ from utility_functions import parse_description
 
 class Ability:
     def __init__(self, name, description, active, targeting_function, function, targeting_function_params=None,
-                 multi_target=None, save_target=False, level=0, cooldown=0, prerequisites=None):
+                 multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0, prerequisites=None):
         """
         Abilities are used by the player to make their lives easier.
         :param name: String, the name of the ability.
@@ -18,6 +18,7 @@ class Ability:
         :param save_target: A boolean flag, set to True only for function which target a tile, but don't actually
                             affect a target on the tile but need those coordinates saved for other purposes.
         :param level: Int, the level of the skill which determines the numbers behind its effectiveness.
+        :param mp_cost: Int, the cost in mp points to use this ability once.
         :param cooldown: Int, the number of turns it takes for this ability to recharge.
         :param prerequisites: A list of abilities, which the player must have before they can use this ability.
 
@@ -36,6 +37,7 @@ class Ability:
         self.save_target = save_target
         self.level = level
         self.cooldown = cooldown
+        self.mp_cost = mp_cost
         self.turns_left = 0
         self.prerequisites = prerequisites if prerequisites is not None else list()
 
@@ -46,5 +48,6 @@ class Ability:
             'active': self.active,
             'level': self.level,
             'cooldown': self.cooldown,
+            'mp_cost': self.mp_cost,
             'turns_left': self.turns_left
         }

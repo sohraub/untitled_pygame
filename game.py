@@ -42,7 +42,7 @@ class Game:
         self.set_board_transitions()
 
     def set_board_transitions(self, tier=1):
-        """For each door in the current board, determine what the next board will be one a player enters that door."""
+        """For each door in the current board, determine what the next board will be once a player enters that door."""
         board_list = copy(get_board_list(tier=tier))
         for door_coordinate in self.board.tile_mapping['D']:
             board_choice = random.choice(board_list)
@@ -50,7 +50,6 @@ class Game:
             if len(board_list) > 1:
                 board_list.remove(board_choice)
         return
-
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -142,7 +141,7 @@ class Game:
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
-
+            enemy.passive_mp_regen()
 
     def handle_item_use(self):
         """
@@ -253,6 +252,8 @@ class Game:
 
         if self.player.decrement_ability_cooldowns():
             self.player_panel.refresh_abilities()
+
+        self.player.passive_mp_regen()
 
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
