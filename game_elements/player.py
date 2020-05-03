@@ -248,13 +248,15 @@ class Player(Character):
         if self.experience[0] + exp_gained >= self.experience[1]:
             # This is where the player levels up
             self.level_up(exp_gained)
+            return True
         else:
             self.experience[0] += exp_gained
+            return False
 
     def level_up(self, exp_gained):
         """
-        Increases the player level, calls necessary rendering functions for increasing attributes and skill levels,
-        and also sets new experience level based on the overflow of the previous level's experience bar.
+        Increases the player level, and also sets new experience level based on the overflow of the previous level's
+        experience bar.
         """
         exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
         self.level += 1
