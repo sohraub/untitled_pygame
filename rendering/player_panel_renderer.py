@@ -469,13 +469,12 @@ def draw_ability_details(ability):
     else:
         top_left_x = mouse_pos[0]
     top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
-    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}']
+    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}',
+                                            f'MP Cost: {ability["mp_cost"]}']
     if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
         window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
     draw_detail_window(header_string=ability['name'], body_strings=window_body,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
-
-
 
 
 def draw_exp_details(experience):

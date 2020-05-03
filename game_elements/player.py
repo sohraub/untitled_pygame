@@ -46,9 +46,9 @@ class Player(Character):
         self.def_rating = 0
         self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
-            'tired': [10, 10, 0],
-            'hungry': [10, 10, 0],
-            'thirsty': [10, 10, 0]
+            'tired': [100, 100, 0],
+            'hungry': [100, 100, 0],
+            'thirsty': [100, 100, 0]
         }
         self.active_abilities = active_abilities if active_abilities is not None else list()
         self.passive_abilities = passive_abilities if passive_abilities is not None else list()
@@ -124,12 +124,17 @@ class Player(Character):
         """
         Method to be called at the end of every turn, which will increment the condition-worsening counter, and
         de-increment the current condition value if the counter reaches the threshold.
+        Each condition is stored as a list of three integers, in the format
+            [current_level, max_level, counter],
+        where current_level starts equal to max_level, counter is incremented after every player turn, and when
+        counter reaches the threshold defined in the condition_threshold dict below, then current_level is decremented
+        by 1. As current_level approaches 0, players start to suffer penalties.
         """
         render_necessary = False
         condition_thresholds = {
-            'thirsty': 5 * self.attributes['end'],
-            'hungry': 7 * self.attributes['end'],
-            'tired': 9 * self.attributes['end']
+            'thirsty': self.attributes['end'],
+            'hungry': 1.25 * self.attributes['end'],
+            'tired': 1.5 * self.attributes['end']
         }
         for condition in self.conditions:
             self.conditions[condition][2] += 1
@@ -226,6 +231,7 @@ class Player(Character):
         if targets is not None:
             ability_outcome = ability.function(self=self, targets=targets, skill_level=ability.level)
             ability.turns_left = ability.cooldown
+            self.mp[0] = max(0, self.mp[0] - ability.mp_cost)
             for target in targets:
                 if target.hp[0] == 0:
                     from game_elements.enemy import death_phrases
