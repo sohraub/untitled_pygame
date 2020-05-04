@@ -132,9 +132,9 @@ class Player(Character):
         """
         render_necessary = False
         condition_thresholds = {
-            'thirsty': self.attributes['end'],
-            'hungry': 1.25 * self.attributes['end'],
-            'tired': 1.5 * self.attributes['end']
+            'thirsty': 2 * self.attributes['end'],
+            'hungry': 3 * self.attributes['end'],
+            'tired': 4 * self.attributes['end']
         }
         for condition in self.conditions:
             self.conditions[condition][2] += 1

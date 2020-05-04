@@ -111,6 +111,7 @@ class Game:
         # handle_player_level_up method in the player panel.
         if player_leveled_up:
             self.player_panel.level_up_points += 2
+            self.console.update(f"{self.player.name} has reached level {self.player.level}.")
         self.player_panel.refresh_player_panel()
 
     def start_enemy_turn(self):
