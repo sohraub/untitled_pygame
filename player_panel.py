@@ -8,6 +8,8 @@ class PlayerPanel:
         condition, inventory, and skills. Also acts as a middle-man between the Game object and the panel-rendering
         module.
         :param player: the Player object being controlled by the user.
+        :param level_up_points: Every time the player levels up, they get two points to spend on their attributes. If
+                                this value is != 0, then the extra buttons to add points to attributes will be visible.
 
         In the init method of this class, functions in the player_panel_render module are called to draw the individual
         components, and all of these functions return the Rect object that encloses their subject areas. These Rects
@@ -23,6 +25,7 @@ class PlayerPanel:
                             to tell the Player object which item is being clicked on.
         """
         self.player = player
+        self.level_up_points = 0
         self.player_dict = player.to_dict()
         self.panel_rect = player_panel_renderer.draw_player_panel(self.player_dict['name'])
         self.hp_mp_rect = player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'])
@@ -30,7 +33,8 @@ class PlayerPanel:
                                                                 draw_status(self.player_dict['status']['buffs'],
                                                                             self.player_dict['status']['debuffs'])
         self.conditions_rect = player_panel_renderer.draw_conditions(self.player_dict['conditions'])
-        self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'])
+        self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'],
+                                                                     self.level_up_points)
         self.level_and_exp_rect = player_panel_renderer.draw_level_and_experience(self.player_dict['level'],
                                                                                   self.player_dict['profession'],
                                                                                   self.player_dict['experience'])
@@ -70,7 +74,9 @@ class PlayerPanel:
 
     def refresh_attributes(self):
         """Method to refresh the displayed players attributes."""
-        player_panel_renderer.draw_attributes(self.player_dict['attributes'], refresh=True)
+        player_panel_renderer.draw_attributes(self.player_dict['attributes'], self.level_up_points, refresh=True)
+        if self.level_up_points > 0:
+            player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points)
 
     def refresh_conditions(self):
         """Method to refresh the displayed conditions."""
@@ -101,6 +107,8 @@ class PlayerPanel:
         if not self.tooltip_focus:
             if self.status_rect.collidepoint(mouse_pos):
                 self.handle_status_mouseover()
+            elif self.attributes_rect.collidepoint(mouse_pos):
+                self.handle_attributes_mouseover()
             elif self.inventory_rect.collidepoint(mouse_pos):
                 self.handle_inventory_mouseover()
             elif self.equipment_rect.collidepoint(mouse_pos):
@@ -138,7 +146,6 @@ class PlayerPanel:
         if buff_index is None:  # No need to check debuff collisions if we already know a buff has been collided with.
             for i, debuff_rect in enumerate(self.debuff_rects):
                 if debuff_rect.collidepoint(mouse_pos):
-                    print(debuff_index)
                     debuff_index = i
                     break
 
@@ -148,6 +155,33 @@ class PlayerPanel:
         elif debuff_index is not None:
             self.tooltip_focus = debuff_rect
             player_panel_renderer.draw_status_details(self.player_dict['status']['debuffs'][debuff_index])
+
+    def handle_attributes_mouseover(self):
+        """
+        The attributes section of the panel only has any real functionality when leveling up, i.e. when
+        self.level_up_points > 0. In this case, buttons will appear next to each attribute, and the player can click
+        these buttons to allocate any level_up points they have to increase these attributes.
+        """
+        if self.level_up_points > 0:
+            level_up_buttons = player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points,
+                                                                                     return_only=True)
+            mouse_pos = mouse.get_pos()
+            index_attribute_mapping = {
+                0: 'str',
+                1: 'dex',
+                2: 'int',
+                3: 'end',
+                4: 'vit',
+                5: 'wis'
+            }
+            if mouse.get_pressed()[0]:
+                for i, button in enumerate(level_up_buttons):
+                    if button.collidepoint(mouse_pos):
+                        clicked_attribute = index_attribute_mapping[i]
+                        self.player.attributes[clicked_attribute] += 1
+                        self.level_up_points -= 1
+                        self.refresh_attributes()
+                        return
 
 
     def handle_inventory_mouseover(self):
@@ -206,7 +240,6 @@ class PlayerPanel:
         if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
             self.tooltip_focus = self.ability_tiles[ability_index]
             player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index])
-
 
     def handle_conditions_mouseover(self):
         """

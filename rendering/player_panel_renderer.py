@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_10, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -131,14 +131,16 @@ def draw_level_and_experience(level, profession, experience, refresh=False):
     return level_and_exp_rect
 
 
-def draw_attributes(attributes, refresh=False):
+def draw_attributes(attributes, level_up_points, refresh=False):
     """
     Renders the player's attributes.
     :param attributes: A dict containing all of the players attribute values.
+    :param level_up_points: An int representing the number of level_up points the player has to allocate for their
+                            attributes. If > 0, then the level-up buttons are also rendered
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
+    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 95, 150, 180)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
@@ -158,7 +160,36 @@ def draw_attributes(attributes, refresh=False):
         MAIN_WINDOW.blit(stat_name, coord_mapping[stat])
         MAIN_WINDOW.blit(stat_value, (coord_mapping[stat][0] + 50, coord_mapping[stat][1]))
 
+    if level_up_points > 0:
+        draw_attribute_level_up_buttons(level_up_points)
+
     return attributes_rect
+
+
+def draw_attribute_level_up_buttons(level_up_points, return_only=False):
+    """
+    Draws buttons next to player attributes for the purpose of allocating level-up points to increase attributes.
+    :param level_up_points: Int, number of points available.
+    :param return_only: Boolean, if True then don't draw anything, only return the list of button rects, to be used
+                        for event-handling.
+    :return: level_up_buttons, a list of Rect objects that make up all of the buttons.
+    """
+    top_left_x = PANEL_TOP_LEFT_X + 85
+    top_left_y = PANEL_TOP_LEFT_Y + 125
+    if not return_only:
+        level_up_label = FONT_20.render(f"Points Available: {level_up_points}", 1, colors.GREY)
+        MAIN_WINDOW.blit(level_up_label, (top_left_x - 75, top_left_y - 27))
+    level_up_buttons = list()
+    button_label = FONT_20.render("+", 1, colors.WHITE)
+    for i in range(6):
+        button_rect = pg.Rect(top_left_x, top_left_y + (i * 25), 20, 20)
+        level_up_buttons.append(button_rect)
+        if not return_only:
+            MAIN_WINDOW.fill(color=colors.DARK_RED, rect=button_rect)
+            MAIN_WINDOW.blit(button_label, (button_rect[0] + 4, button_rect[1]  - 5))
+
+    return level_up_buttons
+
 
 
 def draw_hp_mp(hp, mp, refresh=False):

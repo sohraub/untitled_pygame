@@ -96,11 +96,23 @@ class Game:
         # Battle text is returned to be fed into the console.
 
     def handle_enemy_death(self, enemy):
-        self.board.handle_enemy_death((enemy.x, enemy.y))
+        """
+        When an enemy dies, the following things will happen:
+            i. Enemy must be removed from the board
+            ii. Focus window in the misc. panel must be reset
+            iii. Player gains experience, and possibly levels up. These changes must be reflected in the rendering
+                 of the player panel.
+        """
+        self.board.handle_enemy_death(enemy_pos=(enemy.x, enemy.y))
         self.misc_panel.focus_tile = None
         self.refresh_focus_window()
-        self.player.gain_experience(enemy.hp)
-        self.player_panel.refresh_level_and_exp()
+        player_leveled_up = self.player.gain_experience(enemy.hp)
+        # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
+        # handle_player_level_up method in the player panel.
+        if player_leveled_up:
+            self.player_panel.level_up_points += 2
+            self.console.update(f"{self.player.name} has reached level {self.player.level}.")
+        self.player_panel.refresh_player_panel()
 
     def start_enemy_turn(self):
         """
