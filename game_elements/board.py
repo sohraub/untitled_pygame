@@ -5,7 +5,7 @@ from game_elements import enemy
 from game_elements import trap
 from game_elements import chest
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
-
+from rendering import board_renderer
 
 
 def choose_random_board(tier=1):
@@ -99,6 +99,7 @@ class Board:
         del self.enemies[enemy_pos]
         self.tile_mapping['E'].remove(enemy_pos)
         self.tile_mapping['O'].append(enemy_pos)
+        board_renderer.animate_enemy_death(enemy_x=enemy_pos[0], enemy_y=enemy_pos[1])
         self.rebuild_template()
 
     def update_enemy_position(self, old_pos, new_pos):

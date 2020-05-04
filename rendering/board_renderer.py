@@ -1,10 +1,12 @@
 import pygame as pg
+from copy import copy
+from time import sleep
 
 import colors
 from config import TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, TILE_COLORS
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering.window_renderer import MAIN_WINDOW
-from utility_functions import find_tiles_in_radius
+from utility_functions import find_tiles_in_radius, tile_from_xy_coords
 
 """
 Module that will handle all of the rendering logic for the game boards.
@@ -66,3 +68,28 @@ def highlight_radius_with_splash_target(board_template, target_x, target_y, radi
     render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
                       targetable_tile_types={'O', 'R'})
     return tiles_to_highlight
+
+
+def animate_enemy_death(enemy_x, enemy_y):
+    """
+    Function to gradually change the color of an enemy, on death, so as to create the effect of fading to the
+    background grey color, currently set to (173, 173, 173). On input of the enemy's coordinates, it works as follows:
+        i. use the tile_from_xy_coords() function to get the dimensions and location of the enemy's Rect on the board
+        ii. starting from the base red color for enemies, iteratively set the value of each hue to the average of
+            the current value and 173. This will eventually converge to ~ 173.
+        iii. The condition on the while loop can be read as:
+                iterate until the sum of the 3 hue values lies between 3*170 and 3*175.
+             This is done so that the animation doesn't end prematurely when one of the hues reaches ~173 before the
+             other two, and to allow the loop to iterate fewer times as the visual difference of values from
+             170-175 is largely negligible.
+    """
+    new_color = copy(TILE_COLORS['E'])
+    enemy_rect = pg.Rect(tile_from_xy_coords(x=enemy_x, y=enemy_y))
+
+    while not 510 < new_color[0] + new_color[1] + new_color[2] < 525:
+        new_color = (int((new_color[0] + 173) / 2),
+                     int((new_color[1] + 173) / 2),
+                     int((new_color[2] + 173) / 2))
+        MAIN_WINDOW.fill(rect=enemy_rect, color=new_color)
+        pg.display.update(enemy_rect)
+        sleep(0.1)
