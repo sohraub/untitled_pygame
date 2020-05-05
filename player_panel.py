@@ -239,7 +239,8 @@ class PlayerPanel:
         # Check to make sure there are actually abilities up to that index before trying to do anymore.
         if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
             self.tooltip_focus = self.ability_tiles[ability_index]
-            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index])
+            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index],
+                                                       self.player_dict['mp'])
 
     def handle_conditions_mouseover(self):
         """

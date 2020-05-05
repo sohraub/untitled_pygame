@@ -50,11 +50,10 @@ def trolls_blood_func(self, skill_level, **kwargs):
     }
 
 trolls_blood = Ability(name="Troll's Blood", mp_cost=3,
-                       description=f'Cast a spell on yourself to gain some passive health regeneration. Healing amount'
+                       description=f'Cast a spell on yourself to gain some passive health regeneration. Healing amount '
                                    f'scales with WIS.',
                        active=True, targeting_function=board_renderer.highlight_self,
                        function=trolls_blood_func, level=1, cooldown=15)
-
 
 
 def leap_slam_func(self, targets, skill_level):

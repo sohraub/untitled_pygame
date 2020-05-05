@@ -9,7 +9,7 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
 
 class Enemy(Character):
     def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, attack_range=1, role='attacker',
-                 aggro_range=3, retreat_probability=0.3, flavour_text=None, display_name=''):
+                 aggro_range=4, retreat_probability=0.3, flavour_text=None, display_name=''):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
         super(), refer to the Character module.
