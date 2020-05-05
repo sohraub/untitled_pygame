@@ -215,10 +215,11 @@ class Game:
         if ability_index is None:
             ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
-        if ability.turns_left > 0:
-            # This ability is still on cooldown, so do nothing
+        if ability.turns_left > 0 or ability.mp_cost > self.player.mp[0]:
+            # This ability is still on cooldown or the player does not have enough mana, so do nothing
             return False
         targets = self.get_targets(ability)
+        self.load_game_board()  # Refresh game board to get rid of targeting render
         if targets:
             # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
             # any movements of the player or target(s), etc.
@@ -231,9 +232,6 @@ class Game:
                 # Each movement entry in the ability_outcome dict will look like
                 # { 'subject': The character object that's being moved
                 #   'new_position': (new_x, new_y) }
-                if movement['subject'].hp[0] == 0:
-                    # Only bother moving the subject of the movement if they weren't outright killed by the ability
-                    continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
                 if self.board.template[new_y][new_x] in {'O', 'R'}:
@@ -246,7 +244,6 @@ class Game:
                 if target is not None and target.hp[0] == 0:
                     self.handle_enemy_death(target)
             return True
-        self.load_game_board()  # Refresh board to get rid of targeting mode render
         return False
 
     def handle_turn_end(self):

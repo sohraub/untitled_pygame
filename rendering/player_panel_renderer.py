@@ -191,7 +191,6 @@ def draw_attribute_level_up_buttons(level_up_points, return_only=False):
     return level_up_buttons
 
 
-
 def draw_hp_mp(hp, mp, refresh=False):
     """
     Renders the player's HP and MP.
@@ -378,9 +377,9 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     elif item_dict['type'] == 'equipment':
         # In this case we outsource the logic to another function, since it is a lot of logic.
-        body_strings, body_colors = parse_equipment_details(item_dict, attributes_dict, current_equipment)
+        body_strings = parse_equipment_details(item_dict, attributes_dict, current_equipment)
 
-    draw_detail_window(body_strings=body_strings, body_colors=body_colors,
+    draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
                        header_string=item_dict['name'].upper())
 
@@ -426,8 +425,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     if not attributes_dict:
         raise Exception(f"No attributes for equipment detail window: {item_dict['name']}")
     # Initialize body_strings as the item description (already a list) and all in white.
-    body_strings = item_dict['description'] + ['---']
-    body_colors = [colors.WHITE for _ in body_strings]
+    body_strings = [(string, colors.WHITE) for string in item_dict['description'] + ['---']]
     if item_dict['stat_req']:
         requirement_color = colors.WHITE
         requirement_string = 'REQ: '
@@ -435,8 +433,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
             requirement_string += f"{item_dict['stat_req'][stat]} {stat.upper()}   "
             if attributes_dict[stat] < item_dict['stat_req'][stat]:
                 requirement_color = colors.RED
-        body_strings.append(requirement_string.strip())
-        body_colors.append(requirement_color)
+        body_strings.append((requirement_string.strip(), requirement_color))
     # If item is a weapon we compare the off_rating, else we compare the def rating
     stat_to_compare = 'off_rating' if item_dict['off_rating'] > 0 else 'def_rating'
     compare_color = colors.GREEN
@@ -449,10 +446,9 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
         elif item_dict[stat_to_compare] == current_equipment_info[stat_to_compare]:
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
-    body_strings.append(f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}")
-    body_colors.append(compare_color)
+    body_strings.append((f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}", compare_color))
 
-    return body_strings, body_colors
+    return body_strings
 
 
 def draw_condition_details(conditions_dict, conditions_rect):
@@ -488,7 +484,7 @@ def draw_status_details(status):
                                         ITEM_TOOLTIP_HEIGHT))
 
 
-def draw_ability_details(ability):
+def draw_ability_details(ability, player_mp):
     """
     Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
     player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
@@ -504,7 +500,9 @@ def draw_ability_details(ability):
                                             f'MP Cost: {ability["mp_cost"]}']
     if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
         window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
-    draw_detail_window(header_string=ability['name'], body_strings=window_body,
+    if ability['mp_cost'] > player_mp[0]:
+        window_body.append(("Not enough MP!!", colors.RED))
+    draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
 

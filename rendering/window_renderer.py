@@ -24,18 +24,24 @@ FONT_TNR_12 = pg.font.SysFont('timesnewroman', 12)
 FONT_TNR_13 = pg.font.SysFont('timesnewroman', 13)
 
 
-def draw_detail_window(body_strings, rect_dimensions, header_string=None, window_color=colors.NAVY, body_colors=None,
-                       font_size=13):
+def draw_detail_window(body_strings, rect_dimensions, header_string=None, window_color=colors.NAVY, font_size=13,
+                       auto_window_height=False):
     """
     Draws a small window giving more info on any arbitrary thing in the game, usually called on mouseover of that thing.
     :param header_string: The main header of the detail window, a string.
-    :param body_strings: The body of the details window, a list of strings.
+    :param body_strings: The body of the details window, a list of (string, color) tuples. If an entry is just a string,
+                         it will be set to a tuple of (string, colors.WHITE).
     :param rect_dimensions: Dimensions for the window, given in a tuple as (top-left-x, top-left-y, width, height).
     :param window_color: The color for the window, defaulting to navy.
-    :param body_colors: A list containing a color for each line in body_strings. If None, gets set to all white.
-    :param font_size: The size of the font used in the body. If default, use size 15.
+    :param font_size: The size of the font used in the body. If default, use size 13.
+    :param auto_tooltip_height: Boolean, default to False. If true, automatically determine the height of the tooltip
+                                based on the number of lines and existence of a header.
     :return: n/a
     """
+    if auto_window_height:
+        auto_height = (font_size + 4) * len(body_strings)  # Add 4 to account for whitespace between lines.
+        auto_height += 27 if header_string is not None else 2
+        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], rect_dimensions[2], auto_height)
     MAIN_WINDOW.fill(window_color, rect_dimensions)
     # If no header is given, this offset will be set at 2 so that there is no blank space at the top.
     body_offset = 2
@@ -45,13 +51,10 @@ def draw_detail_window(body_strings, rect_dimensions, header_string=None, window
         header = FONT_20.render(header_string, 1, colors.WHITE)
         MAIN_WINDOW.blit(header, (rect_dimensions[0] + 2, rect_dimensions[1] + 2))
     body_font = pg.font.SysFont('timesnewroman', font_size)
-    if body_colors is None:
-        body_colors = [colors.WHITE for _ in body_strings]
-    else:
-        if len(body_colors) != len(body_strings):
-            # If body_colors is not None, it has to be the same size as body_strings.
-            raise Exception("Length of body_strings and body_colors don't match.")
-    body = [body_font.render(string, 1, color) for string,color in zip(body_strings, body_colors)]
+    for i, entry in enumerate(body_strings):
+        if type(entry) != tuple:
+            body_strings[i] = (entry, colors.WHITE)
+    body = [body_font.render(string, 1, color) for (string, color) in body_strings]
     # The first two elements of rect_dimensions correspond to the top_left_x and top_left_y of the window, resp.
     for i, string in enumerate(body):
         MAIN_WINDOW.blit(string, (rect_dimensions[0] + 5, rect_dimensions[1] + body_offset + 16*i))

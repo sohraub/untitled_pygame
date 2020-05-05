@@ -28,7 +28,7 @@ class Ability:
 
         """
         self.name = name
-        self.description = parse_description(description, char_limit=33)
+        self.description = parse_description(description, char_limit=30)
         self.active = active
         self.targeting_function = targeting_function if self.active else None
         self.targeting_function_params = targeting_function_params if targeting_function_params is not None else dict()
