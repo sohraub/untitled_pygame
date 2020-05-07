@@ -518,3 +518,21 @@ def draw_exp_details(experience):
     top_left_y = mouse_pos[1]
     draw_detail_window(body_strings=window_body,
                        rect_dimensions=(top_left_x, top_left_y, length, 30))
+
+
+def display_skill_tree(active_abilities, passive_abilities, profession, skill_tree):
+
+    MAIN_WINDOW.fill(color=colors.BLACK,
+                     rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2, SIDE_PANEL_HEIGHT - 2))
+    skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
+    MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
+
+    space_between_levels = 1.2 * ABILITY_TILE_LENGTH
+    for tree_level, level_name in enumerate(skill_tree):
+        num_skills_in_row = len(skill_tree[level_name])
+        space_between_skills = (SIDE_PANEL_LENGTH - (num_skills_in_row * ABILITY_TILE_LENGTH)) / (num_skills_in_row + 1)
+        for i in range(num_skills_in_row):
+            skill_rect = ((i + 1) * space_between_skills + i * ABILITY_TILE_LENGTH + PANEL_TOP_LEFT_X,
+                          (tree_level + 1) * space_between_levels + tree_level * ABILITY_TILE_LENGTH + PANEL_TOP_LEFT_Y,
+                          ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect)

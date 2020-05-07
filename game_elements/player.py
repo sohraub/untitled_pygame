@@ -10,7 +10,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
                  equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
-                 experience=None, profession="warrior"):
+                 experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -25,6 +25,7 @@ class Player(Character):
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
         :param profession: The Player's profession (i.e. the class, job, etc.).
+        :param skill_tree: The skill tree of the Player's chosen profession
 
         As well as the above, the following attributes are also set and used throughout the Player's methods:
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
@@ -55,6 +56,7 @@ class Player(Character):
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
         self.profession = profession
+        self.skill_tree = skill_tree
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -88,6 +90,7 @@ class Player(Character):
             'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
             'level': self.level,
             'profession': self.profession,
+            'skill_tree': self.skill_tree,
             'experience': self.experience
         }
 

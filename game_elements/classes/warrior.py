@@ -89,6 +89,36 @@ leap_slam = Ability(name='Leap Slam', mp_cost=4,
                     targeting_function_params={'radius': 4}, function=leap_slam_func, level=1, cooldown=10,
                     save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
+
+SKILL_TREE = {
+    "active_1": [
+        {
+            'Heavy Strike': {
+                'ability': heavy_strike,
+                'level_prereq': 1,
+                'skill_level': 1
+            }
+        },
+        {
+            "Troll's Blood": {
+                'ability': trolls_blood,
+                'level_prereq': 1,
+                'skill_level': 1
+            }
+        }
+    ],
+    "active_2":[
+        {
+            "Leap Slam": {
+                'ability': leap_slam,
+                'level_prereq': 4,
+                'skill_level': 0
+            }
+        }
+    ]
+}
+
+
 warrior_config = {
     'starting_attributes': {
         'str': 6,
@@ -100,4 +130,5 @@ warrior_config = {
     },
     'active_abilities': [copy.copy(x) for x in [heavy_strike, trolls_blood, leap_slam]],
     'passive_abilities': [],
+    'skill_tree': SKILL_TREE
 }

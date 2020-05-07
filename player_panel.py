@@ -43,6 +43,7 @@ class PlayerPanel:
         self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'])
         self.tooltip_focus = None
         self.active_item_index = None
+        self.skill_tree_displaying = False
 
     def refresh_player_panel(self):
         """Refresh every part of the player panel."""
@@ -183,7 +184,6 @@ class PlayerPanel:
                         self.refresh_attributes()
                         return
 
-
     def handle_inventory_mouseover(self):
         """
         Method to specifically handle cases then the mouse is over the inventory, and display the appropriate item info.
@@ -272,3 +272,12 @@ class PlayerPanel:
             return self.ability_tiles.index(self.tooltip_focus)
 
         raise Exception('Incompatible element passed into get_tooltip_index() method of player_panel.')
+
+    def display_skill_tree(self):
+        """
+        Method that calls necessary rendering functions to display the player's skill tree in the player panel.
+        """
+        self.skill_tree_displaying = True
+        player_panel_renderer.display_skill_tree(self.player_dict['active_abilities'],
+                                                 self.player_dict['passive_abilities'], self.player_dict['profession'],
+                                                 self.player_dict['skill_tree'])

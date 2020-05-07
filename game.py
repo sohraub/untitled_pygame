@@ -15,7 +15,7 @@ from player_panel import PlayerPanel
 
 # List containing all of the keys that currently have a function
 FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
-                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5, pg.K_t]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -208,7 +208,7 @@ class Game:
             iv.  If target was moved as part of the ability, update positions on board accordingly
             v.   End player turn
         :param ability_index: If this is None, then it means ability was used by clicking on the player panel, so we get
-                              we get the index from there. If it's not None, then ability was used by pressing the
+                              the index from there. If it's not None, then ability was used by pressing the
                               corresponding key, in which case the index is passed in by the handle_key_presses() method
         :return: New lines to be displayed in the console
         """
@@ -239,7 +239,6 @@ class Game:
                                                                   new_y=new_y))
                     self.load_game_board()
                     pg.display.update()
-                    # sleep(0.3)
             for target in targets:
                 if target is not None and target.hp[0] == 0:
                     self.handle_enemy_death(target)
@@ -313,6 +312,8 @@ class Game:
                 pg.K_5: 4
             }
             return self.handle_ability_use(ability_index=key_mapping[pressed_key])
+        elif pressed_key == pg.K_t:
+            self.player_panel.display_skill_tree()
 
     def handle_player_turn_over(self, console_text=None):
         """

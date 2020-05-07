@@ -54,3 +54,4 @@ class MiscPanel:
             'debuffs': [debuff.to_dict() for debuff in enemy.status['debuffs']]
         }
         return enemy_dict
+

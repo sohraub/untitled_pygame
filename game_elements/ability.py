@@ -3,7 +3,7 @@ from utility_functions import parse_description
 
 class Ability:
     def __init__(self, name, description, active, targeting_function, function, targeting_function_params=None,
-                 multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0, prerequisites=None):
+                 multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0):
         """
         Abilities are used by the player to make their lives easier.
         :param name: String, the name of the ability.
@@ -20,7 +20,6 @@ class Ability:
         :param level: Int, the level of the skill which determines the numbers behind its effectiveness.
         :param mp_cost: Int, the cost in mp points to use this ability once.
         :param cooldown: Int, the number of turns it takes for this ability to recharge.
-        :param prerequisites: A list of abilities, which the player must have before they can use this ability.
 
         We also initialize the following attributes:
         :turns_left: Initialized to 0, this will hold the number of turns until the cooldown expires once an ability
@@ -39,7 +38,6 @@ class Ability:
         self.cooldown = cooldown
         self.mp_cost = mp_cost
         self.turns_left = 0
-        self.prerequisites = prerequisites if prerequisites is not None else list()
 
     def to_dict(self):
         return {
