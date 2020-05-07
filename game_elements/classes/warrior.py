@@ -107,6 +107,14 @@ SKILL_TREE = {
             }
         }
     ],
+    "passive_1": [
+        {
+            'Passive 1': {}
+        },
+        {
+            'Passive 2': {}
+        }
+    ],
     "active_2":[
         {
             "Leap Slam": {
@@ -114,6 +122,47 @@ SKILL_TREE = {
                 'level_prereq': 4,
                 'skill_level': 0
             }
+        },
+        {
+            "Active 4": {}
+        },
+        {
+            "Active 5": {}
+        }
+    ],
+    "passive_2": [
+        {
+            'Passive 3': {},
+        },
+        {
+            'Passive 4': {},
+        }
+    ],
+    "active_3": [
+        {
+            "Active 6": {}
+        },
+        {
+            "Active 7": {}
+        },
+        {
+            "Active 8": {}
+        }
+    ],
+    "passive_3": [
+        {
+            'Passive 5': {}
+        },
+        {
+            'Passive 6': {}
+        }
+    ],
+    "active_4": [
+        {
+            "Active 9": {}
+        },
+        {
+            "Active 10": {}
         }
     ]
 }

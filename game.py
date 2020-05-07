@@ -395,8 +395,10 @@ class Game:
             if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
-                if event.key == pg.K_ESCAPE:  # ESC exits the game
-                    return False
+                keys = pg.key.get_pressed()
+                if keys[pg.KMOD_SHIFT]:
+                    if event.key == pg.K_ESCAPE:  # ESC exits the game
+                        return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
                     action_taken = self.handle_key_presses(event.key)
                     if action_taken:

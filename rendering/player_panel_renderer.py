@@ -521,18 +521,46 @@ def draw_exp_details(experience):
 
 
 def display_skill_tree(active_abilities, passive_abilities, profession, skill_tree):
-
+    """
+    Draws the character's skill tree in the player panel. Skill trees will be made of 7 layers, each layer alternating
+    between active and passive skills. Extra rendering logic is added to the layers with active abilities after the
+    first, so that a piece of text saying "OR" will appear between the skills, to indicate that the player can only
+    choose one active skill for each layer after the first. All the parameters are taken from the player_dict saved
+    as an attribute in the PlayerPanel class.
+    :param active_abilities: List of the Player's current active abilities
+    :param passive_abilities: List of the Player's current passive abilities
+    TODO: Do we need the two above lists? Can all the info we need just be gleaned from the skill tree?
+    :param profession: String, the Player's profession
+    :param skill_tree: Nested dict of the Player's skill tree
+    :return:
+    """
+    # Reset the player panel to black.
     MAIN_WINDOW.fill(color=colors.BLACK,
                      rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2, SIDE_PANEL_HEIGHT - 2))
+    # Render the title of the skill tree, PATH OF THE {profession}
     skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
     MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
 
-    space_between_levels = 1.2 * ABILITY_TILE_LENGTH
+    skill_tile_length = 0.7 * ABILITY_TILE_LENGTH
+    space_between_levels = 0.9 * skill_tile_length  # The vertical space between each layer of the tree
     for tree_level, level_name in enumerate(skill_tree):
         num_skills_in_row = len(skill_tree[level_name])
-        space_between_skills = (SIDE_PANEL_LENGTH - (num_skills_in_row * ABILITY_TILE_LENGTH)) / (num_skills_in_row + 1)
+        # Horizontal space between skills within a layer will be based off the number of skills in each layer
+        space_between_skills = (SIDE_PANEL_LENGTH - (num_skills_in_row * skill_tile_length)) / (num_skills_in_row + 1)
         for i in range(num_skills_in_row):
-            skill_rect = ((i + 1) * space_between_skills + i * ABILITY_TILE_LENGTH + PANEL_TOP_LEFT_X,
-                          (tree_level + 1) * space_between_levels + tree_level * ABILITY_TILE_LENGTH + PANEL_TOP_LEFT_Y,
-                          ABILITY_TILE_LENGTH, ABILITY_TILE_LENGTH)
+            # This formula for the top-left xy-coordinates of each skill works out such that the space between each
+            # skill in a row will come out equal to space_between_skills, and the vertical space between each layer
+            # will be space_between_levels
+            skill_rect = ((i + 1) * space_between_skills + i * skill_tile_length + PANEL_TOP_LEFT_X,
+                          (tree_level + 1) * space_between_levels + tree_level * skill_tile_length + PANEL_TOP_LEFT_Y + 40,
+                          skill_tile_length, skill_tile_length)
             pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect)
+            if level_name in {'active_2', 'active_3', 'active_4'} and i > 0:
+                # On the active skill layers (excluding the first), render an 'OR' between each skill. Location of the
+                # text will be calculated based on the top-left coordinates of the skill that will appear after it
+                # in a left-to-right order.
+                MAIN_WINDOW.blit(FONT_20.render('OR', 1, colors.RED),
+                                 (skill_rect[0] - 0.54 * space_between_skills - 10,
+                                  skill_rect[1] + 0.2 * space_between_levels))
+
+
