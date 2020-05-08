@@ -1,6 +1,8 @@
 from pygame import mouse
 from rendering import player_panel_renderer
 
+import skill_tree
+
 class PlayerPanel:
     def __init__(self, player):
         """
@@ -282,6 +284,6 @@ class PlayerPanel:
         Method that calls necessary rendering functions to display the player's skill tree in the player panel.
         """
         self.skill_tree_displaying = True
-        player_panel_renderer.display_skill_tree(self.player_dict['active_abilities'],
-                                                 self.player_dict['passive_abilities'], self.player_dict['profession'],
-                                                 self.player_dict['skill_tree'], self.player_dict['level'])
+        skill_tree.initialize_skill_tree(self.player_dict['active_abilities'],
+                                         self.player_dict['passive_abilities'], self.player_dict['profession'],
+                                         self.player_dict['skill_tree'], self.player_dict['level'])
