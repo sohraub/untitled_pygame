@@ -93,76 +93,113 @@ leap_slam = Ability(name='Leap Slam', mp_cost=4,
 SKILL_TREE = {
     "active_1": [
         {
-            'Heavy Strike': {
-                'ability': heavy_strike,
-                'level_prereq': 1,
-                'skill_level': 1
-            }
+            'name': 'Heavy Strike',
+            'ability': heavy_strike,
+            'level_prereq': 1,
+            'skill_level': 1
         },
         {
-            "Troll's Blood": {
-                'ability': trolls_blood,
-                'level_prereq': 1,
-                'skill_level': 1
-            }
+            'name': "Troll's Blood",
+            'ability': trolls_blood,
+            'level_prereq': 1,
+            'skill_level': 1
         }
     ],
     "passive_1": [
         {
-            'Passive 1': {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 2,
+            'skill_level': 0
         },
         {
-            'Passive 2': {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 2,
+            'skill_level': 0
         }
     ],
     "active_2":[
         {
-            "Leap Slam": {
-                'ability': leap_slam,
-                'level_prereq': 4,
-                'skill_level': 0
-            }
+            'name': 'Leap Slam',
+            'ability': leap_slam,
+            'level_prereq': 4,
+            'skill_level': 1
+
         },
         {
-            "Active 4": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 4,
+            'skill_level': 0
         },
         {
-            "Active 5": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 4,
+            'skill_level': 0
         }
     ],
     "passive_2": [
         {
-            'Passive 3': {},
+            'name': '',
+            'ability': '',
+            'level_prereq': 5,
+            'skill_level': 0
         },
         {
-            'Passive 4': {},
+            'name': '',
+            'ability': '',
+            'level_prereq': 5,
+            'skill_level': 0
         }
     ],
     "active_3": [
         {
-            "Active 6": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 7,
+            'skill_level': 0
         },
         {
-            "Active 7": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 7,
+            'skill_level': 0
         },
         {
-            "Active 8": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 7,
+            'skill_level': 0
         }
     ],
     "passive_3": [
         {
-            'Passive 5': {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 8,
+            'skill_level': 0
         },
         {
-            'Passive 6': {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 8,
+            'skill_level': 0
         }
     ],
     "active_4": [
         {
-            "Active 9": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 10,
+            'skill_level': 0
         },
         {
-            "Active 10": {}
+            'name': '',
+            'ability': '',
+            'level_prereq': 10,
+            'skill_level': 0
         }
     ]
 }

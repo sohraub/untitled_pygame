@@ -4,7 +4,8 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
-from rendering.player_panel_renderer import PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, ABILITY_TILE_LENGTH
+from rendering.player_panel_renderer import PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, ABILITY_TILE_LENGTH, draw_ability_details
+
 
 
 def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree, player_level):
@@ -19,7 +20,9 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
     TODO: Do we need the two above lists? Can all the info we need just be gleaned from the skill tree?
     :param profession: String, the Player's profession
     :param skill_tree: Nested dict of the Player's skill tree
-    :return:
+    :return: rect_map, a dict that has as keys the name of the tree level and index in the level, and it's value is the
+             corresponding rect. E.g., the entry for the 2nd skill in the active_2 row would have the entry:
+                ('active_2', 1) : pg.Rect(...)
     """
     # Reset the player panel to black.
     MAIN_WINDOW.fill(color=colors.BLACK,
@@ -31,6 +34,7 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
     # Render the title of the skill tree, PATH OF THE {profession}
     skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
     MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
+    rect_map = dict()
     for tree_level, level_name in enumerate(skill_tree):
         num_skills_in_row = len(skill_tree[level_name])
         # Horizontal space between skills within a layer will be based off the number of skills in each layer
@@ -42,7 +46,8 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
             skill_rect = ((i + 1) * space_between_skills + i * skill_tile_length + PANEL_TOP_LEFT_X,
                           (tree_level + 1) * space_between_levels + tree_level * skill_tile_length + PANEL_TOP_LEFT_Y + 40,
                           skill_tile_length, skill_tile_length)
-            pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect, 1)
+            rect_map[(level_name, i)] = pg.Rect(skill_rect)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect, 0 if skill_tree[level_name][i]['skill_level'] > 0 else 1)
             if level_name in {'active_2', 'active_3', 'active_4'} and i > 0:
                 # On the active skill layers (excluding the first), render an 'OR' between each skill. Location of the
                 # text will be calculated based on the top-left coordinates of the skill that will appear after it
@@ -50,6 +55,8 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
                 MAIN_WINDOW.blit(FONT_20.render('OR', 1, colors.RED),
                                  (skill_rect[0] - 0.54 * space_between_skills - 10,
                                   skill_rect[1] + 0.2 * space_between_levels))
+
+    return rect_map
 
 
 def draw_skill_tree_level_progression(player_level, space_between_levels, skill_tile_length):
@@ -63,7 +70,7 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
     """
     MAIN_WINDOW.fill(color=colors.DARK_RED,
                      rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2,
-                           player_level * (space_between_levels + skill_tile_length) + 40))
+                           min(player_level * (space_between_levels + skill_tile_length) + 40, SIDE_PANEL_HEIGHT - 2)))
     x = PANEL_TOP_LEFT_X + 0.3  * skill_tile_length
     y = PANEL_TOP_LEFT_Y + 2 * skill_tile_length
     badge_length = 0.3 * skill_tile_length
@@ -86,3 +93,6 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
                                                 badge_points[0][1] + 0.75* badge_length))
         MAIN_WINDOW.blit(level_text, text_rect)
 
+
+def draw_ability_details_in_skill_tree(ability):
+    draw_ability_details(ability.to_dict())

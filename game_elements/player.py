@@ -9,7 +9,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
+                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=10,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character

@@ -39,6 +39,12 @@ class Ability:
         self.mp_cost = mp_cost
         self.turns_left = 0
 
+    def __str__(self):
+        return f'Level {self.level} {self.name}'
+
+    def __repr__(self):
+        return f'Level {self.level} {self.name}'
+
     def to_dict(self):
         return {
             'name': self.name,
