@@ -47,6 +47,8 @@ class PlayerPanel:
 
     def refresh_player_panel(self):
         """Refresh every part of the player panel."""
+        if self.skill_tree_displaying:
+            return
         self.player_dict = self.player.to_dict()
         player_panel_renderer.draw_player_panel(self.player_dict['name'], refresh=True)
         self.refresh_hp_mp()
@@ -102,6 +104,8 @@ class PlayerPanel:
         Method to handle the player mousing over the player panel, to display specific information on what is being
         moused over.
         """
+        if self.skill_tree_displaying:
+            return False
         mouse_pos = mouse.get_pos()
         # These conditions check if the mouse is on a panel element that can show a detail window, and that no detail
         # window is currently being displayed.
@@ -280,4 +284,4 @@ class PlayerPanel:
         self.skill_tree_displaying = True
         player_panel_renderer.display_skill_tree(self.player_dict['active_abilities'],
                                                  self.player_dict['passive_abilities'], self.player_dict['profession'],
-                                                 self.player_dict['skill_tree'])
+                                                 self.player_dict['skill_tree'], self.player_dict['level'])

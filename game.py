@@ -15,7 +15,7 @@ from player_panel import PlayerPanel
 
 # List containing all of the keys that currently have a function
 FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
-                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5, pg.K_t]
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5, pg.K_t, pg.K_ESCAPE]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -314,6 +314,10 @@ class Game:
             return self.handle_ability_use(ability_index=key_mapping[pressed_key])
         elif pressed_key == pg.K_t:
             self.player_panel.display_skill_tree()
+        elif pressed_key == pg.K_ESCAPE:
+            if self.player_panel.skill_tree_displaying:
+                self.player_panel.skill_tree_displaying = False
+                self.player_panel.refresh_player_panel()
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -396,8 +400,8 @@ class Game:
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 keys = pg.key.get_pressed()
-                if keys[pg.KMOD_SHIFT]:
-                    if event.key == pg.K_ESCAPE:  # ESC exits the game
+                if keys[pg.K_RSHIFT] or keys[pg.K_LSHIFT]:
+                    if event.key == pg.K_ESCAPE:  # SHIFT + ESC exits the game
                         return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
                     action_taken = self.handle_key_presses(event.key)

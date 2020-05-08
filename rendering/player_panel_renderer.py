@@ -520,7 +520,7 @@ def draw_exp_details(experience):
                        rect_dimensions=(top_left_x, top_left_y, length, 30))
 
 
-def display_skill_tree(active_abilities, passive_abilities, profession, skill_tree):
+def display_skill_tree(active_abilities, passive_abilities, profession, skill_tree, player_level):
     """
     Draws the character's skill tree in the player panel. Skill trees will be made of 7 layers, each layer alternating
     between active and passive skills. Extra rendering logic is added to the layers with active abilities after the
@@ -537,12 +537,13 @@ def display_skill_tree(active_abilities, passive_abilities, profession, skill_tr
     # Reset the player panel to black.
     MAIN_WINDOW.fill(color=colors.BLACK,
                      rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2, SIDE_PANEL_HEIGHT - 2))
-    # Render the title of the skill tree, PATH OF THE {profession}
-    skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
-    MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
 
     skill_tile_length = 0.7 * ABILITY_TILE_LENGTH
     space_between_levels = 0.9 * skill_tile_length  # The vertical space between each layer of the tree
+    draw_skill_tree_level_progression(player_level, space_between_levels, skill_tile_length)
+    # Render the title of the skill tree, PATH OF THE {profession}
+    skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
+    MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
     for tree_level, level_name in enumerate(skill_tree):
         num_skills_in_row = len(skill_tree[level_name])
         # Horizontal space between skills within a layer will be based off the number of skills in each layer
@@ -554,7 +555,7 @@ def display_skill_tree(active_abilities, passive_abilities, profession, skill_tr
             skill_rect = ((i + 1) * space_between_skills + i * skill_tile_length + PANEL_TOP_LEFT_X,
                           (tree_level + 1) * space_between_levels + tree_level * skill_tile_length + PANEL_TOP_LEFT_Y + 40,
                           skill_tile_length, skill_tile_length)
-            pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect)
+            pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect, 1)
             if level_name in {'active_2', 'active_3', 'active_4'} and i > 0:
                 # On the active skill layers (excluding the first), render an 'OR' between each skill. Location of the
                 # text will be calculated based on the top-left coordinates of the skill that will appear after it
@@ -563,4 +564,38 @@ def display_skill_tree(active_abilities, passive_abilities, profession, skill_tr
                                  (skill_rect[0] - 0.54 * space_between_skills - 10,
                                   skill_rect[1] + 0.2 * space_between_levels))
 
+
+def draw_skill_tree_level_progression(player_level, space_between_levels, skill_tile_length):
+    """
+    Draws a margin on the skill tree displaying the required player level for each tree level, as well as filling in
+    the background of the tree to indicate what level the player has reached so far.
+    The required player level will be displayed in a badge icon (think an upside-down pentagon), which will be drawn
+    by passing in a list of 5 xy-coordinate pairs to the draw_polygon() pygame function. The x and y variables below
+    refer to the x and y coordinate values of the top-left corner of the first badge, from which all other points will
+    be derived.
+    """
+    MAIN_WINDOW.fill(color=colors.DARK_RED,
+                     rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2,
+                           player_level * (space_between_levels + skill_tile_length) + 40))
+    x = PANEL_TOP_LEFT_X + 0.3  * skill_tile_length
+    y = PANEL_TOP_LEFT_Y + 2 * skill_tile_length
+    badge_length = 0.3 * skill_tile_length
+    base_badge_points = [(x, y), (x + badge_length, y), (x + badge_length, y + badge_length),
+                         (x + 0.5 * badge_length, y + 1.5 * badge_length), ( x, y + badge_length)]
+    req_level_from_tree_level = {
+        0: '1',
+        1: '2',
+        2: '4',
+        3: '5',
+        4: '7',
+        5: '8',
+        6: '10'
+    }
+    for i in range(7):
+        badge_points = [(a, b + i * (skill_tile_length + space_between_levels)) for (a, b) in base_badge_points]
+        pg.draw.polygon(MAIN_WINDOW, colors.YELLOW, badge_points)
+        level_text = FONT_TNR_12.render(req_level_from_tree_level[i], 1, colors.BLACK)
+        text_rect = level_text.get_rect(center=(badge_points[0][0] + 0.5 * badge_length,
+                                                badge_points[0][1] + 0.75* badge_length))
+        MAIN_WINDOW.blit(level_text, text_rect)
 
