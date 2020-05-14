@@ -1,0 +1,14 @@
+{
+  "name": "Sohraub",
+  "move_speed": 1,
+  "hp": [10, 10],
+  "mp": [7, 7, 0],
+  "profession": "warrior",
+  "condition": {
+     "tired": [10, 10, 0],
+     "hungry": [10, 10, 0],
+     "thirsty": [10, 10, 0]
+   },
+   "inventory": [],
+   "experience": [19, 20]
+}
