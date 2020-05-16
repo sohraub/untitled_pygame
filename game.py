@@ -15,7 +15,7 @@ from player_panel import PlayerPanel
 
 # List containing all of the keys that currently have a function
 FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
-                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5, pg.K_t, pg.K_ESCAPE]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -110,7 +110,7 @@ class Game:
         # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
         # handle_player_level_up method in the player panel.
         if player_leveled_up:
-            self.player_panel.level_up_points += 2
+            self.player_panel.level_up()
             self.console.update(f"{self.player.name} has reached level {self.player.level}.")
         self.player_panel.refresh_player_panel()
 
@@ -208,15 +208,19 @@ class Game:
             iv.  If target was moved as part of the ability, update positions on board accordingly
             v.   End player turn
         :param ability_index: If this is None, then it means ability was used by clicking on the player panel, so we get
-                              we get the index from there. If it's not None, then ability was used by pressing the
+                              the index from there. If it's not None, then ability was used by pressing the
                               corresponding key, in which case the index is passed in by the handle_key_presses() method
         :return: New lines to be displayed in the console
         """
         if ability_index is None:
             ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
-        if ability.turns_left > 0 or ability.mp_cost > self.player.mp[0]:
-            # This ability is still on cooldown or the player does not have enough mana, so do nothing
+        # Return False if the ability is still on cooldown or player doesn't have enough MP
+        if ability.turns_left > 0:
+            self.console.update('That ability is still on cooldown!')
+            return False
+        elif ability.mp_cost > self.player.mp[0]:
+            self.console.update('Not enough MP to use that ability!')
             return False
         targets = self.get_targets(ability)
         self.load_game_board()  # Refresh game board to get rid of targeting render
@@ -239,7 +243,6 @@ class Game:
                                                                   new_y=new_y))
                     self.load_game_board()
                     pg.display.update()
-                    # sleep(0.3)
             for target in targets:
                 if target is not None and target.hp[0] == 0:
                     self.handle_enemy_death(target)
@@ -313,6 +316,12 @@ class Game:
                 pg.K_5: 4
             }
             return self.handle_ability_use(ability_index=key_mapping[pressed_key])
+        elif pressed_key == pg.K_t:
+            self.player_panel.display_skill_tree()
+        elif pressed_key == pg.K_ESCAPE:
+            if self.player_panel.skill_tree_displaying:
+                self.player_panel.skill_tree_displaying = False
+                self.player_panel.refresh_player_panel()
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -340,6 +349,12 @@ class Game:
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
         action_taken = False
+        if self.player_panel.skill_tree_displaying and self.player_panel.panel_rect.collidepoint(mouse_pos):
+            # If the skill tree is active and the mouse is on the player panel, then we assume that the player is
+            # trying to allocate skill points
+            self.player_panel.handle_skill_point_allocation()
+
+
         if self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
@@ -394,8 +409,10 @@ class Game:
             if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
-                if event.key == pg.K_ESCAPE:  # ESC exits the game
-                    return False
+                keys = pg.key.get_pressed()
+                if keys[pg.K_RSHIFT] or keys[pg.K_LSHIFT]:
+                    if event.key == pg.K_ESCAPE:  # SHIFT + ESC exits the game
+                        return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
                     action_taken = self.handle_key_presses(event.key)
                     if action_taken:

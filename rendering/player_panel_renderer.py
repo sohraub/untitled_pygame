@@ -64,10 +64,11 @@ def draw_player_panel(player_name, refresh=False):
     return panel_rect
 
 
-def draw_active_abilities(abilities, refresh=False):
+def draw_active_abilities(abilities, refresh=False, skill_points=0):
     """
     Renders the player's active abilities. If the ability is on cooldown, fill it with a darker color and also
-    draw the number of turns left in the cooldown on the tile.
+    draw the number of turns left in the cooldown on the tile. If skill_points > 0, then draw a message telling
+    the player that they have skill points to spend.
     """
     abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
     if refresh:
@@ -88,6 +89,12 @@ def draw_active_abilities(abilities, refresh=False):
         ability_number = FONT_20.render(str(i + 1), 1, colors.YELLOW)
         MAIN_WINDOW.blit(ability_number, (ABILITIES_TOP_LEFT_X + (1 + i) * ABILITY_TILE_LENGTH - 20,
                                           ABILITIES_TOP_LEFT_Y + ABILITY_TILE_LENGTH - 30))
+
+    if skill_points > 0:
+        skill_point_message = FONT_20.render(f"{skill_points} unspent skill point{'s' if skill_points > 1 else ''}, "
+                                             f"press T to allocate", 1,
+                                             colors.YELLOW)
+        MAIN_WINDOW.blit(skill_point_message, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y + 1.1 * ABILITY_TILE_LENGTH))
 
     return ability_tiles, abilities_rect
 
@@ -484,24 +491,30 @@ def draw_status_details(status):
                                         ITEM_TOOLTIP_HEIGHT))
 
 
-def draw_ability_details(ability, player_mp):
+def draw_ability_details(ability, player_mp=None):
     """
     Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
     player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
     above the cursor regardless of mouse position.
+    If player_mp = None, then this function was called from the skill_tree renderer so we don't need to display mp and
+    cooldown details.
     """
     mouse_pos = pg.mouse.get_pos()
     if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
     else:
         top_left_x = mouse_pos[0]
-    top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
+    if mouse_pos[1] > PANEL_TOP_LEFT_Y + int(SIDE_PANEL_HEIGHT / 2):
+        top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
+    else:
+        top_left_y = mouse_pos[1]
     window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}',
                                             f'MP Cost: {ability["mp_cost"]}']
-    if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
-        window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
-    if ability['mp_cost'] > player_mp[0]:
-        window_body.append(("Not enough MP!!", colors.RED))
+    if player_mp is not None:
+        if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
+            window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
+        if ability['mp_cost'] > player_mp[0]:
+            window_body.append(("Not enough MP!!", colors.RED))
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
@@ -518,3 +531,5 @@ def draw_exp_details(experience):
     top_left_y = mouse_pos[1]
     draw_detail_window(body_strings=window_body,
                        rect_dimensions=(top_left_x, top_left_y, length, 30))
+
+
