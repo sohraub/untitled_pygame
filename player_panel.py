@@ -98,7 +98,9 @@ class PlayerPanel:
 
     def refresh_abilities(self):
         """Refresh the displayed abilities."""
-        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'], refresh=True)
+        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'],
+                                                                            refresh=True,
+                                                                            skill_points=self.skill_tree.skill_points)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
@@ -133,7 +135,7 @@ class PlayerPanel:
             # if self.conditions_rect.collidepoint(mouse_pos) and not self.tooltip_focus:
             #     self.handle_conditions_mouseover()
         if self.tooltip_focus is not None and not self.tooltip_focus.collidepoint(mouse_pos):
-            # This condition checks if an item info window is still displaying even if the mouse is no longer
+            # This condition checks if an info tooltip is still displaying even if the mouse is no longer
             # on that item, and if so, refreshes the inventory to get rid of the item info
             self.refresh_player_panel()
             self.tooltip_focus = None
@@ -283,11 +285,22 @@ class PlayerPanel:
 
         raise Exception('Incompatible element passed into get_tooltip_index() method of player_panel.')
 
+    def level_up(self):
+        self.level_up_points += 2
+        self.skill_tree.skill_points += 1
+
     def display_skill_tree(self):
         """
         Method that calls necessary rendering functions to display the player's skill tree in the player panel.
         """
         self.skill_tree_displaying = True
-        self.skill_tree.initialize_skill_tree(self.player_dict['active_abilities'],
-                                              self.player_dict['passive_abilities'], self.player_dict['profession'],
-                                              self.player_dict['skill_tree'], self.player_dict['level'])
+        self.skill_tree.render_skill_tree()
+
+    def handle_skill_point_allocation(self):
+        """
+        Calls methods to handle skill point allocation in SkillTreeController, and updates the players abilities
+        accordingly.
+        """
+        changes_made = self.skill_tree.allocate_skill_points()  # This function returns a boolean
+        if changes_made:
+            self.player.set_abilities_from_skill_tree()

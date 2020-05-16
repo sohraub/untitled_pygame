@@ -110,7 +110,7 @@ class Game:
         # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
         # handle_player_level_up method in the player panel.
         if player_leveled_up:
-            self.player_panel.level_up_points += 2
+            self.player_panel.level_up()
             self.console.update(f"{self.player.name} has reached level {self.player.level}.")
         self.player_panel.refresh_player_panel()
 
@@ -215,8 +215,12 @@ class Game:
         if ability_index is None:
             ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
-        if ability.turns_left > 0 or ability.mp_cost > self.player.mp[0]:
-            # This ability is still on cooldown or the player does not have enough mana, so do nothing
+        # Return False if the ability is still on cooldown or player doesn't have enough MP
+        if ability.turns_left > 0:
+            self.console.update('That ability is still on cooldown!')
+            return False
+        elif ability.mp_cost > self.player.mp[0]:
+            self.console.update('Not enough MP to use that ability!')
             return False
         targets = self.get_targets(ability)
         self.load_game_board()  # Refresh game board to get rid of targeting render
@@ -345,6 +349,12 @@ class Game:
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
         action_taken = False
+        if self.player_panel.skill_tree_displaying and self.player_panel.panel_rect.collidepoint(mouse_pos):
+            # If the skill tree is active and the mouse is on the player panel, then we assume that the player is
+            # trying to allocate skill points
+            self.player_panel.handle_skill_point_allocation()
+
+
         if self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.

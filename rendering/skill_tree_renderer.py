@@ -8,7 +8,7 @@ from rendering.player_panel_renderer import PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, 
 
 
 
-def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree, player_level):
+def draw_skill_tree(active_abilities, passive_abilities, skill_tree, profession, player_level, skill_points):
     """
     Draws the character's skill tree in the player panel. Skill trees will be made of 7 layers, each layer alternating
     between active and passive skills. Extra rendering logic is added to the layers with active abilities after the
@@ -20,6 +20,7 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
     TODO: Do we need the two above lists? Can all the info we need just be gleaned from the skill tree?
     :param profession: String, the Player's profession
     :param skill_tree: Nested dict of the Player's skill tree
+    :param skill_points: Int, number of skill points the player has to allocate
     :return: rect_map, a dict that has as keys the name of the tree level and index in the level, and it's value is the
              corresponding rect. E.g., the entry for the 2nd skill in the active_2 row would have the entry:
                 ('active_2', 1) : pg.Rect(...)
@@ -34,6 +35,8 @@ def draw_skill_tree(active_abilities, passive_abilities, profession, skill_tree,
     # Render the title of the skill tree, PATH OF THE {profession}
     skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)
     MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
+    points_remaining = FONT_20.render(f'Skill points remaining: {skill_points}', 1, colors.WHITE)
+    MAIN_WINDOW.blit(points_remaining, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 30))
     rect_map = dict()
     for tree_level, level_name in enumerate(skill_tree):
         num_skills_in_row = len(skill_tree[level_name])
@@ -95,4 +98,9 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
 
 
 def draw_ability_details_in_skill_tree(ability):
+    """
+    Draws tooltips in the skill tree displaying info for the ability currently being moused over. Position of the
+    window depends on the mouse location, e.g. if the mouse is on the top half of the screen, then display the window
+    downwards, or if the mouse is on the left side of the panel display the window to the right of the cursor, etc.
+    """
     draw_ability_details(ability.to_dict())

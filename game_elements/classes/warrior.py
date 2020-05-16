@@ -86,7 +86,7 @@ def leap_slam_func(self, targets, skill_level):
 leap_slam = Ability(name='Leap Slam', mp_cost=4,
                     description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
                     active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
-                    targeting_function_params={'radius': 4}, function=leap_slam_func, level=1, cooldown=10,
+                    targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                     save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
 
@@ -124,20 +124,23 @@ SKILL_TREE = {
             'name': 'Leap Slam',
             'ability': leap_slam,
             'level_prereq': 4,
-            'skill_level': 1
+            'skill_level': 0,
+            'disabled': False
 
         },
         {
             'name': '',
             'ability': '',
             'level_prereq': 4,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         },
         {
             'name': '',
             'ability': '',
             'level_prereq': 4,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         }
     ],
     "passive_2": [
@@ -159,19 +162,22 @@ SKILL_TREE = {
             'name': '',
             'ability': '',
             'level_prereq': 7,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         },
         {
             'name': '',
             'ability': '',
             'level_prereq': 7,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         },
         {
             'name': '',
             'ability': '',
             'level_prereq': 7,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         }
     ],
     "passive_3": [
@@ -193,13 +199,15 @@ SKILL_TREE = {
             'name': '',
             'ability': '',
             'level_prereq': 10,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         },
         {
             'name': '',
             'ability': '',
             'level_prereq': 10,
-            'skill_level': 0
+            'skill_level': 0,
+            'disabled': False
         }
     ]
 }
@@ -214,7 +222,7 @@ warrior_config = {
         'vit': 7,
         'wis': 3
     },
-    'active_abilities': [copy.copy(x) for x in [heavy_strike, trolls_blood, leap_slam]],
-    'passive_abilities': [],
+    'hp': [14, 14],
+    'mp': [6, 6, 0],
     'skill_tree': SKILL_TREE
 }

@@ -8,8 +8,8 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None,
+                 equipment=None, condition=None, level=1,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -34,7 +34,9 @@ class Player(Character):
         :off_rating: An int which represents the player's total offensive rating after factoring equipment bonuses
         :def_rating: Similar to off_rating, but for defense.
         """
-        super().__init__(name, x, y, hp, mp, attributes, status)
+        profession_config = profession_string_map[profession]
+        super().__init__(name, x, y, profession_config['hp'], profession_config['mp'],
+                         profession_config['starting_attributes'], status)
         self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
@@ -43,6 +45,7 @@ class Player(Character):
             'hands': None,
             'feet': None
         }
+        self.profession = profession
         self.off_rating = 0
         self.def_rating = 0
         self.update_off_def_ratings()
@@ -51,12 +54,12 @@ class Player(Character):
             'hungry': [100, 100, 0],
             'thirsty': [100, 100, 0]
         }
-        self.active_abilities = active_abilities if active_abilities is not None else list()
-        self.passive_abilities = passive_abilities if passive_abilities is not None else list()
+        self.active_abilities = list()
+        self.passive_abilities = list()
+        self.skill_tree = skill_tree
+        self.set_abilities_from_skill_tree()
         self.level = level
         self.experience = experience if experience is not None else [0, 20]
-        self.profession = profession
-        self.skill_tree = skill_tree
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -263,6 +266,8 @@ class Player(Character):
         """
         exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
         self.level += 1
+        self.hp[0] = self.hp[1]
+        self.mp[0] = self.mp[1]
         self.experience[1] = level_to_max_exp_map.get(self.level, 100000)
         if exp_overflow > self.experience[1]:  # Handles the case when a player can gain multiple levels from one kill.
             self.level_up(exp_overflow)
@@ -283,39 +288,14 @@ class Player(Character):
 
         return refresh_necessary
 
-
-def load_player_from_json(filename):
-    """Function to initialize a Player object from a JSON file."""
-    with open(filename, 'r') as f:
-        character = json.load(f)
-
-    profession = character.get('profession', 'warrior')
-    attributes = None
-    active_abilities = None
-    passive_abilities = None
-    if character.get('attributes', None) is None:
-        attributes = profession_string_map[profession]['starting_attributes']
-    if character.get('active_abilities', None) is None:
-        active_abilities = profession_string_map[profession]['active_abilities']
-    if character.get('passive_abilities', None) is None:
-        passive_abilities = profession_string_map[profession]['passive_abilities']
-
-    player = Player(
-        name=character.get('name', 'TEST'),
-        hp=character.get('hp', None),
-        mp=character.get('mp', None),
-        profession=profession,
-        active_abilities=active_abilities,
-        passive_abilities=passive_abilities,
-        attributes=attributes,
-        status=character.get('status', None),
-        condition=character.get('condition', None),
-        inventory=character.get('inventory', None),
-        equipment=character.get('equipment', None),
-        experience=character.get('experience', None)
-    )
-
-    return player
+    def set_abilities_from_skill_tree(self):
+        """Sets the players passive and active abilities based off the values in the skill tree dict."""
+        self.active_abilities = list()
+        for tree_level in self.skill_tree:
+            for ability_entry in self.skill_tree[tree_level]:
+                if ability_entry['skill_level'] > 0:
+                    if tree_level[:6] == 'active':
+                        self.active_abilities.append(ability_entry['ability'])
 
 
 level_to_max_exp_map = {
