@@ -9,7 +9,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=10,
+                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -263,7 +263,7 @@ class Player(Character):
         """
         exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
         self.level += 1
-        self.experience[1] = level_to_max_exp_map[self.level]
+        self.experience[1] = level_to_max_exp_map.get(self.level, 100000)
         if exp_overflow > self.experience[1]:  # Handles the case when a player can gain multiple levels from one kill.
             self.level_up(exp_overflow)
             return
@@ -323,7 +323,21 @@ level_to_max_exp_map = {
     2: 50,
     3: 100,
     4: 200,
-    5: 500
+    5: 500,
+    6: 800,
+    7: 1000,
+    8: 1300,
+    9: 1500,
+    10: 2000,
+    11: 2500,
+    12: 3000,
+    13: 4000,
+    14: 5000,
+    15: 6000,
+    16: 7000,
+    17: 8000,
+    18: 9000,
+    19: 10000
 }
 
 profession_string_map = {
