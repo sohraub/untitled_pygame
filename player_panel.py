@@ -288,6 +288,7 @@ class PlayerPanel:
 
     def level_up(self):
         self.level_up_points += 2
+        self.skill_tree.level += 1
         self.skill_tree.skill_points += 1
 
     def display_skill_tree(self):

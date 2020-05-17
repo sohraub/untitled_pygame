@@ -292,9 +292,8 @@ class Player(Character):
         self.active_abilities = list()
         for tree_level in self.skill_tree:
             for ability_entry in self.skill_tree[tree_level]:
-                if ability_entry['skill_level'] > 0:
-                    if tree_level[:6] == 'active':
-                        self.active_abilities.append(ability_entry['ability'])
+                if ability_entry['ability'].active and ability_entry['ability'].level > 0:
+                    self.active_abilities.append(ability_entry['ability'])
 
     def apply_attribute_changes(self):
         """
@@ -308,10 +307,10 @@ class Player(Character):
 
 level_to_max_exp_map = {
     1: 20,
-    2: 50,
-    3: 100,
-    4: 200,
-    5: 500,
+    2: 40,
+    3: 60,
+    4: 80,
+    5: 100,
     6: 800,
     7: 1000,
     8: 1300,

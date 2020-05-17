@@ -96,27 +96,23 @@ SKILL_TREE = {
             'name': 'Heavy Strike',
             'ability': heavy_strike,
             'level_prereq': 1,
-            'skill_level': 1
         },
         {
             'name': "Troll's Blood",
             'ability': trolls_blood,
             'level_prereq': 1,
-            'skill_level': 1
         }
     ],
     "passive_1": [
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 2,
-            'skill_level': 0
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 2,
-            'skill_level': 0
         }
     ],
     "active_2":[
@@ -124,89 +120,77 @@ SKILL_TREE = {
             'name': 'Leap Slam',
             'ability': leap_slam,
             'level_prereq': 4,
-            'skill_level': 0,
             'disabled': False
 
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 4,
-            'skill_level': 0,
             'disabled': False
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 4,
-            'skill_level': 0,
             'disabled': False
         }
     ],
     "passive_2": [
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 5,
-            'skill_level': 0
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 5,
-            'skill_level': 0
         }
     ],
     "active_3": [
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 7,
-            'skill_level': 0,
             'disabled': False
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 7,
-            'skill_level': 0,
             'disabled': False
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 7,
-            'skill_level': 0,
             'disabled': False
         }
     ],
     "passive_3": [
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 8,
-            'skill_level': 0
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 8,
-            'skill_level': 0
         }
     ],
     "active_4": [
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 10,
-            'skill_level': 0,
             'disabled': False
         },
         {
             'name': '',
-            'ability': '',
+            'ability': Ability(),
             'level_prereq': 10,
-            'skill_level': 0,
             'disabled': False
         }
     ]

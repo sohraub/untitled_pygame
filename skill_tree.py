@@ -34,8 +34,6 @@ class SkillTreeController:
         self.skill_tree = skill_tree
         self.profession = profession
         self.level = level
-        self.active_abilities = active_abilities
-        self.passive_abilities = passive_abilities
         self.skill_rect_map = dict()
         self.skill_points = 0
         self.tooltip_focus = None
@@ -43,8 +41,7 @@ class SkillTreeController:
 
     def render_skill_tree(self):
         """Calls the function to render the skill tree."""
-        self.skill_rect_map = skill_tree_renderer.draw_skill_tree(self.active_abilities, self.passive_abilities,
-                                                                  self.skill_tree, self.profession, self.level,
+        self.skill_rect_map = skill_tree_renderer.draw_skill_tree(self.skill_tree, self.profession, self.level,
                                                                   self.skill_points)
 
     def handle_skill_tree_mouseover(self, skill_tree):
@@ -69,16 +66,22 @@ class SkillTreeController:
         """
         if self.tooltip_focus is None or self.skill_points == 0:
             return False
-        ability = None
+        ability_entry = None; tree_level = ''; index = 0
         for (tree_level, index), value in self.skill_rect_map.items():
             if value == self.tooltip_focus:
-                ability = self.skill_tree[tree_level][index]
+                ability_entry = self.skill_tree[tree_level][index]
                 break
-        if ability['skill_level'] < 3:
+        if ability_entry['ability'].level < 3:
             # Also check that player meets the level requirement and the ability hasn't been disabled
-            if self.level >= ability['level_prereq'] and not ability.get('disabled', False):
-                ability['skill_level'] += 1
+            if self.level >= ability_entry['level_prereq'] and not ability_entry.get('disabled', False):
                 self.skill_points -= 1
+                self.level_up_skill(tree_level, index)
+                self.tooltip_focus = None
                 self.render_skill_tree()
                 return True
         return False
+
+    def level_up_skill(self, tree_level, index):
+        """Increases the level of a skill and updates the ability accordingly."""
+        ability_entry = self.skill_tree[tree_level][index]
+        ability_entry['ability'].level += 1

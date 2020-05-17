@@ -2,8 +2,8 @@ from utility_functions import parse_description
 
 
 class Ability:
-    def __init__(self, name, description, active, targeting_function, function, targeting_function_params=None,
-                 multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0):
+    def __init__(self, name='', description='', active=False, targeting_function=None, function=None,
+                 targeting_function_params=None, multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0):
         """
         Abilities are used by the player to make their lives easier.
         :param name: String, the name of the ability.
