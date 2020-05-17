@@ -222,7 +222,5 @@ warrior_config = {
         'vit': 7,
         'wis': 3
     },
-    'hp': [14, 14],
-    'mp': [6, 6, 0],
     'skill_tree': SKILL_TREE
 }

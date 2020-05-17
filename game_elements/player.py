@@ -35,8 +35,7 @@ class Player(Character):
         :def_rating: Similar to off_rating, but for defense.
         """
         profession_config = profession_string_map[profession]
-        super().__init__(name, x, y, profession_config['hp'], profession_config['mp'],
-                         profession_config['starting_attributes'], status)
+        super().__init__(name, x, y, profession_config['starting_attributes'], status)
         self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
@@ -59,7 +58,7 @@ class Player(Character):
         self.skill_tree = skill_tree
         self.set_abilities_from_skill_tree()
         self.level = level
-        self.experience = experience if experience is not None else [0, 20]
+        self.experience = experience if experience is not None else [19, 20]
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -296,6 +295,15 @@ class Player(Character):
                 if ability_entry['skill_level'] > 0:
                     if tree_level[:6] == 'active':
                         self.active_abilities.append(ability_entry['ability'])
+
+    def apply_attribute_changes(self):
+        """
+        Function to be called every time the player's attributes change, so as to update the rest of the player's
+        stats accordingly.
+        """
+        # Only max values for HP and MP are updated
+        self.hp = [self.hp[0], self.attributes['vit'] * 2]
+        self.mp = [self.mp[0], self.attributes['wis'] * 2, self.mp[2]]
 
 
 level_to_max_exp_map = {

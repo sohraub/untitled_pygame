@@ -8,7 +8,7 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
                  'You watch it slowly bleed out to death. ']
 
 class Enemy(Character):
-    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, attack_range=1, role='attacker',
+    def __init__(self, name, x=0, y=0, attributes=None, status=None, attack_range=1, role='attacker',
                  aggro_range=4, retreat_probability=0.3, flavour_text=None, display_name=''):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
@@ -24,7 +24,7 @@ class Enemy(Character):
         :aggro: Boolean which determines if the player has ever entered the the Enemy's aggro range. If ever set to
                 True, will never go back to False even if the player moves away, under normal circumstances.
         """
-        super().__init__(name, x, y, hp, mp, attributes, status)
+        super().__init__(name, x, y, attributes, status)
         self.aggro_range = aggro_range
         self.aggro = False
         self.attack_range = attack_range
