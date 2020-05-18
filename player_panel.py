@@ -193,7 +193,8 @@ class PlayerPanel:
                         clicked_attribute = index_attribute_mapping[i]
                         self.player.attributes[clicked_attribute] += 1
                         self.level_up_points -= 1
-                        self.refresh_attributes()
+                        self.player.apply_attribute_changes()
+                        self.refresh_player_panel()
                         return
 
     def handle_inventory_mouseover(self):
@@ -287,6 +288,7 @@ class PlayerPanel:
 
     def level_up(self):
         self.level_up_points += 2
+        self.skill_tree.level += 1
         self.skill_tree.skill_points += 1
 
     def display_skill_tree(self):

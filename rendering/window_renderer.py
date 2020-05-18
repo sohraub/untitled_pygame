@@ -15,6 +15,7 @@ MAIN_WINDOW.fill(colors.BLACK)
 pg.display.set_caption('Untitled Game #1')
 
 # Font objects. Default font used is Shadows_into_light, with Times New Roman used for some small text.
+FONT_50 = pg.font.Font(font_SIL, 50)
 FONT_30 = pg.font.Font(font_SIL, 30)
 FONT_25 = pg.font.Font(font_SIL, 25)
 FONT_20 = pg.font.Font(font_SIL, 20)

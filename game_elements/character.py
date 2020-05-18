@@ -7,23 +7,23 @@ class Character:
     """
     Base class for Players and Enemies. Can perform all the basic actions such as moving and attacking.
     """
-    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None):
+    def __init__(self, name, x=0, y=0, attributes=None, status=None):
         """
         Initialize a Character object. This is only ever called through super() for Player and Enemies.
         :param name: Name of the character
         :param x: Character's x-coordinate
         :param y: Character's y-coordinate
-        :param hp: Character's HP represented as a list: [current, max]
-        :param mp: Character's MP, represented same as hp, but with an extra element, 'counter', which is incremented
-                   every turn and used to determine the character's passive MP regen.
         :param attributes: Dict containing the character's attributes.
         :param status: Dict containing a list of buffs and debuffs affecting this character
+
+        The following attributes are also set at initialization:
+        :hp: Character's HP represented as a list: [current, max], where max is equal to 2*VIT
+        :mp: Character's MP, represented same as hp, but with an extra element, 'counter', which is incremented
+             every turn and used to determine the character's passive MP regen, where max is equal to 2*WIS
         """
         self.name = name
         self.x = x
         self.y = y
-        self.hp = hp if hp is not None else [5, 5]
-        self.mp = mp if mp is not None else [5, 5, 0]
         self.attributes = attributes if attributes is not None else {
             "str": 2,
             "dex": 2,
@@ -32,6 +32,8 @@ class Character:
             "vit": 2,
             "wis": 2
         }
+        self.hp = [self.attributes['vit'] * 2, self.attributes['vit'] * 2]
+        self.mp = [self.attributes['wis'] * 2, self.attributes['wis'] * 2, 0]
         self.status = status if status is not None else {
             'buffs': list(),
             'debuffs': list()
@@ -98,6 +100,7 @@ class Character:
         where the counter variable is incremented every turn by a value based on the WISDOM value, and if it reaches
         a certain threshold, the character regenerates MP. If the character is already at max MP, the counter will be
         reset to 0 and nothing more will happen.
+        Counter threshold is currently set to 20.
         """
         if self.mp[0] == self.mp[1]:
             self.mp[2] = 0
