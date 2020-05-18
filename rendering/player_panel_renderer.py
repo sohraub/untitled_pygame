@@ -301,7 +301,7 @@ def draw_inventory(inventory, refresh=False):
             item_tile = pg.Rect((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X,
                                 (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y, ITEM_LENGTH, ITEM_LENGTH)
             pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
-            if len(inventory) >= (y * 10) + x + 1:
+            if len(inventory) >= (y * 6) + x + 1:
                 MAIN_WINDOW.fill(color=colors.ORANGE, rect=((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X + 1,
                                                             (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y + 1,
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))

@@ -80,7 +80,7 @@ class Game:
             self.console.update('This chest is empty. ')
             return
         # pick_up_item returns text for the console as well as a boolean signifying the success of picking up item
-        console_text, success = self.player.pick_up_item(target_chest.item)
+        console_text, success = self.player.pick_up_item(target_chest.item, from_chest=True)
         if success:
             self.board.handle_chest_has_been_opened(chest_pos)
             self.player_panel.refresh_inventory()
@@ -258,9 +258,7 @@ class Game:
         changed, and thus needs re-drawing.
         """
         if self.player.conditions_worsen():
-            self.player_panel.refresh_hp_mp()
-            self.player_panel.refresh_conditions()
-            self.player_panel.refresh_attributes()
+            self.player_panel.refresh_player_panel()
 
         if self.player.decrement_ability_cooldowns():
             self.player_panel.refresh_abilities()

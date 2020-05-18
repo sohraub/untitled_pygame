@@ -8,8 +8,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None,
-                 equipment=None, condition=None, level=1,
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=1,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -49,9 +48,9 @@ class Player(Character):
         self.def_rating = 0
         self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
-            'tired': [100, 100, 0],
-            'hungry': [100, 100, 0],
-            'thirsty': [100, 100, 0]
+            'tired': [20, 20, 0],
+            'hungry': [20, 20, 0],
+            'thirsty': [20, 20, 0]
         }
         self.active_abilities = list()
         self.passive_abilities = list()
@@ -137,9 +136,9 @@ class Player(Character):
         """
         render_necessary = False
         condition_thresholds = {
-            'thirsty': 2 * self.attributes['end'],
-            'hungry': 3 * self.attributes['end'],
-            'tired': 4 * self.attributes['end']
+            'thirsty': 1 * self.attributes['end'],
+            'hungry': 2 * self.attributes['end'],
+            'tired': 3 * self.attributes['end']
         }
         for condition in self.conditions:
             self.conditions[condition][2] += 1
@@ -153,14 +152,15 @@ class Player(Character):
 
     def apply_condition_penalty(self, condition):
         """Method which applies the appropriate condition penalties when its thresholds are met."""
-        if condition == 'thirsty' or condition == 'hungry':
-            self.hp[0] = max(self.hp[0] - 1, 0)
         if condition == 'hungry':
+            self.hp[0] = max(self.hp[0] - 1, 0)
+        if condition == 'thirsty':
             self.mp[0] = max(self.mp[0] - 1, 0)
         if condition == 'tired' and self.fatigued == 0:
             self.fatigued = 1
             for attribute in self.attributes:
                 self.attributes[attribute] -= 2
+            self.apply_attribute_changes()
 
     def check_fatigue(self):
         """
@@ -173,6 +173,7 @@ class Player(Character):
             for attribute in self.attributes:
                 self.attributes[attribute] += 2
             render_necessary = True
+            self.apply_attribute_changes()
         return render_necessary
 
     def consume_item(self, index):
