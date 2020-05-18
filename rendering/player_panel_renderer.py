@@ -510,10 +510,12 @@ def draw_ability_details(ability, player_mp=None):
         top_left_y = mouse_pos[1]
     if ability.get('cooldown', False):  # Ability will only have a cooldown entry if it's an active ability
         draw_active_ability_details(ability, top_left_x, top_left_y, player_mp)
+    else:  # Otherwise it is a passive ability
+        draw_passive_ability_details(ability, top_left_x, top_left_y)
 
 def draw_active_ability_details(ability, top_left_x, top_left_y, player_mp):
-    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}',
-                                            f'MP Cost: {ability["mp_cost"]}']
+    window_body = ['----'] + ability['description'] + ['----', 'Active Skill', f'Level: {ability["level"]}',
+                                            f'Cooldown: {ability["cooldown"]}', f'MP Cost: {ability["mp_cost"]}']
     if player_mp is not None:
         if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
             window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
@@ -522,6 +524,10 @@ def draw_active_ability_details(ability, top_left_x, top_left_y, player_mp):
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
+def draw_passive_ability_details(ability, top_left_x, top_left_y):
+    window_body = ['----'] + ability['description'] + ['----', 'Passive Skill', f'Level: {ability["level"]}']
+    draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 0))
 
 def draw_exp_details(experience):
     """Draws tooltip showing details about the player's current experience progress."""

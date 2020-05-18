@@ -3,7 +3,7 @@ import copy
 import math
 
 from rendering import board_renderer
-from game_elements.ability import ActiveAbility, Ability
+from game_elements.ability import ActiveAbility, PassiveAbility
 from utility_functions import get_knockback
 
 
@@ -90,6 +90,7 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                           save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
+from element_lists.passive_abilities import calculated_strikes, bloodthirst
 
 SKILL_TREE = {
     "active_1": [
@@ -106,13 +107,13 @@ SKILL_TREE = {
     ],
     "passive_1": [
         {
-            'name': '',
-            'ability': Ability(),
+            'name': 'Calculated Strikes',
+            'ability': calculated_strikes,
             'level_prereq': 2,
         },
         {
-            'name': '',
-            'ability': Ability(),
+            'name': 'Bloodthirst',
+            'ability': bloodthirst,
             'level_prereq': 2,
         }
     ],
@@ -126,13 +127,13 @@ SKILL_TREE = {
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 4,
             'disabled': False
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 4,
             'disabled': False
         }
@@ -140,31 +141,31 @@ SKILL_TREE = {
     "passive_2": [
         {
             'name': '',
-            'ability': Ability(),
+            'ability': PassiveAbility(),
             'level_prereq': 5,
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': PassiveAbility(),
             'level_prereq': 5,
         }
     ],
     "active_3": [
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
         }
@@ -172,25 +173,25 @@ SKILL_TREE = {
     "passive_3": [
         {
             'name': '',
-            'ability': Ability(),
+            'ability': PassiveAbility(),
             'level_prereq': 8,
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': PassiveAbility(),
             'level_prereq': 8,
         }
     ],
     "active_4": [
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 10,
             'disabled': False
         },
         {
             'name': '',
-            'ability': Ability(),
+            'ability': ActiveAbility(),
             'level_prereq': 10,
             'disabled': False
         }
