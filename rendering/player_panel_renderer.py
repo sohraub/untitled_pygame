@@ -508,6 +508,10 @@ def draw_ability_details(ability, player_mp=None):
         top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
     else:
         top_left_y = mouse_pos[1]
+    if ability.get('cooldown', False):  # Ability will only have a cooldown entry if it's an active ability
+        draw_active_ability_details(ability, top_left_x, top_left_y, player_mp)
+
+def draw_active_ability_details(ability, top_left_x, top_left_y, player_mp):
     window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}',
                                             f'MP Cost: {ability["mp_cost"]}']
     if player_mp is not None:

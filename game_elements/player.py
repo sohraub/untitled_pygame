@@ -53,7 +53,11 @@ class Player(Character):
             'thirsty': [20, 20, 0]
         }
         self.active_abilities = list()
-        self.passive_abilities = list()
+        self.passive_abilities = {
+            'combat': dict(),
+            'on_kill': dict(),
+            'board_mods': dict()
+        }
         self.skill_tree = skill_tree
         self.set_abilities_from_skill_tree()
         self.level = level
@@ -88,7 +92,8 @@ class Player(Character):
             'equipment': self.equipment,
             'conditions': self.conditions,
             'active_abilities': [ability.to_dict() for ability in self.active_abilities],
-            'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
+            # 'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
+            'passive_abilities': {},
             'level': self.level,
             'profession': self.profession,
             'skill_tree': self.skill_tree,
@@ -200,6 +205,10 @@ class Player(Character):
         return console_text
 
     def basic_attack(self, target):
+        """
+        For when the player attacks an enemy. Calculates damage based on strength, whether or not there's a crit or a
+        miss based on dex, and applies the damage, if any, to the target.
+        """
         console_text = ['']
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
@@ -210,8 +219,6 @@ class Player(Character):
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
             console_text[0] += 'Miss! '
-        # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
-        # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
         console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:

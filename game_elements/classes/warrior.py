@@ -3,7 +3,7 @@ import copy
 import math
 
 from rendering import board_renderer
-from game_elements.ability import Ability
+from game_elements.ability import ActiveAbility, Ability
 from utility_functions import get_knockback
 
 
@@ -33,10 +33,11 @@ def heavy_strike_func(self, targets, skill_level):
     }
     return ability_outcomes
 
-heavy_strike = Ability(name='Heavy Strike', mp_cost=2,
-                       description=f'Strike an enemy with all your might, dealing massive damage and knocking them back',
-                       active=True, targeting_function=board_renderer.highlight_adjacent_tiles,
-                       function=heavy_strike_func, level=1, cooldown=5)
+heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
+                             description=f'Strike an enemy with all your might, dealing massive damage and knocking'
+                                         f' them back', active=True,
+                             targeting_function=board_renderer.highlight_adjacent_tiles,
+                             function=heavy_strike_func, level=1, cooldown=5)
 
 
 def trolls_blood_func(self, skill_level, **kwargs):
@@ -49,11 +50,11 @@ def trolls_blood_func(self, skill_level, **kwargs):
         'console_text': ["You cast Troll's Blood on yourself."]
     }
 
-trolls_blood = Ability(name="Troll's Blood", mp_cost=3,
-                       description=f'Cast a spell on yourself to gain some passive health regeneration. Healing amount '
-                                   f'scales with WIS.',
-                       active=True, targeting_function=board_renderer.highlight_self,
-                       function=trolls_blood_func, level=1, cooldown=15)
+trolls_blood = ActiveAbility(name="Troll's Blood", mp_cost=3,
+                             description=f'Cast a spell on yourself to gain some passive health regeneration. Healing '
+                                         f'amount scales with WIS.',
+                             active=True, targeting_function=board_renderer.highlight_self,
+                             function=trolls_blood_func, level=1, cooldown=15)
 
 
 def leap_slam_func(self, targets, skill_level):
@@ -83,11 +84,11 @@ def leap_slam_func(self, targets, skill_level):
     ability_outcomes['console_text'] = [console_text]
     return ability_outcomes
 
-leap_slam = Ability(name='Leap Slam', mp_cost=4,
-                    description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
-                    active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
-                    targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
-                    save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
+leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
+                          description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
+                          active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
+                          targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
+                          save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
 
 SKILL_TREE = {
