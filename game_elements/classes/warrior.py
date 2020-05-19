@@ -95,44 +95,37 @@ from element_lists.passive_abilities import calculated_strikes, bloodthirst
 SKILL_TREE = {
     "active_1": [
         {
-            'name': 'Heavy Strike',
             'ability': heavy_strike,
             'level_prereq': 1,
         },
         {
-            'name': "Troll's Blood",
             'ability': trolls_blood,
             'level_prereq': 1,
         }
     ],
     "passive_1": [
         {
-            'name': 'Calculated Strikes',
             'ability': calculated_strikes,
             'level_prereq': 2,
         },
         {
-            'name': 'Bloodthirst',
             'ability': bloodthirst,
             'level_prereq': 2,
         }
     ],
     "active_2":[
         {
-            'name': 'Leap Slam',
             'ability': leap_slam,
             'level_prereq': 4,
             'disabled': False
 
         },
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 4,
             'disabled': False
         },
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 4,
             'disabled': False
@@ -140,31 +133,26 @@ SKILL_TREE = {
     ],
     "passive_2": [
         {
-            'name': '',
             'ability': PassiveAbility(),
             'level_prereq': 5,
         },
         {
-            'name': '',
             'ability': PassiveAbility(),
             'level_prereq': 5,
         }
     ],
     "active_3": [
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
         },
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
         },
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 7,
             'disabled': False
@@ -172,25 +160,21 @@ SKILL_TREE = {
     ],
     "passive_3": [
         {
-            'name': '',
             'ability': PassiveAbility(),
             'level_prereq': 8,
         },
         {
-            'name': '',
             'ability': PassiveAbility(),
             'level_prereq': 8,
         }
     ],
     "active_4": [
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 10,
             'disabled': False
         },
         {
-            'name': '',
             'ability': ActiveAbility(),
             'level_prereq': 10,
             'disabled': False

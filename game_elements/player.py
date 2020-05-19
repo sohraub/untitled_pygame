@@ -213,6 +213,8 @@ class Player(Character):
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+        base_damage, crit_chance, base_accuracy = self.apply_offensive_combat_passives(base_damage, crit_chance,
+                                                                                       base_accuracy)
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
@@ -300,8 +302,29 @@ class Player(Character):
         self.active_abilities = list()
         for tree_level in self.skill_tree:
             for ability_entry in self.skill_tree[tree_level]:
-                if ability_entry['ability'].active and ability_entry['ability'].level > 0:
-                    self.active_abilities.append(ability_entry['ability'])
+                ability = ability_entry['ability']
+                if ability.level > 0:
+                    if ability.active:  # Active and passive abilities are set differently
+                        self.active_abilities.append(ability)
+                    else:
+                        # For passives, if the specific mod already has an entry in the passives dict, then we just
+                        # add the ability's value to the existing value. Otherwise, we initialize the entry with the
+                        # ability's value.
+                        if self.passive_abilities[ability.mod_group].get(ability.specific_mod, False):
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] += ability.value
+                        else:
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] = ability.value
+
+    def apply_offensive_combat_passives(self, base_damage, base_crit, base_accuracy):
+        """
+        In the course of the basic_attack() function, applies any offensive bonuses/penalties to combat from the
+        player's passive abilities, if any.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage += combat_passives.get('base_dmg', 0)
+        base_crit += combat_passives.get('crit_rate', 0)
+        base_accuracy += combat_passives.get('base_acc', 0)
+        return base_damage, base_crit, base_accuracy
 
     def apply_attribute_changes(self):
         """
