@@ -67,43 +67,59 @@ class PlayerPanel:
 
     def refresh_hp_mp(self):
         """Method to refresh the displayed HP and MP values."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'], refresh=True)
 
     def refresh_statuses(self):
         """Method to refresh the players statuses."""
+        if self.skill_tree_displaying:
+            return
         _, self.buff_rects, self.debuff_rects = player_panel_renderer.draw_status(self.player_dict['status']['buffs'],
                                                                                   self.player_dict['status']['debuffs'],
                                                                                   refresh=True)
 
     def refresh_level_and_exp(self):
         """Method to refresh the displayed level and experience bar."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['profession'],
                                                         self.player_dict['experience'], refresh=True)
 
     def refresh_attributes(self):
         """Method to refresh the displayed players attributes."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_attributes(self.player_dict['attributes'], self.level_up_points, refresh=True)
         if self.level_up_points > 0:
             player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points)
 
     def refresh_conditions(self):
         """Method to refresh the displayed conditions."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_conditions(self.player_dict['conditions'], refresh=True)
 
     def refresh_inventory(self):
         """
         Refresh the displayed inventory, as well as re-set self.inventory_tiles based on the occupied inventory slots.
         """
+        if self.skill_tree_displaying:
+            return
         self.inventory_tiles, _ = player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
 
     def refresh_abilities(self):
         """Refresh the displayed abilities."""
+        if self.skill_tree_displaying:
+            return
         self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'],
                                                                             refresh=True,
                                                                             skill_points=self.skill_tree.skill_points)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
+        if self.skill_tree_displaying:
+            return
         self.equipment_tiles, _ = player_panel_renderer.draw_equipment(self.player_dict['equipment'], refresh=True)
 
     def handle_panel_mouseover(self):
@@ -145,6 +161,8 @@ class PlayerPanel:
         """
         Handle cases when the mouse is over the statuses, to display tooltip info for buffs and debuffs.
         """
+        if self.skill_tree_displaying:
+            return
         mouse_pos = mouse.get_pos()
         buff_index = None
         debuff_index = None
@@ -175,6 +193,8 @@ class PlayerPanel:
         self.level_up_points > 0. In this case, buttons will appear next to each attribute, and the player can click
         these buttons to allocate any level_up points they have to increase these attributes.
         """
+        if self.skill_tree_displaying:
+            return
         if self.level_up_points > 0:
             level_up_buttons = player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points,
                                                                                      return_only=True)
@@ -201,6 +221,8 @@ class PlayerPanel:
         """
         Method to specifically handle cases then the mouse is over the inventory, and display the appropriate item info.
         """
+        if self.skill_tree_displaying:
+            return
         item_index = None
         item_tile = None
         mouse_pos = mouse.get_pos()
@@ -223,6 +245,8 @@ class PlayerPanel:
         equipped in the slot being moused over, display that item's tooltip. Otherwise, display a tooltip showing the
         empty slot.
         """
+        if self.skill_tree_displaying:
+            return
         mouse_pos = mouse.get_pos()
         slot_moused_over = ''
         for slot in self.equipment_tiles:
@@ -242,6 +266,8 @@ class PlayerPanel:
         """
         Handle cases when mouse is over player abilities, listening for clicks on ability tiles and displaying tooltips.
         """
+        if self.skill_tree_displaying:
+            return
         mouse_pos = mouse.get_pos()
         ability_index = None
         for index, tile in enumerate(self.ability_tiles):
@@ -260,10 +286,14 @@ class PlayerPanel:
         Method to handle the case when the mouse is over the player's conditions, calling the rendering method to draw
         the detail window.
         """
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_condition_details(self.player_dict['conditions'], self.conditions_rect)
 
     def handle_level_exp_mouseover(self):
         """Handles displaying tooltip when user mouses over their level or experience bar."""
+        if self.skill_tree_displaying:
+            return
         self.tooltip_focus = self.level_and_exp_rect
         player_panel_renderer.draw_exp_details(self.player_dict['experience'])
 

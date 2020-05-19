@@ -1,3 +1,4 @@
+import os
 import pygame as pg
 
 import colors
@@ -9,6 +10,7 @@ subsequent rendering method draws upon. Also holds the font objects that are imp
 general functions that are useful for all rendering modules.
 """
 
+os.environ['SDL_VIDEO_WINDOW_POS'] = "25, 45"
 pg.init()
 MAIN_WINDOW = pg.display.set_mode((WINDOW_LENGTH, WINDOW_HEIGHT))
 MAIN_WINDOW.fill(colors.BLACK)

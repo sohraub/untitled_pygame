@@ -5,6 +5,7 @@ import colors
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
 from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from utility_functions import parse_description
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -301,7 +302,7 @@ def draw_inventory(inventory, refresh=False):
             item_tile = pg.Rect((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X,
                                 (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y, ITEM_LENGTH, ITEM_LENGTH)
             pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
-            if len(inventory) >= (y * 10) + x + 1:
+            if len(inventory) >= (y * 6) + x + 1:
                 MAIN_WINDOW.fill(color=colors.ORANGE, rect=((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X + 1,
                                                             (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y + 1,
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))
@@ -508,8 +509,15 @@ def draw_ability_details(ability, player_mp=None):
         top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
     else:
         top_left_y = mouse_pos[1]
-    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}',
-                                            f'MP Cost: {ability["mp_cost"]}']
+    if ability['active']:
+        draw_active_ability_details(ability, top_left_x, top_left_y, player_mp)
+    else:  # Otherwise it is a passive ability
+        draw_passive_ability_details(ability, top_left_x, top_left_y)
+
+def draw_active_ability_details(ability, top_left_x, top_left_y, player_mp):
+    parsed_description = parse_description(ability['description'], char_limit=30)
+    window_body = ['----'] + parsed_description + ['----', 'Active Skill', f'Level: {ability["level"]}',
+                                                   f'Cooldown: {ability["cooldown"]}', f'MP Cost: {ability["mp_cost"]}']
     if player_mp is not None:
         if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
             window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
@@ -518,6 +526,11 @@ def draw_ability_details(ability, player_mp=None):
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
+def draw_passive_ability_details(ability, top_left_x, top_left_y):
+    parsed_description = parse_description(ability['description'].format(ability['value']), char_limit=30)
+    window_body = ['----'] + parsed_description + ['----', 'Passive Skill', f'Level: {ability["level"]}']
+    draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
+                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 0))
 
 def draw_exp_details(experience):
     """Draws tooltip showing details about the player's current experience progress."""

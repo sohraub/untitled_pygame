@@ -61,6 +61,7 @@ class Enemy(Character):
         base_damage = max(self.attributes['str'] - target.attributes['end'] - target.def_rating, 1)
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        base_damage, base_accuracy = target.apply_defensive_combat_passives(base_damage, base_accuracy)
 
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage

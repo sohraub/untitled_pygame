@@ -8,8 +8,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None,
-                 equipment=None, condition=None, level=1,
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=1,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -49,12 +48,16 @@ class Player(Character):
         self.def_rating = 0
         self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
-            'tired': [100, 100, 0],
-            'hungry': [100, 100, 0],
-            'thirsty': [100, 100, 0]
+            'tired': [20, 20, 0],
+            'hungry': [20, 20, 0],
+            'thirsty': [20, 20, 0]
         }
         self.active_abilities = list()
-        self.passive_abilities = list()
+        self.passive_abilities = {
+            'combat': dict(),
+            'on_kill': dict(),
+            'board_mods': dict()
+        }
         self.skill_tree = skill_tree
         self.set_abilities_from_skill_tree()
         self.level = level
@@ -89,7 +92,8 @@ class Player(Character):
             'equipment': self.equipment,
             'conditions': self.conditions,
             'active_abilities': [ability.to_dict() for ability in self.active_abilities],
-            'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
+            # 'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
+            'passive_abilities': {},
             'level': self.level,
             'profession': self.profession,
             'skill_tree': self.skill_tree,
@@ -137,9 +141,9 @@ class Player(Character):
         """
         render_necessary = False
         condition_thresholds = {
-            'thirsty': 2 * self.attributes['end'],
-            'hungry': 3 * self.attributes['end'],
-            'tired': 4 * self.attributes['end']
+            'thirsty': 1 * self.attributes['end'],
+            'hungry': 2 * self.attributes['end'],
+            'tired': 3 * self.attributes['end']
         }
         for condition in self.conditions:
             self.conditions[condition][2] += 1
@@ -153,14 +157,15 @@ class Player(Character):
 
     def apply_condition_penalty(self, condition):
         """Method which applies the appropriate condition penalties when its thresholds are met."""
-        if condition == 'thirsty' or condition == 'hungry':
-            self.hp[0] = max(self.hp[0] - 1, 0)
         if condition == 'hungry':
+            self.hp[0] = max(self.hp[0] - 1, 0)
+        if condition == 'thirsty':
             self.mp[0] = max(self.mp[0] - 1, 0)
         if condition == 'tired' and self.fatigued == 0:
             self.fatigued = 1
             for attribute in self.attributes:
                 self.attributes[attribute] -= 2
+            self.apply_attribute_changes()
 
     def check_fatigue(self):
         """
@@ -173,6 +178,7 @@ class Player(Character):
             for attribute in self.attributes:
                 self.attributes[attribute] += 2
             render_necessary = True
+            self.apply_attribute_changes()
         return render_necessary
 
     def consume_item(self, index):
@@ -199,21 +205,26 @@ class Player(Character):
         return console_text
 
     def basic_attack(self, target):
+        """
+        For when the player attacks an enemy. Calculates damage based on strength, whether or not there's a crit or a
+        miss based on dex, and applies the damage, if any, to the target.
+        """
         console_text = ['']
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+        base_damage, crit_chance, base_accuracy = self.apply_offensive_combat_passives(base_damage, crit_chance,
+                                                                                       base_accuracy)
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
             console_text[0] += 'Miss! '
-        # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
-        # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
         console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
+            self.apply_on_kill_passives()
             from game_elements.enemy import death_phrases
             console_text.append(random.choice(death_phrases))
         return console_text
@@ -292,8 +303,49 @@ class Player(Character):
         self.active_abilities = list()
         for tree_level in self.skill_tree:
             for ability_entry in self.skill_tree[tree_level]:
-                if ability_entry['ability'].active and ability_entry['ability'].level > 0:
-                    self.active_abilities.append(ability_entry['ability'])
+                ability = ability_entry['ability']
+                if ability.level > 0:
+                    if ability.active:  # Active and passive abilities are set differently
+                        self.active_abilities.append(ability)
+                    else:
+                        # For passives, if the specific mod already has an entry in the passives dict, then we just
+                        # add the ability's value to the existing value. Otherwise, we initialize the entry with the
+                        # ability's value.
+                        if self.passive_abilities[ability.mod_group].get(ability.specific_mod, False):
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] += ability.value
+                        else:
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] = ability.value
+
+    def apply_offensive_combat_passives(self, base_damage, base_crit, base_accuracy):
+        """
+        In the course of the basic_attack() function, applies any offensive bonuses/penalties to combat from the
+        player's passive abilities, if any.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage += combat_passives.get('base_dmg', 0)
+        base_crit += combat_passives.get('crit_rate', 0)
+        base_accuracy = min(base_accuracy + combat_passives.get('base_acc', 0), 100)
+        return base_damage, base_crit, base_accuracy
+
+    def apply_defensive_combat_passives(self, base_damage, base_accuracy):
+        """
+        Similar to the offensive-combat variant, except this function is called during the enemy.basic_attack()
+        function and only applies to the player's defensive bonuses.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage = max(base_damage - combat_passives.get('base_def', 0), 0)
+        base_accuracy = max(base_accuracy - combat_passives.get('avoid', 0), 0)
+        return base_damage, base_accuracy
+
+    def apply_on_kill_passives(self):
+        """When a player kills an enemy, apply all the on-kill effects from their passives, if any."""
+        on_kill_passives = self.passive_abilities['on_kill']
+        self.hp[0] = min(self.hp[0] + on_kill_passives.get('gain_hp', 0), self.hp[1])
+        self.mp[0] = min(self.mp[0] + on_kill_passives.get('gain_mp', 0), self.mp[1])
+        if on_kill_passives.get('cooldown_reduction', False):
+            for ability in self.active_abilities:
+                if ability.turns_left:
+                    ability.turns_left = max(0, ability.turns_left - on_kill_passives['cooldown_reduction'])
 
     def apply_attribute_changes(self):
         """

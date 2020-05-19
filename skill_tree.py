@@ -83,5 +83,7 @@ class SkillTreeController:
 
     def level_up_skill(self, tree_level, index):
         """Increases the level of a skill and updates the ability accordingly."""
-        ability_entry = self.skill_tree[tree_level][index]
-        ability_entry['ability'].level += 1
+        ability = self.skill_tree[tree_level][index]['ability']
+        if not ability.active and ability.level > 0:
+            ability.value += int(ability.value / ability.level)
+        ability.level += 1
