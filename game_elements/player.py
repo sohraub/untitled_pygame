@@ -224,6 +224,7 @@ class Player(Character):
         console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
+            self.apply_on_kill_passives()
             from game_elements.enemy import death_phrases
             console_text.append(random.choice(death_phrases))
         return console_text
@@ -325,6 +326,26 @@ class Player(Character):
         base_crit += combat_passives.get('crit_rate', 0)
         base_accuracy += combat_passives.get('base_acc', 0)
         return base_damage, base_crit, base_accuracy
+
+    def apply_defensive_combat_passives(self, base_damage, base_accuracy):
+        """
+        Similar to the offensive-combat variant, except this function is called during the enemy.basic_attack()
+        function and only applies to the player's defensive bonuses.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage = max(base_damage - combat_passives.get('base_def', 0), 0)
+        base_accuracy = max(base_accuracy - combat_passives.get('avoid', 0), 0)
+        return base_damage, base_accuracy
+
+    def apply_on_kill_passives(self):
+        """When a player kills an enemy, apply all the on-kill effects from their passives, if any."""
+        on_kill_passives = self.passive_abilities['on_kill']
+        self.hp[0] = min(self.hp[0] + on_kill_passives.get('gain_hp', 0), self.hp[1])
+        self.mp[0] = min(self.mp[0] + on_kill_passives.get('gain_mp', 0), self.mp[1])
+        if on_kill_passives.get('cooldown_reduction', False):
+            for ability in self.active_abilities:
+                if ability.turns_left:
+                    ability.turns_left = max(0, ability.turns_left - on_kill_passives['cooldown_reduction'])
 
     def apply_attribute_changes(self):
         """

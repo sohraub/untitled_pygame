@@ -12,7 +12,7 @@ class Ability:
         :param level: Int, the level of the skill which determines the numbers behind its effectiveness.
         """
         self.name = name
-        self.description = parse_description(description, char_limit=30)
+        self.description = description
         self.active = active
         self.level = level
 
