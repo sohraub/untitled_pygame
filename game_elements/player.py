@@ -324,7 +324,7 @@ class Player(Character):
         combat_passives = self.passive_abilities['combat']
         base_damage += combat_passives.get('base_dmg', 0)
         base_crit += combat_passives.get('crit_rate', 0)
-        base_accuracy += combat_passives.get('base_acc', 0)
+        base_accuracy = min(base_accuracy + combat_passives.get('base_acc', 0), 100)
         return base_damage, base_crit, base_accuracy
 
     def apply_defensive_combat_passives(self, base_damage, base_accuracy):
