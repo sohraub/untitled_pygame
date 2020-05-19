@@ -90,7 +90,7 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                           save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
-from element_lists.passive_abilities import calculated_strikes, bloodthirst, deadly_momentum, thick_skin
+from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin
 
 SKILL_TREE = {
     "active_1": [
@@ -133,11 +133,11 @@ SKILL_TREE = {
     ],
     "passive_2": [
         {
-            'ability': PassiveAbility(),
+            'ability': bloodthirsty,
             'level_prereq': 5,
         },
         {
-            'ability': PassiveAbility(),
+            'ability': deadly_momentum,
             'level_prereq': 5,
         }
     ],

@@ -4,6 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
 from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12
+from utility_functions import parse_description
 
 """
 Module which handles all of the rendering for the miscellaneous panel on the right side of the window.
@@ -72,12 +73,14 @@ def render_enemy_info(enemy_dict):
         health_text = 'This creature is on the brink of death.'
 
     enemy_name = FONT_20.render(enemy_dict['name'], 1, colors.WHITE)
-    flavour_text = FONT_15.render(enemy_dict['flavour_text'], 1, colors.WHITE)
+    parsed_flavour_text = parse_description(enemy_dict['flavour_text'], char_limit=55)
+    flavour_text = [FONT_15.render(line, 1, colors.WHITE) for line in parsed_flavour_text]
     health_indicator = FONT_15.render(health_text, 1, colors.WHITE)
 
     MAIN_WINDOW.blit(enemy_name, (PORTRAIT_TOP_LEFT_X + PORTRAIT_LENGTH + 5, PORTRAIT_TOP_LEFT_Y))
-    MAIN_WINDOW.blit(flavour_text, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 3))
-    MAIN_WINDOW.blit(health_indicator, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 45))
+    for i, string in enumerate(flavour_text):
+        MAIN_WINDOW.blit(string, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 3 + 16 * i))
+    MAIN_WINDOW.blit(health_indicator, (PORTRAIT_TOP_LEFT_X, PORTRAIT_TOP_LEFT_Y + PORTRAIT_HEIGHT + 45 + 16 * i))
     if len(enemy_dict['buffs']) + len(enemy_dict['debuffs']) > 0:
         render_enemy_statuses(buffs=enemy_dict['buffs'], debuffs=enemy_dict['debuffs'])
 
