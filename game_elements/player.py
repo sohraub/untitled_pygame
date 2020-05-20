@@ -301,6 +301,7 @@ class Player(Character):
     def set_abilities_from_skill_tree(self):
         """Sets the players passive and active abilities based off the values in the skill tree dict."""
         self.active_abilities = list()
+        self.passive_abilities = {'combat': dict(), 'on_kill': dict(), 'board_mods': dict()}
         for tree_level in self.skill_tree:
             for ability_entry in self.skill_tree[tree_level]:
                 ability = ability_entry['ability']
@@ -359,7 +360,7 @@ class Player(Character):
 
 level_to_max_exp_map = {
     1: 20,  # Todo: This definitely need some finetuning
-    2: 40,
+    2: 8,
     3: 60,
     4: 80,
     5: 100,

@@ -112,6 +112,8 @@ class Game:
         if player_leveled_up:
             self.player_panel.level_up()
             self.console.update(f"{self.player.name} has reached level {self.player.level}.")
+            # Apply player's passives that modify the board, in case any new ones were allocated.
+            self.board.apply_player_passives(self.player.passive_abilities['board_mods'])
         self.player_panel.refresh_player_panel()
 
     def start_enemy_turn(self):
@@ -278,8 +280,9 @@ class Game:
         self.load_misc_panel()
 
     def load_game_board(self):
-        """Calls render of the game board"""
+        """Calls render of the game board, and applies any board-modifiers in the Players passive abilities, if any."""
         board_renderer.render_game_board(self.board.template)
+        self.board.apply_player_passives(self.player.passive_abilities['board_mods'])
 
     def load_player_panel(self):
         """Initiates player_panel"""

@@ -13,3 +13,6 @@ deadly_momentum = PassiveAbility(name='Deadly Momentum',
 
 thick_skin = PassiveAbility(name='Thick Skin', description='Increases your defense rating by {}.', mod_group='combat',
                             specific_mod='base_def', value=2)
+
+quiet_steps = PassiveAbility(name='Quiet Steps', mod_group='board_mods', specific_mod='enemy_aggro', value=1,
+                             description='Reduce the distance at which enemies can detect you by {} tile.')

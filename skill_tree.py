@@ -87,3 +87,4 @@ class SkillTreeController:
         if not ability.active and ability.level > 0:
             ability.value += int(ability.value / ability.level)
         ability.level += 1
+        return
