@@ -360,7 +360,7 @@ class Player(Character):
 
 level_to_max_exp_map = {
     1: 20,  # Todo: This definitely need some finetuning
-    2: 8,
+    2: 40,
     3: 60,
     4: 80,
     5: 100,
