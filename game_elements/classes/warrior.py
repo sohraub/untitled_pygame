@@ -1,6 +1,5 @@
 import random
-import copy
-import math
+from copy import copy
 
 from rendering import board_renderer
 from game_elements.ability import ActiveAbility, PassiveAbility
@@ -43,7 +42,7 @@ heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
 def trolls_blood_func(self, skill_level, **kwargs):
     """Ability function which adds a health regen buff to self."""
     from element_lists.status_list import health_regen
-    trolls_blood_regen = copy.copy(health_regen)
+    trolls_blood_regen = copy(health_regen)
     trolls_blood_regen.params = {'value': skill_level * int(self.attributes['wis'] / 3)}
     self.apply_status(trolls_blood_regen)
     return {
@@ -90,32 +89,32 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                           save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
-from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin
+from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin, quiet_steps
 
 SKILL_TREE = {
     "active_1": [
         {
-            'ability': heavy_strike,
+            'ability': copy(heavy_strike),
             'level_prereq': 1,
         },
         {
-            'ability': trolls_blood,
+            'ability': copy(trolls_blood),
             'level_prereq': 1,
         }
     ],
     "passive_1": [
         {
-            'ability': calculated_strikes,
+            'ability': copy(quiet_steps),
             'level_prereq': 2,
         },
         {
-            'ability': thick_skin,
+            'ability': copy(thick_skin),
             'level_prereq': 2,
         }
     ],
     "active_2":[
         {
-            'ability': leap_slam,
+            'ability': copy(leap_slam),
             'level_prereq': 4,
             'disabled': False
 
@@ -133,11 +132,11 @@ SKILL_TREE = {
     ],
     "passive_2": [
         {
-            'ability': bloodthirsty,
+            'ability': copy(bloodthirsty),
             'level_prereq': 5,
         },
         {
-            'ability': deadly_momentum,
+            'ability': copy(deadly_momentum),
             'level_prereq': 5,
         }
     ],

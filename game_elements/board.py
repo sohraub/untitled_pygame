@@ -40,6 +40,8 @@ class Board:
 
         In this init function, the following attributes are also set based on the board template:
         :player_coordinates: The (x, y) position of the player on the board
+        :applied_passives: A dict of all the board modifiers from player passives that have already been applied to this
+                           board. We save this to avoid the same passive being applied multiple times to a single board.
         :enemies: A dict containing all of the enemies on the board, in the format (x, y): Enemy()
         :chests: A dict containing all of the chests on the board, in the format (x, y): Chest()
         :tile_mapping: A dict that contains entries for each tile type, the value of which is a list of all the
@@ -48,6 +50,7 @@ class Board:
         self.template = board_template if board_template is not None else choose_random_board(tier)
         self.tier = tier
         self.player_coordinates = None
+        self.applied_passives = dict()
         self.enemies = dict()
         self.chests = dict()
         self.traps = dict()
@@ -184,3 +187,18 @@ class Board:
             console_text += f'but avoid{"s" if enemy_target else ""} triggering it.'
 
         return console_text
+
+    def apply_player_passives(self, passive_board_mods):
+        """
+        If the player has any passive abilities that can be applied to the board (e.g. increased item-find rarity,
+        lowering enemy aggro ranges, etc.), the will be applied here. We save a dict of the already applied passives
+        in a dict as self.applied_passives to avoid the case where a player enters a board with an existing modifier,
+        and if a player allocates new points to that passive while still in the board, we don't want the value applied
+        to the board to be counted twice. So instead we apply the difference between the new version and the already-
+        applied version.
+        :param passive_board_mods: The list of the player's passive abilities which will affect the board.
+        """
+        enemy_aggro_mod = passive_board_mods.get('enemy_aggro', 0) - self.applied_passives.get('enemy_aggro', 0)
+        self.applied_passives['enemy_aggro'] = passive_board_mods.get('enemy_aggro', 0)
+        for enemy in self.enemies.values():
+            enemy.aggro_range -= enemy_aggro_mod

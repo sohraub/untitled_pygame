@@ -301,6 +301,7 @@ class Player(Character):
     def set_abilities_from_skill_tree(self):
         """Sets the players passive and active abilities based off the values in the skill tree dict."""
         self.active_abilities = list()
+        self.passive_abilities = {'combat': dict(), 'on_kill': dict(), 'board_mods': dict()}
         for tree_level in self.skill_tree:
             for ability_entry in self.skill_tree[tree_level]:
                 ability = ability_entry['ability']
