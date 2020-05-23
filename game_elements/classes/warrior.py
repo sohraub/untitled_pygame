@@ -89,6 +89,40 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                           save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
 
+
+def chain_hook_func(self, targets, skill_level):
+    """
+    Ability function that accepts as target either an enemy or an open tile. If an enemy, pull that enemy to be adjacent
+    to you. If an open tile, reposition player to that tile. The targets parameter is a list that can either have one or
+    two elements, signifying the different cases.
+        i. If targets only has one element, then the ability was used on an open space, and the element is the
+           coordinate of that space.
+        ii. If targets has two elements, then the ability was used on an enemy, and the list looks like:
+                [Enemy(), (enemy.x, enemy.y)]
+            so we set the sole target to the first element of the list.
+    """
+    ability_outcomes = {'movements': list(), 'console_text': list()}
+    if len(targets) > 1:  # In this case the target is an enemy
+        target = targets[0]
+        if target.x != self.x:
+            target_new_pos = (self.x + int((target.x - self.x)/abs(target.x - self.x)), target.y)
+        else:
+            target_new_pos = (self.x, self.y + int((target.y - self.y)/abs(target.y - self.y)))
+        ability_outcomes['movements'].append({'subject': target, 'new_position': target_new_pos})
+        ability_outcomes['console_text'].append(f'You use Chain Hook on the {target.display_name}, pulling it '
+                                                f'towards you.')
+    else:  # In this case the target is an open space
+        ability_outcomes['movements'].append({'subject': self, 'new_position': targets[0]})
+    targets.pop(-1)  # Pop the coordinate entry from the list of targets, so the Player use_ability() function doesn't
+                     # try and check if it's an enemy.
+    return ability_outcomes
+
+chain_hook = ActiveAbility(name='Chain Hook', mp_cost=4,
+                           description='Throw a grappling hook in a straight line at a target. If the target is an '
+                                       'enemy, pulls them towards you. Otherwise, pulls you to the target.',
+                           active=True, targeting_function=board_renderer.highlight_cross_pattern,
+                           function=chain_hook_func, level=0, cooldown=8, save_target=True)
+
 from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin, quiet_steps
 
 SKILL_TREE = {
@@ -104,7 +138,7 @@ SKILL_TREE = {
     ],
     "passive_1": [
         {
-            'ability': copy(quiet_steps),
+            'ability': copy(calculated_strikes),
             'level_prereq': 2,
         },
         {
@@ -120,7 +154,7 @@ SKILL_TREE = {
 
         },
         {
-            'ability': ActiveAbility(),
+            'ability': copy(chain_hook),
             'level_prereq': 4,
             'disabled': False
         },
