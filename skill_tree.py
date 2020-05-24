@@ -82,9 +82,14 @@ class SkillTreeController:
         return False
 
     def level_up_skill(self, tree_level, index):
-        """Increases the level of a skill and updates the ability accordingly."""
+        """
+        Increases the level of a skill and updates the ability accordingly. Active abilities have a level_up method
+        which will be called, whereas passive abilities just have their values incremented by the level-1 value.
+        """
         ability = self.skill_tree[tree_level][index]['ability']
         if not ability.active and ability.level > 0:
             ability.value += int(ability.value / ability.level)
+        if ability.active and ability.level > 0:
+            ability.level_up()
         ability.level += 1
         return

@@ -87,7 +87,8 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
                           active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
-                          save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)])
+                          save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)],
+                          level_up_dict={'target_radius': 1, 'mp_cost': 1})
 
 
 def chain_hook_func(self, targets, skill_level):
@@ -121,7 +122,8 @@ chain_hook = ActiveAbility(name='Chain Hook', mp_cost=4,
                            description='Throw a grappling hook in a straight line at a target. If the target is an '
                                        'enemy, pulls them towards you. Otherwise, pulls you to the target.',
                            active=True, targeting_function=board_renderer.highlight_cross_pattern,
-                           function=chain_hook_func, level=0, cooldown=8, save_target=True)
+                           function=chain_hook_func, level=0, cooldown=8, save_target=True,
+                           level_up_dict={'cooldown': 1, 'mp_cost': -1})
 
 from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin, quiet_steps
 
