@@ -27,16 +27,16 @@ class Ability:
 
 class ActiveAbility(Ability):
     def __init__(self, name='', description='', active=True, details=None, targeting_function=None, function=None,
-                 targeting_function_params=None, multi_target=None, save_target=False, level=0, mp_cost=1, cooldown=0,
-                 level_up_dict=None):
+                 targeting_function_params=None, multi_target_function=None, save_target=False, level=0, mp_cost=1,
+                 cooldown=0, level_up_dict=None):
         """
         Active abilities are abilities the player must actively use.
         :param targeting_function: A function called in the targeting phase, which will highlight on the board all the
                                    square that this ability can target, if the ability is active.
         :param targeting_function_params: A dict of parameters for the targeting function, if necessary. None otherwise
         :param function: A function that will apply the ability effect.
-        :param multi_target: If ability can target multiple tiles, then this will be a list of every targeted tile
-                             relative to the target chosen through the targeting function. Otherwise None
+        :param multi_target_function: If ability can target multiple tiles, then this will be a function that gathers
+                                      a list of every coordinate to be targeted.
         :param save_target: A boolean flag, set to True only for function which target a tile, but don't actually
                             affect a target on the tile but need those coordinates saved for other purposes.
         :param mp_cost: Int, the cost in mp points to use this ability once.
@@ -53,7 +53,7 @@ class ActiveAbility(Ability):
         self.targeting_function = targeting_function if self.active else None
         self.targeting_function_params = targeting_function_params if targeting_function_params is not None else dict()
         self.function = function
-        self.multi_target = multi_target
+        self.multi_target_function = multi_target_function
         self.save_target = save_target
         self.cooldown = cooldown
         self.mp_cost = mp_cost

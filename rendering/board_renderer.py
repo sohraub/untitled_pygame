@@ -55,7 +55,7 @@ def highlight_self(board_template, target_x, target_y, color=colors.BLACK):
     return [(target_x, target_y)]
 
 
-def highlight_radius_with_splash_target(board_template, target_x, target_y, radius, *args, color=colors.BLACK):
+def highlight_radius(board_template, target_x, target_y, radius, color=colors.BLACK):
     """
     Targets every open/trap tile on the board, and returns as a list of targets every tile directly adjacent to the
     tile selected.
@@ -67,9 +67,10 @@ def highlight_radius_with_splash_target(board_template, target_x, target_y, radi
     return tiles_to_highlight
 
 
-def highlight_cross_pattern(board_template, target_x, target_y, color=colors.BLACK):
+def highlight_enemies_and_walls_directly_ahead(board_template, target_x, target_y, color=colors.BLACK):
     """
-    Targets every tile on the same x- or y-axis as the target, but is stopped when hitting a non-open tile.
+    Targets the first enemy or wall to appear on the same x- or y-axis as the target in each cardinal direction,
+    but is stopped when hitting a non-open tile.
     """
     tiles_to_highlight = list()
     for direction in [1, -1]:
@@ -89,6 +90,23 @@ def highlight_cross_pattern(board_template, target_x, target_y, color=colors.BLA
                 break
     render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
                       targetable_tile_types={'O', 'E', 'T', 'D'})
+    return tiles_to_highlight
+
+
+def highlight_in_cross_pattern(board_template, target_x, target_y, color=colors.BLACK):
+    """ Highlights every tile in a cross patter around (target_x, target_y), stopping when hitting a wall or door. """
+    tiles_to_highlight = list()
+    for direction in [1, -1]:
+        for j in range(BOARD_HEIGHT):
+           if board_template[target_y + j*direction][target_x] in {'X', 'D'}:
+                break
+           tiles_to_highlight.append((target_x, target_y + j*direction))
+        for j in range(BOARD_LENGTH):
+            if board_template[target_y][target_x  + j*direction] in {'X','D'}:
+                break
+            tiles_to_highlight.append((target_x + j*direction, target_y))
+    render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
+                      targetable_tile_types={'O', 'E', 'R', 'T', 'D'})
     return tiles_to_highlight
 
 

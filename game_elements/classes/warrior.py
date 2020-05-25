@@ -1,9 +1,9 @@
 import random
 from copy import copy
 
+import utility_functions
 from rendering import board_renderer
 from game_elements.ability import ActiveAbility, PassiveAbility
-from utility_functions import get_knockback
 
 
 def heavy_strike_func(self, targets, skill_level):
@@ -11,7 +11,7 @@ def heavy_strike_func(self, targets, skill_level):
     target = targets[0]
     console_text = ''
     # First determine the relative positions to find the knockback.
-    new_x, new_y = get_knockback(self.x, self.y, target)
+    new_x, new_y = utility_functions.get_knockback(self.x, self.y, target)
     # Now calculate the damage
     damage = (1 + skill_level) * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
     crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
@@ -74,7 +74,7 @@ def leap_slam_func(self, targets, skill_level):
         target.hp[0] = max(0, target.hp[0] - damage)
         ability_outcomes['movements'].append({
             'subject': target,
-            'new_position': get_knockback(self_new_x, self_new_y, target)
+            'new_position': utility_functions.get_knockback(self_new_x, self_new_y, target)
         })
     if len(targets) == 0:
         console_text += '.'
@@ -86,15 +86,15 @@ def leap_slam_func(self, targets, skill_level):
 
 leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
-                          active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
+                          active=True, targeting_function=board_renderer.highlight_radius,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
-                          save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)],
+                          save_target=True, multi_target_function=utility_functions.find_tiles_in_radius_of_1,
                           level_up_dict={'target_radius': 1, 'mp_cost': 1},
                           details={'Damage Multiplier': '{skill_level}', 'Range': '3 + {skill_level}',
                                    'Cooldown': '10', 'MP Cost': '4'})
 
 
-def chain_hook_func(self, targets, skill_level):
+def chain_hook_func(self, targets, **kwargs):
     """
     Ability function that accepts as target either an enemy or an open tile. If an enemy, pull that enemy to be adjacent
     to you. If an open tile, reposition player to that tile. The targets parameter is a list that can either have one or
@@ -124,12 +124,42 @@ def chain_hook_func(self, targets, skill_level):
 chain_hook = ActiveAbility(name='Chain Hook', mp_cost=5,
                            description='Throw a grappling hook in a straight line at a target. If the target is an '
                                        'enemy, pulls them towards you. Otherwise, pulls you to the target.',
-                           active=True, targeting_function=board_renderer.highlight_cross_pattern,
+                           active=True, targeting_function=board_renderer.highlight_enemies_and_walls_directly_ahead,
                            function=chain_hook_func, level=0, cooldown=7, save_target=True,
                            level_up_dict={'cooldown': 1, 'mp_cost': -1},
                            details={'Cooldown': '7 - {skill_level}', 'MP Cost': '5 - {skill_level}'})
 
-from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin, quiet_steps
+
+def shockwave_func(self, targets, skill_level):
+    """
+    Function for the Shockwave ability, which hits an enemy directly ahead of the player (in any cardinal direction)
+    with a damaging projectile.
+    """
+    ability_outcomes = {
+        'console_text': list()
+    }
+    for target in targets:
+        console_text = ''
+        damage = (1 + skill_level) * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
+        crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+        if crit_chance > random.randint(0, 100):
+            console_text += 'Critical hit! '
+            damage = 2 * damage
+        target.hp[0] = max(0, target.hp[0] - damage)
+        console_text += f'Your Shockwave hit the {target.display_name}, dealing {damage} damage.'
+        ability_outcomes['console_text'].append(console_text)
+    return ability_outcomes
+
+
+shockwave = ActiveAbility(name='Shockwave', active=True, targeting_function=board_renderer.highlight_in_cross_pattern,
+                          description='Slam your weapon into the ground, releasing a seismic shock that deals heavy '
+                                      'damage to every enemy in a straight line.',
+                          mp_cost=6, cooldown=10, level=0, function=shockwave_func,
+                          multi_target_function=utility_functions.find_tiles_in_line_from_player_to_end,
+                          details={'Cooldown': '10', 'MP Cost': '6', 'Damage Multiplier': '1 + {skill_level}'})
+
+
+from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin
 
 SKILL_TREE = {
     "active_1": [
@@ -164,7 +194,7 @@ SKILL_TREE = {
             'disabled': False
         },
         {
-            'ability': ActiveAbility(),
+            'ability': copy(shockwave),
             'level_prereq': 4,
             'disabled': False
         }

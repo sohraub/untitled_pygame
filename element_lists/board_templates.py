@@ -42,10 +42,10 @@ testing = ['XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
-           'XTTTTTTTTTTTTTX',
-           'XOOOOOOOOOOOOOX',
-           'XXXXXXXOXXXXXXX',
-           'XXXXXXXPXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXXXXXXXXXX',
+           'XXXXXXOEPOEOEXX',
            'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX',
@@ -54,8 +54,8 @@ testing = ['XXXXXXXXXXXXXXX',
 
 
 TEMPLATE_LIST_MAP = {
-    1: [x, y],
-    # 1: [testing]
+    # 1: [x, y],
+    1: [testing]
 }
 
 def get_board_list(tier):

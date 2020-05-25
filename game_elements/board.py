@@ -202,3 +202,4 @@ class Board:
         self.applied_passives['enemy_aggro'] = passive_board_mods.get('enemy_aggro', 0)
         for enemy in self.enemies.values():
             enemy.aggro_range -= enemy_aggro_mod
+
