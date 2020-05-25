@@ -78,6 +78,12 @@ class SkillTreeController:
             if self.level >= ability_entry['level_prereq'] and not ability_entry.get('disabled', False):
                 self.skill_points -= 1
                 self.level_up_skill(tree_level, index)
+                if ability_entry.get('disabled', None) is not None:
+                    # If the allocated ability is a non-starting active ability, we disable the other abilities in this
+                    # level, since the players only get to chose one ability per layer.
+                    for entry in self.skill_tree[tree_level]:
+                        if entry['ability'].name is not ability_entry['ability'].name:
+                            entry['disabled'] = True
                 self.tooltip_focus = None
                 self.render_skill_tree()
                 return True

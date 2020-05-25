@@ -12,7 +12,7 @@ bloodthirsty = PassiveAbility(name='Bloodthirsty', description='Gain HP when you
 deadly_momentum = PassiveAbility(name='Deadly Momentum',
                                  description='Reduce all ability cooldowns when you kill an enemy.',
                                  mod_group='on_kill', specific_mod='cooldown_reduction', value=2,
-                                 details={'Cooldown Reduction On Kill': '2 * {skill_level'})
+                                 details={'Cooldown Reduction On Kill': '2 * {skill_level}'})
 
 thick_skin = PassiveAbility(name='Thick Skin', description='Increases your defense rating.', mod_group='combat',
                             specific_mod='base_def', value=2,

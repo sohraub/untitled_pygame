@@ -65,7 +65,8 @@ def draw_skill_as_upgradable(player_level, ability_entry, rect):
     If the player has skill points to spend, and a particular skill is upgradable, render a '+' sign on the skill
     to indicate that it can be upgraded.
     """
-    if ability_entry['ability'].level < 3 and ability_entry['level_prereq'] <= player_level:
+    if ability_entry['ability'].level < 3 and ability_entry['level_prereq'] <= player_level and \
+            not ability_entry.get('disabled', False):
         plus_sign = FONT_50.render('+', 1, colors.YELLOW)
         text_rect = plus_sign.get_rect(center=(rect[0] + 0.5 * rect[2], rect[1] + 0.5 * rect[3]))
         MAIN_WINDOW.blit(plus_sign, text_rect)
