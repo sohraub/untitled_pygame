@@ -8,7 +8,7 @@ for allocating skill points, etc.
 """
 
 class SkillTreeController:
-    def __init__(self, skill_tree, profession, level, active_abilities, passive_abilities):
+    def __init__(self, skill_tree, profession, level, player_attributes, active_abilities, passive_abilities):
         """
         Class that handles all things skill tree, from allocating new points to displaying mouse-over info. Is saved
         as an attribute to the PlayerPanel, so that the panel can act as an intermediary that reads any changes made
@@ -34,6 +34,7 @@ class SkillTreeController:
         self.skill_tree = skill_tree
         self.profession = profession
         self.level = level
+        self.player_attributes = player_attributes
         self.skill_rect_map = dict()
         self.skill_points = 1
         self.tooltip_focus = None
@@ -56,7 +57,8 @@ class SkillTreeController:
                 if rect.collidepoint(mouse_pos):
                     # Todo: this condition is only while skill trees still have blank entries
                     if skill_tree[key[0]][key[1]]['ability'] != '':
-                        skill_tree_renderer.draw_ability_details_in_skill_tree(skill_tree[key[0]][key[1]]['ability'])
+                        skill_tree_renderer.draw_ability_details_in_skill_tree(skill_tree[key[0]][key[1]]['ability'],
+                                                                               self.player_attributes)
                     self.tooltip_focus = rect
 
     def allocate_skill_points(self):

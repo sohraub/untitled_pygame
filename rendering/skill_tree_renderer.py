@@ -119,10 +119,10 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
         MAIN_WINDOW.blit(level_text, text_rect)
 
 
-def draw_ability_details_in_skill_tree(ability):
+def draw_ability_details_in_skill_tree(ability, player_attributes):
     """
     Draws tooltips in the skill tree displaying info for the ability currently being moused over. Position of the
     window depends on the mouse location, e.g. if the mouse is on the top half of the screen, then display the window
     downwards, or if the mouse is on the left side of the panel display the window to the right of the cursor, etc.
     """
-    draw_ability_details(ability.to_dict())
+    draw_ability_details(ability.to_dict(), player_attributes)

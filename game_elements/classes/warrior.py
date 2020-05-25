@@ -13,7 +13,7 @@ def heavy_strike_func(self, targets, skill_level):
     # First determine the relative positions to find the knockback.
     new_x, new_y = get_knockback(self.x, self.y, target)
     # Now calculate the damage
-    damage = int((1.5 + skill_level* 0.5) * (self.attributes['str'] - target.attributes['end'] + self.off_rating))
+    damage = (1 + skill_level) * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
     crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
     if crit_chance > random.randint(0, 100):
         console_text += 'Critical hit! '
@@ -34,42 +34,43 @@ def heavy_strike_func(self, targets, skill_level):
 
 heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
                              description=f'Strike an enemy with all your might, dealing massive damage and knocking'
-                                         f' them back', active=True,
-                             targeting_function=board_renderer.highlight_adjacent_tiles,
-                             function=heavy_strike_func, level=1, cooldown=5)
+                                         f' them back', active=True, level=1, cooldown=5,
+                             targeting_function=board_renderer.highlight_adjacent_tiles, function=heavy_strike_func,
+                             details={'Damage Multiplier': '1 + {skill_level}', 'Cooldown': '5', 'MP Cost': '2'})
 
 
 def trolls_blood_func(self, skill_level, **kwargs):
     """Ability function which adds a health regen buff to self."""
     from element_lists.status_list import health_regen
     trolls_blood_regen = copy(health_regen)
-    trolls_blood_regen.params = {'value': skill_level * int(self.attributes['wis'] / 3)}
+    trolls_blood_regen.params = {'value': skill_level * self.attributes['wis'] - 2}
     self.apply_status(trolls_blood_regen)
     return {
         'console_text': ["You cast Troll's Blood on yourself."]
     }
 
-trolls_blood = ActiveAbility(name="Troll's Blood", mp_cost=3,
+trolls_blood = ActiveAbility(name="Troll's Blood", mp_cost=3, function=trolls_blood_func, level=1, cooldown=15,
                              description=f'Cast a spell on yourself to gain some passive health regeneration. Healing '
                                          f'amount scales with WIS.',
                              active=True, targeting_function=board_renderer.highlight_self,
-                             function=trolls_blood_func, level=1, cooldown=15)
+                             details={'HP Regen Per Turn': '{skill_level} * {wis} - 2',
+                                      'Buff Duration': '7', 'Cooldown': '15', 'MP Cost': '3'})
 
 
 def leap_slam_func(self, targets, skill_level):
     """Ability function which transports the player to a tile, and damages and knocks back any adjacent enemies."""
     console_text = 'You use Leap Slam'
+    # Leap slam is an ability with self.save_target = True, so the coords of the selected tile are appended
+    # to the end of the list of targets, and are popped from the list here.
     self_new_x, self_new_y = targets.pop(-1)
     ability_outcomes = {
         'movements': [{
             'subject': self,
-            # Leap slam is an ability with self.save_target = True, so the coords of the selected tile are appended
-            # to the end of the list of targets.
             'new_position': (self_new_x, self_new_y)
         }]
     }
-    damage = int(0.5 * (1 + skill_level) + 0.5 * self.attributes['str'])
     for target in targets:
+        damage = skill_level * max(1, self.attributes['str'] - target.attributes['end'] + self.off_rating)
         target.hp[0] = max(0, target.hp[0] - damage)
         ability_outcomes['movements'].append({
             'subject': target,
@@ -88,7 +89,9 @@ leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           active=True, targeting_function=board_renderer.highlight_radius_with_splash_target,
                           targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
                           save_target=True, multi_target=[(1, 0), (0, 1), (-1, 0), (0, -1)],
-                          level_up_dict={'target_radius': 1, 'mp_cost': 1})
+                          level_up_dict={'target_radius': 1, 'mp_cost': 1},
+                          details={'Damage Multiplier': '{skill_level}', 'Range': '3 + {skill_level}',
+                                   'Cooldown': '10', 'MP Cost': '4'})
 
 
 def chain_hook_func(self, targets, skill_level):
@@ -118,12 +121,13 @@ def chain_hook_func(self, targets, skill_level):
                      # try and check if it's an enemy.
     return ability_outcomes
 
-chain_hook = ActiveAbility(name='Chain Hook', mp_cost=4,
+chain_hook = ActiveAbility(name='Chain Hook', mp_cost=5,
                            description='Throw a grappling hook in a straight line at a target. If the target is an '
                                        'enemy, pulls them towards you. Otherwise, pulls you to the target.',
                            active=True, targeting_function=board_renderer.highlight_cross_pattern,
-                           function=chain_hook_func, level=0, cooldown=8, save_target=True,
-                           level_up_dict={'cooldown': 1, 'mp_cost': -1})
+                           function=chain_hook_func, level=0, cooldown=7, save_target=True,
+                           level_up_dict={'cooldown': 1, 'mp_cost': -1},
+                           details={'Cooldown': '7 - {skill_level}', 'MP Cost': '5 - {skill_level}'})
 
 from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin, quiet_steps
 
@@ -141,7 +145,7 @@ SKILL_TREE = {
     "passive_1": [
         {
             'ability': copy(calculated_strikes),
-            'level_prereq': 2,
+            'level_prereq': 2
         },
         {
             'ability': copy(thick_skin),
@@ -152,8 +156,7 @@ SKILL_TREE = {
         {
             'ability': copy(leap_slam),
             'level_prereq': 4,
-            'disabled': False
-
+            'disabled': False,
         },
         {
             'ability': copy(chain_hook),

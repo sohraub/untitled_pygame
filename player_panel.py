@@ -46,7 +46,8 @@ class PlayerPanel:
         self.tooltip_focus = None
         self.active_item_index = None
         self.skill_tree = SkillTreeController(self.player_dict['skill_tree'], self.player_dict['profession'],
-                                              self.player_dict['level'], self.player_dict['active_abilities'],
+                                              self.player_dict['level'], self.player_dict['attributes'],
+                                              self.player_dict['active_abilities'],
                                               self.player_dict['passive_abilities'])
         self.skill_tree_displaying = False
 
@@ -279,6 +280,7 @@ class PlayerPanel:
         if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
             self.tooltip_focus = self.ability_tiles[ability_index]
             player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index],
+                                                       self.player_dict['attributes'],
                                                        self.player_dict['mp'])
 
     def handle_conditions_mouseover(self):
