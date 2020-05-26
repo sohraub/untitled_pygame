@@ -110,3 +110,8 @@ class Character:
             self.mp[0] = min(self.mp[0] + 1, self.mp[1])
             self.mp[2] = 0
         return
+
+    def is_enemy(self):
+        if self.__class__.__name__ == 'Enemy':
+            return True
+        return False

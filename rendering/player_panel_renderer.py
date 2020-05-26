@@ -486,7 +486,7 @@ def draw_condition_details(conditions_dict, conditions_rect):
 
 def draw_status_details(status):
     """Function to draw a tooltip providing details on the status currently being hovered over."""
-    window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
+    window_body = ['----'] + status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
     draw_detail_window(header_string=status['name'], body_strings=window_body,
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))

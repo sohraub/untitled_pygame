@@ -188,8 +188,14 @@ class Game:
         else:
             target_coords = [targeted_coord := xy_coords_from_tile(target_rect)]
             if ability.multi_target_function:
-                target_coords += ability.multi_target_function(targeted_coord[0], targeted_coord[1],
-                                                               player_x=self.player.x, player_y=self.player.y)
+                if len(ability.multi_target_function) == 2:
+                    # In this case multi_target_function was passed a a 2-tuple of (function, parameters_dict)
+                    target_coords += ability.multi_target_function[0](targeted_coord[0], targeted_coord[1],
+                                                                       player_x=self.player.x, player_y=self.player.y,
+                                                                       **ability.multi_target_function[1])
+                else:
+                    target_coords += ability.multi_target_function(targeted_coord[0], targeted_coord[1],
+                                                                   player_x=self.player.x, player_y=self.player.y)
             for target_coord in target_coords:
                 if self.board.enemies.get(target_coord, None):
                     target = self.board.enemies[target_coord]

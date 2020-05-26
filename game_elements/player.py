@@ -8,7 +8,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=4,
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=7,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -92,8 +92,7 @@ class Player(Character):
             'equipment': self.equipment,
             'conditions': self.conditions,
             'active_abilities': [ability.to_dict() for ability in self.active_abilities],
-            # 'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
-            'passive_abilities': {},
+            'passive_abilities': self.passive_abilities,
             'level': self.level,
             'profession': self.profession,
             'skill_tree': self.skill_tree,
@@ -252,6 +251,7 @@ class Player(Character):
                 if target.hp[0] == 0:
                     from game_elements.enemy import death_phrases
                     ability_outcome['console_text'].append(random.choice(death_phrases))
+                    self.apply_on_kill_passives()
         else:
             ability_outcome = {
                 'console_text': [f'You used {ability.name}, but there was no target!']

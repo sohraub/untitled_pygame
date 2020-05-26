@@ -138,7 +138,7 @@ def find_best_step(start, goal, open_tiles):
     return None, None
 
 
-def find_tiles_in_radius(center_x, center_y, radius):
+def find_tiles_in_radius(center_x, center_y, radius, **kwargs):
     """Returns a list of every tile that has a manhattan distance of <= radius around the tile (center_x, center_y)"""
     tiles_in_radius = [(center_x + i, center_y + j)
                        for i in range(-(radius + 1), radius + 1)

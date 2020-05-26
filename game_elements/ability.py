@@ -36,7 +36,8 @@ class ActiveAbility(Ability):
         :param targeting_function_params: A dict of parameters for the targeting function, if necessary. None otherwise
         :param function: A function that will apply the ability effect.
         :param multi_target_function: If ability can target multiple tiles, then this will be a function that gathers
-                                      a list of every coordinate to be targeted.
+                                      a list of every coordinate to be targeted. If we want to pass in parameters to
+                                      this function, then set it as a tuple of (function, params_dict)
         :param save_target: A boolean flag, set to True only for function which target a tile, but don't actually
                             affect a target on the tile but need those coordinates saved for other purposes.
         :param mp_cost: Int, the cost in mp points to use this ability once.
@@ -80,6 +81,8 @@ class ActiveAbility(Ability):
             self.targeting_function_params['radius'] += self.level_up_dict['target_radius']
         if self.level_up_dict.get('mp_cost', False):
             self.mp_cost = max(0, self.level_up_dict['mp_cost'] + self.mp_cost)
+        if self.level_up_dict.get('area_of_effect', False):
+            self.multi_target_function[1]['radius'] += self.level_up_dict['area_of_effect']
 
 
 
