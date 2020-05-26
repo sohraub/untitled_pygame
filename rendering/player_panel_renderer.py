@@ -508,7 +508,7 @@ def draw_ability_details(ability, player_attributes, player_mp=None):
         top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
     else:
         top_left_y = mouse_pos[1]
-    parsed_description = parse_description(ability['description'], char_limit=30)
+    parsed_description = parse_description(ability['description'], char_limit=33)
     window_body = ['----', f'{"ACTIVE" if ability["active"] else "PASSIVE"} SKILL'] + parsed_description + \
                   ['----', f'Level: {max(ability["level"], 1)}']
     # Ability details are stored in a dict, where each key-value pair looks something like
@@ -528,7 +528,7 @@ def draw_ability_details(ability, player_attributes, player_mp=None):
                        [f'{key}: {eval(value.format(skill_level=ability["level"] + 1, **player_attributes))}'
                         for key, value in ability['details'].items()]
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
-                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
+                       rect_dimensions=(top_left_x, top_left_y, 1.05 * ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
 
 def draw_exp_details(experience):

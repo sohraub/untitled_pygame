@@ -35,8 +35,8 @@ def heavy_strike_func(self, targets, skill_level):
 
 def trolls_blood_func(self, skill_level, **kwargs):
     """Ability function which adds a health regen buff to self."""
-    from element_lists.status_list import health_regen
-    trolls_blood_regen = copy(health_regen)
+    from element_lists.status_list import hp_regen
+    trolls_blood_regen = copy(hp_regen)
     trolls_blood_regen.name = "Troll's Blood"
     trolls_blood_regen.params = {'value': skill_level * self.attributes['wis'] - 2}
     self.apply_status(trolls_blood_regen)
@@ -137,10 +137,37 @@ def bloodlust_func(self, targets, skill_level):
     return {'console_text': ['You cast Bloodlust on yourself, and suddenly feel insatiable.']}
 
 
+def soul_rend_func(self, targets, skill_level):
+    """
+    Ability function which targets an enemy to do a large amount of damage. If the enemy is killed by this ability,
+    the player regains all of the MP and also get a buff which increases their MP regen.
+    """
+    target = targets[0]
+    console_text = ['']
+    damage = (2 + skill_level) * (self.attributes['str'] - target.attributes['end'] + self.off_rating)
+    crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+    if crit_chance > random.randint(0, 100):
+        console_text[0] += 'Critical hit! '
+        damage = 2 * damage
+    target.hp[0] = max(0, target.hp[0] - damage)
+    console_text[0] += f'You use Soul Rend on the {target.display_name}, dealing {damage} damage.'
+    if target.hp[0] == 0:
+        # Set current MP to max + 6 because the mp cost is taken after the ability function returns
+        self.mp[0] = self.mp[1] + 6
+        from element_lists.status_list import mp_regen
+        soul_rend_buff = copy(mp_regen)
+        soul_rend_buff.name = 'Soul Rend'
+        soul_rend_buff.duration = 6 + skill_level
+        soul_rend_buff.params = {'value': 2 + skill_level}
+        self.apply_status(soul_rend_buff)
+        console_text.append("As the spirit fades from your enemy's eyes, you feel your energy grow.")
+    return {'console_text': console_text}
+
+
 #### ABILITIES ####
 heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
-                             description=f'Strike an enemy with all your might, dealing massive damage and knocking'
-                                         f' them back', active=True, level=1, cooldown=5,
+                             description='Strike an enemy with all your might, dealing massive damage and knocking'
+                                         ' them back', level=1, cooldown=5,
                              targeting_function=board_renderer.highlight_adjacent_tiles, function=heavy_strike_func,
                              details={'Damage Multiplier': '1 + {skill_level}', 'Cooldown': '5', 'MP Cost': '2'})
 
@@ -148,25 +175,25 @@ heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
 trolls_blood = ActiveAbility(name="Troll's Blood", mp_cost=3, function=trolls_blood_func, level=1, cooldown=15,
                              description='Cast a spell on yourself to gain some passive health regeneration. Healing '
                                          'amount scales with WIS.',
-                             active=True, targeting_function=board_renderer.highlight_self,
+                             targeting_function=board_renderer.highlight_self,
                              details={'HP Regen Per Turn': '{skill_level} * {wis} - 2',
                                       'Buff Duration': '7', 'Cooldown': '15', 'MP Cost': '3'})
 
 
 leap_slam = ActiveAbility(name='Leap Slam', mp_cost=4,
                           description='Leap towards a targeted space, damaging and knocking back all adjacent enemies',
-                          active=True, targeting_function=board_renderer.highlight_radius,
-                          targeting_function_params={'radius': 4}, function=leap_slam_func, level=0, cooldown=10,
+                          targeting_function=board_renderer.highlight_radius,
+                          targeting_function_params={'radius': 4}, function=leap_slam_func, cooldown=10,
                           save_target=True, multi_target_function=(utility_functions.find_tiles_in_radius, {'radius': 1}),
                           level_up_dict={'target_radius': 1, 'mp_cost': 1},
                           details={'Damage Multiplier': '{skill_level}', 'Range': '3 + {skill_level}',
                                    'Cooldown': '10', 'MP Cost': '4'})
 
 
-shockwave = ActiveAbility(name='Shockwave', active=True, targeting_function=board_renderer.highlight_in_cross_pattern,
+shockwave = ActiveAbility(name='Shockwave', targeting_function=board_renderer.highlight_in_cross_pattern,
                           description='Slam your weapon into the ground, releasing a seismic shock that deals heavy '
                                       'damage to every enemy in a straight line.',
-                          mp_cost=6, cooldown=10, level=0, function=shockwave_func,
+                          mp_cost=6, cooldown=10, function=shockwave_func,
                           multi_target_function=utility_functions.find_tiles_in_line_from_player_to_end,
                           details={ 'Damage Multiplier': '1 + {skill_level}', 'Cooldown': '10', 'MP Cost': '6'})
 
@@ -174,23 +201,36 @@ shockwave = ActiveAbility(name='Shockwave', active=True, targeting_function=boar
 chain_hook = ActiveAbility(name='Chain Hook', mp_cost=5,
                            description='Throw a grappling hook in a straight line at a target. If the target is an '
                                        'enemy, pulls them towards you. Otherwise, pulls you to the target.',
-                           active=True, targeting_function=board_renderer.highlight_enemies_and_walls_directly_ahead,
-                           function=chain_hook_func, level=0, cooldown=7, save_target=True,
+                           targeting_function=board_renderer.highlight_enemies_and_walls_directly_ahead,
+                           function=chain_hook_func, cooldown=7, save_target=True,
                            level_up_dict={'cooldown': 1, 'mp_cost': -1},
                            details={'Cooldown': '7 - {skill_level}', 'MP Cost': '5 - {skill_level}'})
 
 
-bloodlust = ActiveAbility(name="Bloodlust", mp_cost=6, function=bloodlust_func, level=0, cooldown=12,
+bloodlust = ActiveAbility(name="Bloodlust", mp_cost=6, function=bloodlust_func, cooldown=12,
                           description='Temporarily increases your STR, by an amount that increases for each nearby '
                                       'enemy.',
-                          active=True, multi_target_function=(utility_functions.find_tiles_in_radius, {'radius': 3}),
+                          multi_target_function=(utility_functions.find_tiles_in_radius, {'radius': 3}),
                           targeting_function=board_renderer.highlight_self,
                           details={'Base Strength Increase': '2 + {skill_level} - 1',
-                                   'Strength Increase per Enemy': '2 + int({skill_level}/3)',
+                                   'Strength Increase Per Enemy': '2 + int({skill_level}/3)',
                                    'Radius': '3 + {skill_level} - 1', 'Duration': '5 + {skill_level} - 1',
                                    'Cooldown': '12', 'MP Cost': '6'},
                           level_up_dict={'area_of_effect': 1})
 
+
+soul_rend = ActiveAbility(name='Soul Rend', mp_cost=6, cooldown=15,
+                          description="Deal a devastating blow that targets your enemy's very spirit. If used as a "
+                                      "killing blow, regain all your MP as well as a buff providing passive "
+                                      "MP regeneration.",
+                          targeting_function=board_renderer.highlight_adjacent_tiles, function=soul_rend_func,
+                          level_up_dict={'cooldown': 2},
+                          details={'Damage Multiplier': '2 + {skill_level}', 'MP Regen Per Turn': '2 + {skill_level}',
+                                   'Buff Duration': '6 + {skill_level}', 'Cooldown': '15 - {skill_level}',
+                                   'MP Cost': '6'})
+
+
+#### SKILL TREE ####
 from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin
 
 SKILL_TREE = {
@@ -248,7 +288,7 @@ SKILL_TREE = {
             'disabled': False
         },
         {
-            'ability': ActiveAbility(),
+            'ability': copy(soul_rend),
             'level_prereq': 7,
             'disabled': False
         },

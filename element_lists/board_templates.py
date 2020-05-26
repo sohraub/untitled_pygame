@@ -54,8 +54,8 @@ testing = ['XXXXXXXXXXXXXXX',
 
 
 TEMPLATE_LIST_MAP = {
-    # 1: [x, y],
-    1: [testing]
+    1: [x, y],
+    # 1: [testing]
 }
 
 def get_board_list(tier):

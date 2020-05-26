@@ -361,8 +361,7 @@ class Game:
             # trying to allocate skill points
             self.player_panel.handle_skill_point_allocation()
 
-
-        if self.player_panel.tooltip_focus is not None:
+        elif self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):
