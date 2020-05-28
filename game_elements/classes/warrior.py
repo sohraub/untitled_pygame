@@ -218,7 +218,7 @@ chain_hook = ActiveAbility(name='Chain Hook', mp_cost=5,
 
 
 bloodlust = ActiveAbility(name="Bloodlust", mp_cost=6, function=bloodlust_func, cooldown=12,
-                          description='Temporarily increases your STR, by an amount that increases for each nearby '
+                          description='Temporarily raise your STR, by an amount that increases for each nearby '
                                       'enemy.',
                           multi_target_function=(utility_functions.find_tiles_in_radius, {'radius': 3}),
                           targeting_function=board_renderer.highlight_self,
