@@ -39,7 +39,7 @@ def trolls_blood_func(self, skill_level, **kwargs):
     from element_lists.status_list import hp_regen
     trolls_blood_regen = copy(hp_regen)
     trolls_blood_regen.name = "Troll's Blood"
-    trolls_blood_regen.params = {'value': skill_level * self.attributes['wis'] - 2}
+    trolls_blood_regen.params = {'value': skill_level * (self.attributes['wis'] - 2)}
     self.apply_status(trolls_blood_regen)
     return {
         'console_text': ["You cast Troll's Blood on yourself, and every ache is a little less."]
@@ -186,7 +186,7 @@ trolls_blood = ActiveAbility(name="Troll's Blood", mp_cost=3, function=trolls_bl
                              description='Cast a spell on yourself to gain some passive health regeneration. Healing '
                                          'amount scales with WIS.',
                              targeting_function=board_renderer.highlight_self,
-                             details={'HP Regen Per Turn': '{skill_level} * {wis} - 2',
+                             details={'HP Regen Per Turn': '{skill_level} * ({wis} - 2)',
                                       'Buff Duration': '7', 'Cooldown': '15', 'MP Cost': '3'})
 
 
