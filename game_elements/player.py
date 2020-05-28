@@ -8,7 +8,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=7,
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=1,
                  experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
@@ -61,7 +61,7 @@ class Player(Character):
         self.skill_tree = skill_tree
         self.set_abilities_from_skill_tree()
         self.level = level
-        self.experience = experience if experience is not None else [19, 20]
+        self.experience = experience if experience is not None else [0, 20]
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()

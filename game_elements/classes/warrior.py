@@ -347,7 +347,7 @@ warrior_config = {
         'int': 3,
         'end': 7,
         'vit': 7,
-        'wis': 4
+        'wis': 3
     },
     'skill_tree': SKILL_TREE
 }

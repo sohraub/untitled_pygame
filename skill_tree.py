@@ -36,7 +36,7 @@ class SkillTreeController:
         self.level = level
         self.player_attributes = player_attributes
         self.skill_rect_map = dict()
-        self.skill_points = 1
+        self.skill_points = 0
         self.tooltip_focus = None
         # self.initialize_skill_tree()
 
