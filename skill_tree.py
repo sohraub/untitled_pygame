@@ -8,7 +8,7 @@ for allocating skill points, etc.
 """
 
 class SkillTreeController:
-    def __init__(self, skill_tree, profession, level, active_abilities, passive_abilities):
+    def __init__(self, skill_tree, profession, level, player_attributes, active_abilities, passive_abilities):
         """
         Class that handles all things skill tree, from allocating new points to displaying mouse-over info. Is saved
         as an attribute to the PlayerPanel, so that the panel can act as an intermediary that reads any changes made
@@ -34,8 +34,9 @@ class SkillTreeController:
         self.skill_tree = skill_tree
         self.profession = profession
         self.level = level
+        self.player_attributes = player_attributes
         self.skill_rect_map = dict()
-        self.skill_points = 0
+        self.skill_points = 1
         self.tooltip_focus = None
         # self.initialize_skill_tree()
 
@@ -56,7 +57,8 @@ class SkillTreeController:
                 if rect.collidepoint(mouse_pos):
                     # Todo: this condition is only while skill trees still have blank entries
                     if skill_tree[key[0]][key[1]]['ability'] != '':
-                        skill_tree_renderer.draw_ability_details_in_skill_tree(skill_tree[key[0]][key[1]]['ability'])
+                        skill_tree_renderer.draw_ability_details_in_skill_tree(skill_tree[key[0]][key[1]]['ability'],
+                                                                               self.player_attributes)
                     self.tooltip_focus = rect
 
     def allocate_skill_points(self):
@@ -76,15 +78,26 @@ class SkillTreeController:
             if self.level >= ability_entry['level_prereq'] and not ability_entry.get('disabled', False):
                 self.skill_points -= 1
                 self.level_up_skill(tree_level, index)
+                if ability_entry.get('disabled', None) is not None:
+                    # If the allocated ability is a non-starting active ability, we disable the other abilities in this
+                    # level, since the players only get to chose one ability per layer.
+                    for entry in self.skill_tree[tree_level]:
+                        if entry['ability'].name is not ability_entry['ability'].name:
+                            entry['disabled'] = True
                 self.tooltip_focus = None
                 self.render_skill_tree()
                 return True
         return False
 
     def level_up_skill(self, tree_level, index):
-        """Increases the level of a skill and updates the ability accordingly."""
+        """
+        Increases the level of a skill and updates the ability accordingly. Active abilities have a level_up method
+        which will be called, whereas passive abilities just have their values incremented by the level-1 value.
+        """
         ability = self.skill_tree[tree_level][index]['ability']
         if not ability.active and ability.level > 0:
             ability.value += int(ability.value / ability.level)
+        if ability.active and ability.level > 0:
+            ability.level_up()
         ability.level += 1
         return

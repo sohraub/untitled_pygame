@@ -187,9 +187,15 @@ class Game:
             return targets
         else:
             target_coords = [targeted_coord := xy_coords_from_tile(target_rect)]
-            if ability.multi_target:
-                for coord in ability.multi_target:
-                    target_coords.append((targeted_coord[0] + coord[0], targeted_coord[1] + coord[1]))
+            if ability.multi_target_function:
+                if len(ability.multi_target_function) == 2:
+                    # In this case multi_target_function was passed a a 2-tuple of (function, parameters_dict)
+                    target_coords += ability.multi_target_function[0](targeted_coord[0], targeted_coord[1],
+                                                                       player_x=self.player.x, player_y=self.player.y,
+                                                                       **ability.multi_target_function[1])
+                else:
+                    target_coords += ability.multi_target_function(targeted_coord[0], targeted_coord[1],
+                                                                   player_x=self.player.x, player_y=self.player.y)
             for target_coord in target_coords:
                 if self.board.enemies.get(target_coord, None):
                     target = self.board.enemies[target_coord]
@@ -355,8 +361,7 @@ class Game:
             # trying to allocate skill points
             self.player_panel.handle_skill_point_allocation()
 
-
-        if self.player_panel.tooltip_focus is not None:
+        elif self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):

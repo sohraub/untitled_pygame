@@ -486,19 +486,18 @@ def draw_condition_details(conditions_dict, conditions_rect):
 
 def draw_status_details(status):
     """Function to draw a tooltip providing details on the status currently being hovered over."""
-    window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
+    window_body = ['----'] + status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
     draw_detail_window(header_string=status['name'], body_strings=window_body,
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))
 
 
-def draw_ability_details(ability, player_mp=None):
+def draw_ability_details(ability, player_attributes, player_mp=None):
     """
     Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
     player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
-    above the cursor regardless of mouse position.
-    If player_mp = None, then this function was called from the skill_tree renderer so we don't need to display mp and
-    cooldown details.
+    above the cursor regardless of mouse position. If player_mp is None, this implies that the function was called from
+    the skill tree, so we don't display info such as turns left in the cooldown.
     """
     mouse_pos = pg.mouse.get_pos()
     if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
@@ -509,28 +508,28 @@ def draw_ability_details(ability, player_mp=None):
         top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
     else:
         top_left_y = mouse_pos[1]
-    if ability['active']:
-        draw_active_ability_details(ability, top_left_x, top_left_y, player_mp)
-    else:  # Otherwise it is a passive ability
-        draw_passive_ability_details(ability, top_left_x, top_left_y)
-
-def draw_active_ability_details(ability, top_left_x, top_left_y, player_mp):
-    parsed_description = parse_description(ability['description'], char_limit=30)
-    window_body = ['----'] + parsed_description + ['----', 'Active Skill', f'Level: {ability["level"]}',
-                                                   f'Cooldown: {ability["cooldown"]}', f'MP Cost: {ability["mp_cost"]}']
-    if player_mp is not None:
+    parsed_description = parse_description(ability['description'], char_limit=33)
+    window_body = ['----', f'{"ACTIVE" if ability["active"] else "PASSIVE"} SKILL'] + parsed_description + \
+                  ['----', f'Level: {max(ability["level"], 1)}']
+    # Ability details are stored in a dict, where each key-value pair looks something like
+    #    'HP Regen Per Turn' : '{skill_level} + {wis} * 2'
+    # So we use format() with the skill level and player attributes to fill in the values, and eval() to evaluate
+    # the string expression to an integer value. If the skill is level 0 (not allocated), show the details for level 1
+    window_body += [f'{key}: {eval(value.format(skill_level=max(ability["level"], 1), **player_attributes))}'
+                    for key, value in ability['details'].items()]
+    if player_mp is not None:  # Implies tooltip is being displayed in the player panel
         if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
             window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
         if ability['mp_cost'] > player_mp[0]:
             window_body.append(("Not enough MP!!", colors.RED))
+    elif 0 < ability['level'] < 3: # Implies this is being displayed in the skill tree (since player_mp is None)
+        # If the ability level is in (0, 3) we show the details for the next level as well.
+        window_body += ['----', 'Next Level:'] +\
+                       [f'{key}: {eval(value.format(skill_level=ability["level"] + 1, **player_attributes))}'
+                        for key, value in ability['details'].items()]
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
-                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
+                       rect_dimensions=(top_left_x, top_left_y, 1.05 * ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
-def draw_passive_ability_details(ability, top_left_x, top_left_y):
-    parsed_description = parse_description(ability['description'].format(ability['value']), char_limit=30)
-    window_body = ['----'] + parsed_description + ['----', 'Passive Skill', f'Level: {ability["level"]}']
-    draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
-                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 0))
 
 def draw_exp_details(experience):
     """Draws tooltip showing details about the player's current experience progress."""

@@ -138,7 +138,7 @@ def find_best_step(start, goal, open_tiles):
     return None, None
 
 
-def find_tiles_in_radius(center_x, center_y, radius):
+def find_tiles_in_radius(center_x, center_y, radius, **kwargs):
     """Returns a list of every tile that has a manhattan distance of <= radius around the tile (center_x, center_y)"""
     tiles_in_radius = [(center_x + i, center_y + j)
                        for i in range(-(radius + 1), radius + 1)
@@ -147,3 +147,22 @@ def find_tiles_in_radius(center_x, center_y, radius):
                           (0 < (center_x + i) < BOARD_LENGTH and 0 < (center_y + j) < BOARD_HEIGHT)]
     tiles_in_radius.remove((center_x, center_y))
     return tiles_in_radius
+
+
+def find_tiles_in_radius_of_1(center_x, center_y, **kwargs):
+    """Calls find_tiles_in_radius() with a radius of 1"""
+    return find_tiles_in_radius(center_x, center_y, radius=1)
+
+
+def find_tiles_in_line_from_player_to_end(target_x, target_y, player_x, player_y):
+    """
+    Returns a list of every tile in a line from the player's coordinates to the end of the board, going through the
+    target coordinates.
+    """
+    if target_x == player_x:  # Then we're moving in a vertical direction:
+        iter_range = range(0, player_y) if target_y < player_y else range(player_y + 1, BOARD_HEIGHT)
+        return [(player_x, i) for i in iter_range if i != target_y]  # The condition here is to avoid counting the
+                                                                     # targeted enemy twice.
+    else:  # Then we're moving in a horizontal direction:
+        iter_range = range(0, player_x) if target_x < player_x else range(player_x + 1, BOARD_LENGTH)
+        return [(i, player_y) for i in iter_range if i != target_x]

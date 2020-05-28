@@ -147,10 +147,10 @@ class Board:
         console_text = list()
         if self.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
             console_text.append(self.handle_step_on_trap((new_x, new_y), character))
-        if character.__class__.__name__ == 'Player':
-            self.update_player_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
-        elif character.__class__.__name__ == 'Enemy':
+        elif character.is_enemy():
             self.update_enemy_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
+        else:
+            self.update_player_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
         character.x, character.y = new_x, new_y
         self.rebuild_template()
 
@@ -164,7 +164,7 @@ class Board:
         :param target: The Character which triggered the trap.
         :returns: New lines for console.
         """
-        enemy_target = True if target.__class__.__name__ == 'Enemy' else False
+        enemy_target = True if target.is_enemy() else False
         trap = self.traps[trap_pos]
         if enemy_target:
             console_text = f'The {target.display_name} steps on a {trap.name} trap, '
@@ -202,3 +202,4 @@ class Board:
         self.applied_passives['enemy_aggro'] = passive_board_mods.get('enemy_aggro', 0)
         for enemy in self.enemies.values():
             enemy.aggro_range -= enemy_aggro_mod
+

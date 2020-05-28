@@ -110,3 +110,22 @@ class Character:
             self.mp[0] = min(self.mp[0] + 1, self.mp[1])
             self.mp[2] = 0
         return
+
+    def is_enemy(self):
+        if self.__class__.__name__ == 'Enemy':
+            return True
+        return False
+
+    def apply_defensive_combat_statuses(self, combat_dict):
+        """
+        Applies all the defensive combat statuses of this character when they are being attacked.
+        :param combat_dict: A dict containing all the data points of the combat instance, e.g. the attacker, the target,
+                            the damage being dealt, etc.
+        :return: console_text, a list of all the new console text resulting from these status effects.
+        """
+        console_text = list()
+        for status in self.status['buffs'] + self.status['debuffs']:
+            if status.is_combat_status() and not status.offensive:
+                console_text.append(status.combat_function(**combat_dict))
+
+        return console_text

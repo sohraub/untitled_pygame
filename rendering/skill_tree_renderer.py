@@ -65,7 +65,8 @@ def draw_skill_as_upgradable(player_level, ability_entry, rect):
     If the player has skill points to spend, and a particular skill is upgradable, render a '+' sign on the skill
     to indicate that it can be upgraded.
     """
-    if ability_entry['ability'].level < 3 and ability_entry['level_prereq'] <= player_level:
+    if ability_entry['ability'].level < 3 and ability_entry['level_prereq'] <= player_level and \
+            not ability_entry.get('disabled', False):
         plus_sign = FONT_50.render('+', 1, colors.YELLOW)
         text_rect = plus_sign.get_rect(center=(rect[0] + 0.5 * rect[2], rect[1] + 0.5 * rect[3]))
         MAIN_WINDOW.blit(plus_sign, text_rect)
@@ -119,10 +120,10 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
         MAIN_WINDOW.blit(level_text, text_rect)
 
 
-def draw_ability_details_in_skill_tree(ability):
+def draw_ability_details_in_skill_tree(ability, player_attributes):
     """
     Draws tooltips in the skill tree displaying info for the ability currently being moused over. Position of the
     window depends on the mouse location, e.g. if the mouse is on the top half of the screen, then display the window
     downwards, or if the mouse is on the left side of the panel display the window to the right of the cursor, etc.
     """
-    draw_ability_details(ability.to_dict())
+    draw_ability_details(ability.to_dict(), player_attributes)
