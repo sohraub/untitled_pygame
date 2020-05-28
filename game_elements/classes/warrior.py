@@ -33,6 +33,7 @@ def heavy_strike_func(self, targets, skill_level):
     }
     return ability_outcomes
 
+
 def trolls_blood_func(self, skill_level, **kwargs):
     """Ability function which adds a health regen buff to self."""
     from element_lists.status_list import hp_regen
@@ -164,6 +165,15 @@ def soul_rend_func(self, targets, skill_level):
     return {'console_text': console_text}
 
 
+def retribution_func(self, skill_level, **kwargs):
+    """Ability function which adds a buff to self which reflects all incoming damage."""
+    from element_lists.status_list import reflect_damage
+    retribution_buff = copy(reflect_damage)
+    retribution_buff.name = 'Retribution'
+    retribution_buff.duration = 5 + skill_level - 1
+    self.apply_status(retribution_buff)
+    return {'console_text': 'You cast Retribution on yourself, and eye your attackers eagerly.'}
+
 #### ABILITIES ####
 heavy_strike = ActiveAbility(name='Heavy Strike', mp_cost=2,
                              description='Strike an enemy with all your might, dealing massive damage and knocking'
@@ -230,6 +240,13 @@ soul_rend = ActiveAbility(name='Soul Rend', mp_cost=6, cooldown=15,
                                    'MP Cost': '6'})
 
 
+retribution = ActiveAbility(name='Retribution', mp_cost=8, cooldown=15, function=retribution_func,
+                            targeting_function=board_renderer.highlight_self,
+                            description='Temporarily gain a buff which reflects all incoming damage back to the '
+                                        'attackers',
+                            details={'Buff Duration': '5 + {skill_level} - 1', 'Cooldown': '15', 'MP Cost': '8'})
+
+
 #### SKILL TREE ####
 from element_lists.passive_abilities import calculated_strikes, bloodthirsty, deadly_momentum, thick_skin
 
@@ -293,7 +310,7 @@ SKILL_TREE = {
             'disabled': False
         },
         {
-            'ability': ActiveAbility(),
+            'ability': copy(retribution),
             'level_prereq': 7,
             'disabled': False
         }
@@ -330,7 +347,7 @@ warrior_config = {
         'int': 3,
         'end': 7,
         'vit': 7,
-        'wis': 3
+        'wis': 4
     },
     'skill_tree': SKILL_TREE
 }

@@ -70,6 +70,8 @@ class Enemy(Character):
             base_damage = 0
             console_text[0] += 'Miss! '
 
+        combat_dict = {'attacker': self, 'target': target, 'damage': base_damage}
+        console_text += target.apply_defensive_combat_statuses(combat_dict)
         console_text[0] += f"The {self.display_name} attacks you for {base_damage} damage. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         return console_text

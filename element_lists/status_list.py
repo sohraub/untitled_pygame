@@ -1,6 +1,6 @@
 from math import ceil
 
-from game_elements.status import Status
+from game_elements.status import Status, CombatStatus
 from utility_functions import parse_description
 
 
@@ -34,6 +34,19 @@ def mp_regen_effect(target, value):
     return ''
 
 
+def reflect_damage(attacker, target, damage, **kwargs):
+    """Any damage taken is reflected back to the attacker. If damage being dealt is 0, do nothing."""
+    if damage == 0:
+        return ''
+    attacker.hp[0] = max(0, attacker.hp[0] - damage)
+    # Add the damage value to target's hp to cancel out when it's subtracted later in the combat function
+    target.hp[0] += damage
+    attacker_name = attacker.display_name if attacker.is_enemy() else attacker.name
+    target_name = target.display_name if target.is_enemy() else target.name
+    console_text = f'{attacker_name} attempts to deal {damage} damage to {target_name}, but the damage is reflected.'
+    return console_text
+
+
 #### STATUSES ####
 
 lesser_poison = Status(name='Lesser Poison', type='debuff', duration=5,
@@ -52,4 +65,8 @@ increased_strength = Status(name='Increased Strength', type='buff', duration=5,
                             description=parse_description('Temporarily increase Strength'),
                             attribute_effects={'str': 2})
 
+reflect_damage = CombatStatus(name='Reflect Damage', type='buff', duration=5,
+                              description=parse_description('Reflects all damage taken back to the attacker',
+                                                            char_limit=30),
+                              offensive=False, combat_function=reflect_damage)
 

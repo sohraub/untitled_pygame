@@ -33,6 +33,10 @@ class Status:
     def __repr__(self):
         return f'{self.name} - {self.turns_left} turns left'
 
+    def is_combat_status(self):
+        """Simple function which returns True if self is a CombatStatus, and False otherwise."""
+        return self.__class__.__name__ == 'CombatStatus'
+
     def to_dict(self):
         """Returns a dict representation of the status, for rendering purposes mostly."""
         return {
@@ -42,4 +46,19 @@ class Status:
             'description': self.description
         }
 
+
+class CombatStatus(Status):
+    def __init__(self, name, type, duration, description, combat_function, offensive=True):
+        """
+        Combat statuses are a sub-class of statuses which have their effects applied only in combat. These effects take
+        the form of a function that will be applied on a dict which contains all of the individual data-point in an
+        instance of combat (e.g. the attacker, the target, the damage dealt, crit rate, etc.) and apply their effects
+        to the values.
+        :param combat_function: The function that will be applied to the combat values dict as the effect of this status
+        :param offensive: A boolean, True if this is an offensive status (i.e. applied when the player is attacking an
+                          enemy) and False if it's a defensive status (i.e. applied when an enemy attacks the player).
+        """
+        super().__init__(name, type, duration, description)
+        self.combat_function = combat_function
+        self.offensive = offensive
 
