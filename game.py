@@ -242,8 +242,10 @@ class Game:
             # If no movements were found, loop over an empty list, i.e. do nothing
             for movement in ability_outcome.get('movements', list()):
                 # Each movement entry in the ability_outcome dict will look like
-                # { 'subject': The character object that's being moved
-                #   'new_position': (new_x, new_y) }
+                #   { 'subject': The character object that's being moved
+                #     'new_position': (new_x, new_y) }
+                if movement['subject'].hp[0] == 0:  # Don't bother moving the character if they were killed
+                    continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
                 if self.board.template[new_y][new_x] in {'O', 'R'}:

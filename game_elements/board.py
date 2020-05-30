@@ -115,6 +115,9 @@ class Board:
         if new_pos in set(self.tile_mapping['O']):
             self.tile_mapping['O'].remove(new_pos)
         self.tile_mapping['O'].append(old_pos)
+        print(self.enemies)
+        print('old pos', old_pos)
+        print('new pos', new_pos)
         self.enemies[new_pos] = self.enemies.pop(old_pos)  # Updates the key-value pair of the actual Enemy object
         self.enemies[new_pos].x = new_pos[0]  # Updates the Enemy object's coordinate values
         self.enemies[new_pos].y = new_pos[1]
@@ -147,7 +150,7 @@ class Board:
         console_text = list()
         if self.template[new_y][new_x] == 'R':  # Moving to a tile with a trap
             console_text.append(self.handle_step_on_trap((new_x, new_y), character))
-        elif character.is_enemy():
+        if character.is_enemy():
             self.update_enemy_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
         else:
             self.update_player_position(old_pos=(character.x, character.y), new_pos=(new_x, new_y))
@@ -164,9 +167,8 @@ class Board:
         :param target: The Character which triggered the trap.
         :returns: New lines for console.
         """
-        enemy_target = True if target.is_enemy() else False
         trap = self.traps[trap_pos]
-        if enemy_target:
+        if target.is_enemy():
             console_text = f'The {target.display_name} steps on a {trap.name} trap, '
             # console_text.append(f'The {target.display_name} steps on a {trap.name} trap, ')
         else:
@@ -180,11 +182,11 @@ class Board:
                 console_text += f'taking {damage} damage.'
             elif trap.type == 'debuff':
                 effect = trap.function(target)
-                console_text += f'and become{"s" if enemy_target else ""} {effect}.'
+                console_text += f'and become{"s" if target.is_enemy() else ""} {effect}.'
             self.handle_trap_triggered(trap_pos)
 
         else:
-            console_text += f'but avoid{"s" if enemy_target else ""} triggering it.'
+            console_text += f'but avoid{"s" if target.is_enemy() else ""} triggering it.'
 
         return console_text
 
