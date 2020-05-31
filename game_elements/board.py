@@ -6,6 +6,7 @@ from game_elements import trap
 from game_elements import chest
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering import board_renderer
+from utility_functions import find_exit_direction, has_appropriate_entrance, rotate_board
 
 
 def choose_random_board(tier=1):
@@ -70,7 +71,6 @@ class Board:
                     self.player_coordinates = (x, y)
                 elif self.template[y][x] in self.tile_mapping.keys():
                     self.tile_mapping[self.template[y][x]].append((x, y))
-        self.doors = self.generate_adjacent_boards()
         self.enemies = dict()
         for coord in self.tile_mapping['E']:
             self.enemies[coord] = enemy.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
@@ -210,49 +210,18 @@ class Board:
         for enemy in self.enemies.values():
             enemy.aggro_range -= enemy_aggro_mod
 
-    def find_exit_direction(self, door_x, door_y):
-        """Given the x,y-coordinates of a door on this board, return the location of it as an exit."""
-        max = BOARD_HEIGHT - 1
-        if door_x == 0:
-            return 'left'
-        if door_x == max:
-            return 'right'
-        if door_y == 0:
-            return 'top'
-        if door_y == max:
-            return 'bottom'
-        # If the door is not on one of the edges, then check the tiles immediately before and after it in each direction
-        if self.template[door_y][door_x + 1] != 'X' and self.template[door_y][door_x - 1] == 'X':
-            return 'left'
-        if self.template[door_y][door_x - 1] != 'X' and self.template[door_y][door_x + 1] == 'X':
-            return 'right'
-        if self.template[door_y + 1][door_x] != 'X' and self.template[door_y - 1][door_x] == 'X':
-            return 'top'
-        if self.template[door_y - 1][door_x] != 'X' and self.template[door_y + 1][door_x] == 'X':
-            return 'bottom'
-
-    def has_appropriate_entrance(self, target_direction):
-        for door_coord in self.tile_mapping['D']:
-            if self.find_exit_direction(door_coord[0], door_coord[1]) == target_direction:
-                return True
-        return False
-
-    def rotate_board(self):
-        new_template = copy.copy(self.template)
-        for i in range(len(new_template)):
-            new_template[i] = ''.join(self.template[x][i] for x in range(len(new_template)))
-        self.template = new_template
-
     def generate_adjacent_boards(self):
         direction_mapping = {'top': 'bottom', 'bottom':'top', 'left':'right', 'right':'left'}
         door_dict = dict()
         for door_coord in self.tile_mapping['D']:
-            exit_direction = self.find_exit_direction(door_coord[0], door_coord[1])
-            new_board = Board(dist_from_initial_board=self.dist_from_initial_board + 1)
-            while not new_board.has_appropriate_entrance(target_direction=direction_mapping[exit_direction]):
-                new_board.rotate_board()
-            door_dict[door_coord] = new_board
+            exit_direction = find_exit_direction(self.template, door_coord[0], door_coord[1])
+            new_board = choose_random_board(tier=1)
+            has_entrance = has_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+            while not has_entrance:
+                new_board = rotate_board(new_board)
+                has_entrance = has_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+            door_dict[door_coord] = Board(board_template=new_board)
 
-        return door_dict
+        self.doors = door_dict
 
 

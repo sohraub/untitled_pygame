@@ -166,3 +166,43 @@ def find_tiles_in_line_from_player_to_end(target_x, target_y, player_x, player_y
     else:  # Then we're moving in a horizontal direction:
         iter_range = range(0, player_x) if target_x < player_x else range(player_x + 1, BOARD_LENGTH)
         return [(i, player_y) for i in iter_range if i != target_x]
+
+
+def find_exit_direction(board_template, door_x, door_y):
+    max = BOARD_HEIGHT - 1
+    if door_x == 0:
+        return 'left'
+    if door_x == max:
+        return 'right'
+    if door_y == 0:
+        return 'top'
+    if door_y == max:
+        return 'bottom'
+    # If the door is not on one of the edges, then check the tiles immediately before and after it in each direction
+    if board_template[door_y][door_x + 1] != 'X' and board_template[door_y][door_x - 1] == 'X':
+        return 'left'
+    if board_template[door_y][door_x - 1] != 'X' and board_template[door_y][door_x + 1] == 'X':
+        return 'right'
+    if board_template[door_y + 1][door_x] != 'X' and board_template[door_y - 1][door_x] == 'X':
+        return 'top'
+    if board_template[door_y - 1][door_x] != 'X' and board_template[door_y + 1][door_x] == 'X':
+        return 'bottom'
+
+
+def has_appropriate_entrance(board_template, target_direction):
+    door_coordinates = list()
+    for i in range(len(board_template)):
+        for j in range(len(board_template[i])):
+            if board_template[i][j] == 'D':
+                door_coordinates.append((j, i))
+    for door_coord in door_coordinates:
+        if find_exit_direction(board_template, door_coord[0], door_coord[1]) == target_direction:
+            return True
+    return False
+
+
+def rotate_board(board_template):
+    new_template = copy.copy(board_template)
+    for i in range(len(new_template)):
+        new_template[i] = ''.join(board_template[x][i] for x in range(len(new_template)))
+    return new_template
