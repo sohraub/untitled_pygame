@@ -39,7 +39,7 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
-        self.set_board_transitions()
+        # self.set_board_transitions()
 
     def set_board_transitions(self, tier=1):
         """For each door in the current board, determine what the next board will be once a player enters that door."""
@@ -381,7 +381,7 @@ class Game:
         self.board = new_board
         self.misc_panel.board = new_board
         self.player.x, self.player.y = self.board.player_coordinates
-        self.set_board_transitions()
+        # self.set_board_transitions()
         self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
