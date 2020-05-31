@@ -128,7 +128,6 @@ class Game:
         else
             wait
         """
-        # enemies = list(self.board.enemies.values())
         for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
@@ -150,7 +149,7 @@ class Game:
                     adjacent_tiles = ([(enemy.x + i, enemy.y) for i in [-1, 1]] +
                                       [(enemy.x, enemy.y + i) for i in [-1, 1]])
                     new_x, new_y = random.choice([tile for tile in adjacent_tiles if tile in set(open_tiles)])
-                if new_x is not None:  # Check if a valid movement was found
+                if new_x is not None and self.board.tile_is_open(new_x, new_y):  # Check if a valid movement was found
                     self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
@@ -248,7 +247,7 @@ class Game:
                     continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
-                if self.board.template[new_y][new_x] in {'O', 'R'}:
+                if self.board.tile_is_open(new_x, new_y):
                     self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
                                                                   new_y=new_y))
                     self.load_game_board()

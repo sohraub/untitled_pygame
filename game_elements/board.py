@@ -93,6 +93,10 @@ class Board:
 
     def tile_is_open(self, x, y):
         """Method that simply returns a boolean signifying if the passed in coordinate is of an open tile."""
+        if (x, y) in set(self.traps.keys()) and (x, y) in set(self.enemies.keys()):
+            # Handles the rare case when an enemy steps on a trap but avoided triggering it. This is the only time, so
+            # far at least, when a tile can contain two objects (in this case a trap and an Enemy)
+            return False
         if (x, y) in set(self.tile_mapping['O'] + self.tile_mapping['R']):
             return True
         return False
