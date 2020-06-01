@@ -189,7 +189,7 @@ def find_exit_direction(board_template, door_x, door_y):
         return 'bottom'
 
 
-def has_appropriate_entrance(board_template, target_direction):
+def find_appropriate_entrance(board_template, target_direction):
     door_coordinates = list()
     for i in range(len(board_template)):
         for j in range(len(board_template[i])):
@@ -197,8 +197,8 @@ def has_appropriate_entrance(board_template, target_direction):
                 door_coordinates.append((j, i))
     for door_coord in door_coordinates:
         if find_exit_direction(board_template, door_coord[0], door_coord[1]) == target_direction:
-            return True
-    return False
+            return (door_coord[0], door_coord[1])
+    return None
 
 
 def rotate_board(board_template):

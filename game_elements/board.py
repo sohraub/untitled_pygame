@@ -6,7 +6,7 @@ from game_elements import trap
 from game_elements import chest
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering import board_renderer
-from utility_functions import find_exit_direction, has_appropriate_entrance, rotate_board
+from utility_functions import find_exit_direction, find_appropriate_entrance, rotate_board
 
 
 def choose_random_board(tier=1):
@@ -31,7 +31,7 @@ class Board:
                       'XXXXXXXXDXXXXXXX']
     according to the tile_mapping below.
     """
-    def __init__(self, board_template=None, tier=1, dist_from_initial_board=0):
+    def __init__(self, board_template=None, doors_dict=None, tier=1, dist_from_initial_board=0):
         """
         The Board object will be responsible for holding all of the data which is specific to each board and
         nothing else.
@@ -56,6 +56,7 @@ class Board:
         self.enemies = dict()
         self.chests = dict()
         self.traps = dict()
+        self.doors = doors_dict if doors_dict is not None else dict()
         self.tile_mapping = {
             # Each letter corresponds to:
             'X': list(),  # Wall tiles
@@ -212,16 +213,27 @@ class Board:
 
     def generate_adjacent_boards(self):
         direction_mapping = {'top': 'bottom', 'bottom':'top', 'left':'right', 'right':'left'}
-        door_dict = dict()
+        entry_position_mapping = {'top': (0, 1), 'bottom': (0, -1), 'left': (1, 0), 'right': (-1, 0)}
         for door_coord in self.tile_mapping['D']:
+            if door_coord in self.doors.keys():
+                continue
             exit_direction = find_exit_direction(self.template, door_coord[0], door_coord[1])
             new_board = choose_random_board(tier=1)
-            has_entrance = has_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
-            while not has_entrance:
+            entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+            while entry_door is None:
                 new_board = rotate_board(new_board)
-                has_entrance = has_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
-            door_dict[door_coord] = Board(board_template=new_board)
+                entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+            return_pos_delta = entry_position_mapping[exit_direction]
+            new_board_doors_dict = {
+                entry_door: {
+                    'board': self,
+                    'entry_position': (door_coord[0] + return_pos_delta[0], door_coord[1] + return_pos_delta[1])
+                 }
+            }
+            entry_pos_delta = entry_position_mapping[direction_mapping[exit_direction]]
+            board_dict = {'board': Board(board_template=new_board, doors_dict=new_board_doors_dict),
+                          'entry_position': (entry_door[0] + entry_pos_delta[0], entry_door[1] + entry_pos_delta[1])}
+            self.doors[door_coord] = board_dict
 
-        self.doors = door_dict
 
 

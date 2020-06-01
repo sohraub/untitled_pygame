@@ -8,7 +8,7 @@ from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
-from element_lists.board_templates import get_board_list
+from element_lists.board_templates import get_board_list, starting_board
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
@@ -28,7 +28,7 @@ class Game:
         :param filename: The save file which the game is loaded from. TODO: implement this
         """
         self.console = console
-        self.board = board if board is not None else Board()
+        self.board = board if board is not None else Board(board_template=starting_board)
         self.player = player if player is not None else Player()
         # Player coordinates are initialized from the board template
         self.player.x = self.board.player_coordinates[0]
@@ -376,10 +376,11 @@ class Game:
 
     def handle_board_transition(self, door_coordinates):
         """Handles all the necessary updates when the Player steps on a door and transitions to the next board."""
-        new_board = self.board.doors[door_coordinates]
+        new_board = self.board.doors[door_coordinates]['board']
+        self.player.x, self.player.y = self.board.doors[door_coordinates]['entry_position']
         self.board = new_board
+        self.board.player_coordinates = (self.player.x, self.player.y)
         self.misc_panel.board = new_board
-        self.player.x, self.player.y = self.board.player_coordinates
         self.board.generate_adjacent_boards()
         self.load_game_board()
 

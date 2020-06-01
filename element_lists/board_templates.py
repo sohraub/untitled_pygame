@@ -4,21 +4,21 @@ lists that will be randomly chosen from on the creation of a new Board object.
 """
 
 #### TEMPLATES ####
-x = ['XXXXXXXXXXXXXXX',
-     'XXXXXXXXXXXXXXX',
-     'XXXXXXXXXXXXDXX',
-     'DOOEOTOOOOOOOOX',
-     'XOOOOOOOOOEOOOX',
-     'XOOOOOEOOOOOOOX',
-     'XXXXXXOOOXXXXXX',
-     'XXXXXXOOOXXXXXX',
-     'XXXXXXOORXXXXXX',
-     'XXXXOOOOOOTXXXX',
-     'XXXXOOOPOOOXXXX',
-     'XXXXXXXDXXXXXXX',
-     'XXXXXXXXXXXXXXX',
-     'XXXXXXXXXXXXXXX',
-     'XXXXXXXXXXXXXXX']
+starting_board = ['XXXXXXXXXXXXXXX',
+                  'XXXXXXXXXXXXXXX',
+                  'XXXXXXXXXXXXDXX',
+                  'DOOEOTOOOOOOOOX',
+                  'XOOOOOOOOOEOOOD',
+                  'XOOOOOEOOOOOOOX',
+                  'XXXXXXOOOXXXXXX',
+                  'XXXXXXOOOXXXXXX',
+                  'XXXXXXOORXXXXXX',
+                  'XXXXOOOOOOTXXXX',
+                  'XXXXOOOPOOOXXXX',
+                  'XXXXXXXXXXXXXXX',
+                  'XXXXXXXXXXXXXXX',
+                  'XXXXXXXXXXXXXXX',
+                  'XXXXXXXXXXXXXXX']
 
 y = ['XXDXXXXXXXXXDXX',
      'XOOOOXXXXXOOOOX',
@@ -33,7 +33,7 @@ y = ['XXDXXXXXXXXXDXX',
      'XOOOOXXXXXOOOOX',
      'XOOOROOOOOROOOX',
      'XTOOOOOOOOOOOTX',
-     'XOOOOOOOPOOOOOX',
+     'XOOOOOOOOOOOOOX',
      'XXXXXXXXDXXXXXX']
 
 z = ['XXXXXXXXXXXXXDX',
@@ -49,7 +49,7 @@ z = ['XXXXXXXXXXXXXDX',
      'XXXXXXXXOOOOOXX',
      'XXXXXXXXOOOOOXX',
      'XXXXXXXXXOOOOXX',
-     'XXXXXXXXXXOPOXX',
+     'XXXXXXXXXXOOOXX',
      'XXXXXXXXXXXDXXX']
 
 a = ['XXXXXXXXXXXXXXX',
@@ -62,7 +62,7 @@ a = ['XXXXXXXXXXXXXXX',
      'XOOOOOOOOOOOOOX',
      'XOOOROOOXXXXXXX',
      'XOOOOOOOXXXXXXX',
-     'DPOOOOOOXXXXXXX',
+     'DOOOOOOOXXXXXXX',
      'XOOXXXXXXXXXXXX',
      'XOOXXXXXXXXXXXX',
      'XOEXXXXXXXXXXXX',
@@ -87,7 +87,8 @@ testing = ['XXXXXXXXXXXXXXX',
 
 
 TEMPLATE_LIST_MAP = {
-    1: [x, y, z, a],
+    0: [starting_board],
+    1: [y, z, a],
     # 1: [testing]
 }
 
