@@ -12,10 +12,14 @@ if __name__ == '__main__':
     with open('board_creator.csv', 'r') as f:
         board = [x.strip().replace(',', '') for x in f.readlines()]
 
-    for i, line in enumerate(board):
-        if i == 0:
-            print(f"['{line}',")
-        elif i == len(board) - 1:
-            print(f" '{line}']")
+    for j in range(3):
+        string = ' ' * 14
+        if j == 0:
+            string += "["
         else:
-            print(f" '{line}',")
+            string += ' '
+        for i in range(5):
+            string += f"'{board[i + 5*j]}', "
+        if j == 2:
+            string = string[:-2] + "]"
+        print(string)
