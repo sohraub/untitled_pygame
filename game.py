@@ -106,7 +106,7 @@ class Game:
         self.board.handle_enemy_death(enemy_pos=(enemy.x, enemy.y))
         self.misc_panel.focus_tile = None
         self.refresh_focus_window()
-        player_leveled_up = self.player.gain_experience(enemy.hp)
+        player_leveled_up = self.player.gain_experience()
         # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
         # handle_player_level_up method in the player panel.
         if player_leveled_up:

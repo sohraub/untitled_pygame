@@ -169,6 +169,18 @@ def find_tiles_in_line_from_player_to_end(target_x, target_y, player_x, player_y
 
 
 def find_exit_direction(board_template, door_x, door_y):
+    """
+    Function which returns the exit direction of a door on a given template. First check if the door coordinates puts it
+    at one of the board borders, and if not, then check the tiles immediately preceding and proceeding the door in each
+    direction, with the idea being that, for example, if a door tile has an 'X' tile right above it and a non-'X' tile
+    right below it, then the door is an exit from the top of the board. The checks are done separately from the first
+    checks along the board border to avoid index out-of-bound errors.
+    :param board_template: 15x15 list of the board's template.
+    :param door_x: x-coordinate of the door tile in question
+    :param door_y: y-coordinate of the door tile in question
+    :return: A string corresponding to the exit direction of the door in question, either 'top', 'bottom', 'left',
+             or 'right'.
+    """
     max = BOARD_HEIGHT - 1
     if door_x == 0:
         return 'left'
@@ -190,7 +202,17 @@ def find_exit_direction(board_template, door_x, door_y):
 
 
 def find_appropriate_entrance(board_template, target_direction):
+    """
+    Given a board template and a target direction, find a door on the template which exits in the desired direction.
+    Used to determine of a given board is acceptable as the adjacent board by making sure it has an appropriately-placed
+    door.
+    :param board_template: 15x15 list of the template being checked.
+    :param target_direction: A string, 'top', 'bottom', etc. that is the exit direction we're aiming to find a door for.
+    :return: If an appropriate door is found, return its coordinates. Otherwise, return None
+    """
     door_coordinates = list()
+    # We have to gather all of the door coordinates manually instead of just grabbing it from the Board object because
+    # the Board object won't have been initialized yet at this point.
     for i in range(len(board_template)):
         for j in range(len(board_template[i])):
             if board_template[i][j] == 'D':
@@ -202,6 +224,9 @@ def find_appropriate_entrance(board_template, target_direction):
 
 
 def rotate_board(board_template):
+    """
+    Given a template, rotate it clockwise so that the left border in the original becomes the top border, etc.
+    """
     new_template = copy.copy(board_template)
     for i in range(len(new_template)):
         new_template[i] = ''.join(board_template[x][i] for x in range(len(new_template)))

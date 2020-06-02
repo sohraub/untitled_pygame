@@ -1,6 +1,7 @@
 """
 Module that will contains all the templates from which boards are loaded. These templates will then be organized into
-lists that will be randomly chosen from on the creation of a new Board object.
+lists that will be randomly chosen from on the creation of a new Board object. The first board in a game will always
+be starting_board below, and the subsequent ones are chosen randomly from the templates list.
 """
 
 #### TEMPLATES ####
@@ -53,5 +54,5 @@ testing = ['XXXXXXXXXXXXXXX',
 
 
 def get_board_list(tier):
-    """Function which returns a list of every board template for a given tier."""
+    """Function which returns a list of every board non-starting template."""
     return templates

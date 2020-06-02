@@ -121,9 +121,6 @@ class Board:
         if new_pos in set(self.tile_mapping['O']):
             self.tile_mapping['O'].remove(new_pos)
         self.tile_mapping['O'].append(old_pos)
-        print(self.enemies)
-        print('old pos', old_pos)
-        print('new pos', new_pos)
         self.enemies[new_pos] = self.enemies.pop(old_pos)  # Updates the key-value pair of the actual Enemy object
         self.enemies[new_pos].x = new_pos[0]  # Updates the Enemy object's coordinate values
         self.enemies[new_pos].y = new_pos[1]
@@ -176,10 +173,8 @@ class Board:
         trap = self.traps[trap_pos]
         if target.is_enemy():
             console_text = f'The {target.display_name} steps on a {trap.name} trap, '
-            # console_text.append(f'The {target.display_name} steps on a {trap.name} trap, ')
         else:
             console_text = f'You step on a {trap.name} trap, '
-            # console_text.append(f'You step on a {trap.name} trap, ')
         avoid_probability = 100 * (1 - trap.trigger_prob) + (trap.trigger_avoid_coeff * target.attributes["dex"])
         if random.randint(0, 100) > avoid_probability:
             if trap.type == 'direct':
@@ -212,25 +207,42 @@ class Board:
             enemy.aggro_range -= enemy_aggro_mod
 
     def generate_adjacent_boards(self):
+        """
+        Method run by the Game object when a new Board() object has been loaded. For each door on the Board, if it
+        doesn't already have one, create an entry in the self.doors dict where the key is the door coordinates and the
+        value looks like
+                'board': Board() object,
+                'entry_position': (x, y)
+        where 'board' is the Board object that will be loaded when this door is stepped on and 'entry_position' is the
+        tile immediately in front of the door (direction determined with the entry_position_mapping below) which is
+        where the Player will start on this new Board once it is loaded.
+        """
+        # Dict which maps each direction to its opposite
         direction_mapping = {'top': 'bottom', 'bottom':'top', 'left':'right', 'right':'left'}
+        # Dict which gives the value added to each door coordinate to get the appropriate starting position on the board
         entry_position_mapping = {'top': (0, 1), 'bottom': (0, -1), 'left': (1, 0), 'right': (-1, 0)}
         for door_coord in self.tile_mapping['D']:
+            # For every board that's not the starting board, they will be initialized with one entry in their door dict
+            # that refers to the board that preceded them. We do this check so they don't get overwritten.
             if door_coord in self.doors.keys():
                 continue
             exit_direction = find_exit_direction(self.template, door_coord[0], door_coord[1])
             new_board = choose_random_board(tier=1)
             entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+            # We keep rotating the randomly chosen template until it has an entrance that corresponds with this exit.
             while entry_door is None:
                 new_board = rotate_board(new_board)
                 entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
             return_pos_delta = entry_position_mapping[exit_direction]
             new_board_doors_dict = {
+                # Construct the doors_dict that will be used to initialize the new board.
                 entry_door: {
                     'board': self,
                     'entry_position': (door_coord[0] + return_pos_delta[0], door_coord[1] + return_pos_delta[1])
                  }
             }
             entry_pos_delta = entry_position_mapping[direction_mapping[exit_direction]]
+            # Update the doors dict of this board to reflect the new adjacent board.
             board_dict = {'board': Board(board_template=new_board, doors_dict=new_board_doors_dict),
                           'entry_position': (entry_door[0] + entry_pos_delta[0], entry_door[1] + entry_pos_delta[1])}
             self.doors[door_coord] = board_dict

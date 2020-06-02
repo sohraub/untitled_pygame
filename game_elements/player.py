@@ -61,7 +61,7 @@ class Player(Character):
         self.skill_tree = skill_tree
         self.set_abilities_from_skill_tree()
         self.level = level
-        self.experience = experience if experience is not None else [0, 20]
+        self.experience = experience if experience is not None else [0, 3]
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -258,31 +258,26 @@ class Player(Character):
             }
         return ability_outcome
 
-    def gain_experience(self, enemy_hp):
+    def gain_experience(self):
         """Called when an enemy is killed, the player gains experience based on the killed enemy's max HP"""
-        exp_gained = int(0.5 * enemy_hp[1])
-        if self.experience[0] + exp_gained >= self.experience[1]:
+        if self.experience[0] + 1 >= self.experience[1]:
             # This is where the player levels up
-            self.level_up(exp_gained)
+            self.level_up()
             return True
         else:
-            self.experience[0] += exp_gained
+            self.experience[0] += 1
             return False
 
-    def level_up(self, exp_gained):
+    def level_up(self):
         """
         Increases the player level, and also sets new experience level based on the overflow of the previous level's
         experience bar.
         """
-        exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
         self.level += 1
         self.hp[0] = self.hp[1]
         self.mp[0] = self.mp[1]
-        self.experience[1] = level_to_max_exp_map.get(self.level, 100000)
-        if exp_overflow > self.experience[1]:  # Handles the case when a player can gain multiple levels from one kill.
-            self.level_up(exp_overflow)
-            return
-        self.experience[0] = exp_overflow
+        self.experience[1] = level_to_max_exp_map.get(self.level, 10)
+        self.experience[0] = 0
 
     def decrement_ability_cooldowns(self):
         """
@@ -359,25 +354,10 @@ class Player(Character):
 
 
 level_to_max_exp_map = {
-    1: 20,  # Todo: This definitely need some finetuning
-    2: 40,
-    3: 60,
-    4: 80,
-    5: 100,
-    6: 800,
-    7: 1000,
-    8: 1300,
-    9: 1500,
-    10: 2000,
-    11: 2500,
-    12: 3000,
-    13: 4000,
-    14: 5000,
-    15: 6000,
-    16: 7000,
-    17: 8000,
-    18: 9000,
-    19: 10000
+    1: 5,  # Specify exp values up until level 4, then after that it defaults to 10.
+    2: 5,
+    3: 7,
+    4: 7,
 }
 
 profession_string_map = {
