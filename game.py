@@ -350,7 +350,6 @@ class Game:
     def handle_left_clicks(self):
         """
         Method to handle cases in the main game loop when the left mouse button has been clicked.
-        :return console_text: New lines for the console.
         """
         new_actions = list()
         mouse_pos = pg.mouse.get_pos()
@@ -361,6 +360,9 @@ class Game:
             # If the skill tree is active and the mouse is on the player panel, then we assume that the player is
             # trying to allocate skill points
             self.player_panel.handle_skill_point_allocation()
+
+        if self.player_panel.attributes_rect.collidepoint(mouse_pos) and self.player_panel.level_up_points > 0:
+            self.player_panel.handle_allocate_attribute_point()
 
         elif self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
@@ -413,7 +415,7 @@ class Game:
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
-            if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:  # Check if the left mouse button has been pressed
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 keys = pg.key.get_pressed()
