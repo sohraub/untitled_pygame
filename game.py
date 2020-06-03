@@ -1,7 +1,7 @@
 import pygame as pg
 import random
 from copy import copy
-from time import sleep
+from time import sleep, time
 
 
 from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_best_step
@@ -404,8 +404,12 @@ class Game:
         Main game loop, which iterates over player inputs and calls appropriate methods.
 
         Returns False if the game has been finished, and True otherwise.
+
+        Also records the time each loop iteration takes, and if the time > 0 (i.e. there was an actual input), we write
+        the execution time to a text file to log our performance as we add features.
         """
         for event in pg.event.get():
+            start = time()
             if event.type == pg.QUIT:
                 return False
             # List holding text to be displayed on the console after turn, if any.
@@ -423,5 +427,9 @@ class Game:
                     action_taken = self.handle_key_presses(event.key)
                     if action_taken:
                         self.handle_player_turn_over()
-
+            end = time()
+            execution_time = end - start
+            if execution_time > 0:
+                with open('time_logs.txt', 'a+') as f:
+                    f.write(str(execution_time) + '\n')
         return True
