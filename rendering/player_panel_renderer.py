@@ -4,7 +4,8 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_10, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from utility_functions import parse_description
 
 """
 Module for rendering the player panel on the left side of the screen. All the drawing functions return the rectangle
@@ -64,10 +65,11 @@ def draw_player_panel(player_name, refresh=False):
     return panel_rect
 
 
-def draw_active_abilities(abilities, refresh=False):
+def draw_active_abilities(abilities, refresh=False, skill_points=0):
     """
     Renders the player's active abilities. If the ability is on cooldown, fill it with a darker color and also
-    draw the number of turns left in the cooldown on the tile.
+    draw the number of turns left in the cooldown on the tile. If skill_points > 0, then draw a message telling
+    the player that they have skill points to spend.
     """
     abilities_rect = pg.Rect(ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y, ABILITY_TILE_LENGTH * 5, ABILITY_TILE_LENGTH)
     if refresh:
@@ -88,6 +90,12 @@ def draw_active_abilities(abilities, refresh=False):
         ability_number = FONT_20.render(str(i + 1), 1, colors.YELLOW)
         MAIN_WINDOW.blit(ability_number, (ABILITIES_TOP_LEFT_X + (1 + i) * ABILITY_TILE_LENGTH - 20,
                                           ABILITIES_TOP_LEFT_Y + ABILITY_TILE_LENGTH - 30))
+
+    if skill_points > 0:
+        skill_point_message = FONT_20.render(f"{skill_points} unspent skill point{'s' if skill_points > 1 else ''}, "
+                                             f"press T to allocate", 1,
+                                             colors.YELLOW)
+        MAIN_WINDOW.blit(skill_point_message, (ABILITIES_TOP_LEFT_X, ABILITIES_TOP_LEFT_Y + 1.1 * ABILITY_TILE_LENGTH))
 
     return ability_tiles, abilities_rect
 
@@ -131,14 +139,16 @@ def draw_level_and_experience(level, profession, experience, refresh=False):
     return level_and_exp_rect
 
 
-def draw_attributes(attributes, refresh=False):
+def draw_attributes(attributes, level_up_points, refresh=False):
     """
     Renders the player's attributes.
     :param attributes: A dict containing all of the players attribute values.
+    :param level_up_points: An int representing the number of level_up points the player has to allocate for their
+                            attributes. If > 0, then the level-up buttons are also rendered
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120, 75, 150)
+    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 95, 150, 180)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
@@ -158,7 +168,35 @@ def draw_attributes(attributes, refresh=False):
         MAIN_WINDOW.blit(stat_name, coord_mapping[stat])
         MAIN_WINDOW.blit(stat_value, (coord_mapping[stat][0] + 50, coord_mapping[stat][1]))
 
+    if level_up_points > 0:
+        draw_attribute_level_up_buttons(level_up_points)
+
     return attributes_rect
+
+
+def draw_attribute_level_up_buttons(level_up_points, return_only=False):
+    """
+    Draws buttons next to player attributes for the purpose of allocating level-up points to increase attributes.
+    :param level_up_points: Int, number of points available.
+    :param return_only: Boolean, if True then don't draw anything, only return the list of button rects, to be used
+                        for event-handling.
+    :return: level_up_buttons, a list of Rect objects that make up all of the buttons.
+    """
+    top_left_x = PANEL_TOP_LEFT_X + 85
+    top_left_y = PANEL_TOP_LEFT_Y + 125
+    if not return_only:
+        level_up_label = FONT_20.render(f"Points Available: {level_up_points}", 1, colors.GREY)
+        MAIN_WINDOW.blit(level_up_label, (top_left_x - 75, top_left_y - 27))
+    level_up_buttons = list()
+    button_label = FONT_20.render("+", 1, colors.WHITE)
+    for i in range(6):
+        button_rect = pg.Rect(top_left_x, top_left_y + (i * 25), 20, 20)
+        level_up_buttons.append(button_rect)
+        if not return_only:
+            MAIN_WINDOW.fill(color=colors.DARK_RED, rect=button_rect)
+            MAIN_WINDOW.blit(button_label, (button_rect[0] + 4, button_rect[1]  - 5))
+
+    return level_up_buttons
 
 
 def draw_hp_mp(hp, mp, refresh=False):
@@ -264,7 +302,7 @@ def draw_inventory(inventory, refresh=False):
             item_tile = pg.Rect((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X,
                                 (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y, ITEM_LENGTH, ITEM_LENGTH)
             pg.draw.rect(MAIN_WINDOW, colors.GREY, item_tile, 1)
-            if len(inventory) >= (y * 10) + x + 1:
+            if len(inventory) >= (y * 6) + x + 1:
                 MAIN_WINDOW.fill(color=colors.ORANGE, rect=((x * ITEM_LENGTH) + INVENTORY_TOP_LEFT_X + 1,
                                                             (y * ITEM_LENGTH) + INVENTORY_TOP_LEFT_Y + 1,
                                                             ITEM_LENGTH - 2, ITEM_LENGTH - 2))
@@ -347,9 +385,9 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     elif item_dict['type'] == 'equipment':
         # In this case we outsource the logic to another function, since it is a lot of logic.
-        body_strings, body_colors = parse_equipment_details(item_dict, attributes_dict, current_equipment)
+        body_strings = parse_equipment_details(item_dict, attributes_dict, current_equipment)
 
-    draw_detail_window(body_strings=body_strings, body_colors=body_colors,
+    draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
                        header_string=item_dict['name'].upper())
 
@@ -395,8 +433,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
     if not attributes_dict:
         raise Exception(f"No attributes for equipment detail window: {item_dict['name']}")
     # Initialize body_strings as the item description (already a list) and all in white.
-    body_strings = item_dict['description'] + ['---']
-    body_colors = [colors.WHITE for _ in body_strings]
+    body_strings = [(string, colors.WHITE) for string in item_dict['description'] + ['---']]
     if item_dict['stat_req']:
         requirement_color = colors.WHITE
         requirement_string = 'REQ: '
@@ -404,8 +441,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
             requirement_string += f"{item_dict['stat_req'][stat]} {stat.upper()}   "
             if attributes_dict[stat] < item_dict['stat_req'][stat]:
                 requirement_color = colors.RED
-        body_strings.append(requirement_string.strip())
-        body_colors.append(requirement_color)
+        body_strings.append((requirement_string.strip(), requirement_color))
     # If item is a weapon we compare the off_rating, else we compare the def rating
     stat_to_compare = 'off_rating' if item_dict['off_rating'] > 0 else 'def_rating'
     compare_color = colors.GREEN
@@ -418,10 +454,9 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
         elif item_dict[stat_to_compare] == current_equipment_info[stat_to_compare]:
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
-    body_strings.append(f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}")
-    body_colors.append(compare_color)
+    body_strings.append((f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}", compare_color))
 
-    return body_strings, body_colors
+    return body_strings
 
 
 def draw_condition_details(conditions_dict, conditions_rect):
@@ -451,31 +486,49 @@ def draw_condition_details(conditions_dict, conditions_rect):
 
 def draw_status_details(status):
     """Function to draw a tooltip providing details on the status currently being hovered over."""
-    window_body = status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
+    window_body = ['----'] + status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
     draw_detail_window(header_string=status['name'], body_strings=window_body,
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))
 
 
-def draw_ability_details(ability):
+def draw_ability_details(ability, player_attributes, player_mp=None):
     """
     Draws tooltip showing details on currently moused-over ability. If the mouse is to the left of the center of the
     player panel, display the tooltip to the right of the cursor, and vice-versa. Also, the tooltip will display
-    above the cursor regardless of mouse position.
+    above the cursor regardless of mouse position. If player_mp is None, this implies that the function was called from
+    the skill tree, so we don't display info such as turns left in the cooldown.
     """
     mouse_pos = pg.mouse.get_pos()
     if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
     else:
         top_left_x = mouse_pos[0]
-    top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
-    window_body = ability['description'] + ['----', f'Level: {ability["level"]}', f'Cooldown: {ability["cooldown"]}']
-    if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
-        window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
-    draw_detail_window(header_string=ability['name'], body_strings=window_body,
-                       rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
-
-
+    if mouse_pos[1] > PANEL_TOP_LEFT_Y + int(SIDE_PANEL_HEIGHT / 2):
+        top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
+    else:
+        top_left_y = mouse_pos[1]
+    parsed_description = parse_description(ability['description'], char_limit=33)
+    window_body = ['----', f'{"ACTIVE" if ability["active"] else "PASSIVE"} SKILL'] + parsed_description + \
+                  ['----', f'Level: {max(ability["level"], 1)}']
+    # Ability details are stored in a dict, where each key-value pair looks something like
+    #    'HP Regen Per Turn' : '{skill_level} + {wis} * 2'
+    # So we use format() with the skill level and player attributes to fill in the values, and eval() to evaluate
+    # the string expression to an integer value. If the skill is level 0 (not allocated), show the details for level 1
+    window_body += [f'{key}: {eval(value.format(skill_level=max(ability["level"], 1), **player_attributes))}'
+                    for key, value in ability['details'].items()]
+    if player_mp is not None:  # Implies tooltip is being displayed in the player panel
+        if ability['turns_left'] > 0:  # Only display 'turns left' info if the ability is on cooldown
+            window_body.append(f'Turns left on cooldown: {ability["turns_left"]}')
+        if ability['mp_cost'] > player_mp[0]:
+            window_body.append(("Not enough MP!!", colors.RED))
+    elif 0 < ability['level'] < 3: # Implies this is being displayed in the skill tree (since player_mp is None)
+        # If the ability level is in (0, 3) we show the details for the next level as well.
+        window_body += ['----', 'Next Level:'] +\
+                       [f'{key}: {eval(value.format(skill_level=ability["level"] + 1, **player_attributes))}'
+                        for key, value in ability['details'].items()]
+    draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
+                       rect_dimensions=(top_left_x, top_left_y, 1.05 * ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
 
 
 def draw_exp_details(experience):
@@ -490,3 +543,5 @@ def draw_exp_details(experience):
     top_left_y = mouse_pos[1]
     draw_detail_window(body_strings=window_body,
                        rect_dimensions=(top_left_x, top_left_y, length, 30))
+
+

@@ -8,9 +8,8 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 
 class Player(Character):
-    def __init__(self, name='default', x=0, y=0, hp=None, mp=None, attributes=None, status=None, inventory=None,
-                 equipment=None, condition=None, active_abilities=None, passive_abilities=None, level=1,
-                 experience=None, profession="warrior"):
+    def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=1,
+                 experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -25,6 +24,7 @@ class Player(Character):
         :param level: The Player's level.
         :param experience: The Player's current experience progress, stored as ['current', 'max']
         :param profession: The Player's profession (i.e. the class, job, etc.).
+        :param skill_tree: The skill tree of the Player's chosen profession
 
         As well as the above, the following attributes are also set and used throughout the Player's methods:
         :fatigued: A flag used when the player has become too tired. While True, all of the players attributes are
@@ -33,7 +33,8 @@ class Player(Character):
         :off_rating: An int which represents the player's total offensive rating after factoring equipment bonuses
         :def_rating: Similar to off_rating, but for defense.
         """
-        super().__init__(name, x, y, hp, mp, attributes, status)
+        profession_config = profession_string_map[profession]
+        super().__init__(name, x, y, profession_config['starting_attributes'], status)
         self.inventory = inventory if inventory is not None else list()
         self.equipment = equipment if equipment is not None else {
             'head': None,
@@ -42,19 +43,25 @@ class Player(Character):
             'hands': None,
             'feet': None
         }
+        self.profession = profession
         self.off_rating = 0
         self.def_rating = 0
         self.update_off_def_ratings()
         self.conditions = condition if condition is not None else {
-            'tired': [10, 10, 0],
-            'hungry': [10, 10, 0],
-            'thirsty': [10, 10, 0]
+            'tired': [20, 20, 0],
+            'hungry': [20, 20, 0],
+            'thirsty': [20, 20, 0]
         }
-        self.active_abilities = active_abilities if active_abilities is not None else list()
-        self.passive_abilities = passive_abilities if passive_abilities is not None else list()
+        self.active_abilities = list()
+        self.passive_abilities = {
+            'combat': dict(),
+            'on_kill': dict(),
+            'board_mods': dict()
+        }
+        self.skill_tree = skill_tree
+        self.set_abilities_from_skill_tree()
         self.level = level
-        self.experience = experience if experience is not None else [0, 20]
-        self.profession = profession
+        self.experience = experience if experience is not None else [0, 3]
         self.fatigued = 0
         # Here we create a mapping for all of the basic movements, so that they can all be called from one function.
         # The keys in this dict are a tuple of (method, parameter), which are called together in the perform_movement()
@@ -85,9 +92,10 @@ class Player(Character):
             'equipment': self.equipment,
             'conditions': self.conditions,
             'active_abilities': [ability.to_dict() for ability in self.active_abilities],
-            'passive_abilities': [ability.to_dict() for ability in self.passive_abilities],
+            'passive_abilities': self.passive_abilities,
             'level': self.level,
             'profession': self.profession,
+            'skill_tree': self.skill_tree,
             'experience': self.experience
         }
 
@@ -124,12 +132,17 @@ class Player(Character):
         """
         Method to be called at the end of every turn, which will increment the condition-worsening counter, and
         de-increment the current condition value if the counter reaches the threshold.
+        Each condition is stored as a list of three integers, in the format
+            [current_level, max_level, counter],
+        where current_level starts equal to max_level, counter is incremented after every player turn, and when
+        counter reaches the threshold defined in the condition_threshold dict below, then current_level is decremented
+        by 1. As current_level approaches 0, players start to suffer penalties.
         """
         render_necessary = False
         condition_thresholds = {
-            'thirsty': 5 * self.attributes['end'],
-            'hungry': 7 * self.attributes['end'],
-            'tired': 9 * self.attributes['end']
+            'thirsty': 1 * self.attributes['end'],
+            'hungry': 2 * self.attributes['end'],
+            'tired': 3 * self.attributes['end']
         }
         for condition in self.conditions:
             self.conditions[condition][2] += 1
@@ -143,14 +156,15 @@ class Player(Character):
 
     def apply_condition_penalty(self, condition):
         """Method which applies the appropriate condition penalties when its thresholds are met."""
-        if condition == 'thirsty' or condition == 'hungry':
-            self.hp[0] = max(self.hp[0] - 1, 0)
         if condition == 'hungry':
+            self.hp[0] = max(self.hp[0] - 1, 0)
+        if condition == 'thirsty':
             self.mp[0] = max(self.mp[0] - 1, 0)
         if condition == 'tired' and self.fatigued == 0:
             self.fatigued = 1
             for attribute in self.attributes:
                 self.attributes[attribute] -= 2
+            self.apply_attribute_changes()
 
     def check_fatigue(self):
         """
@@ -163,6 +177,7 @@ class Player(Character):
             for attribute in self.attributes:
                 self.attributes[attribute] += 2
             render_necessary = True
+            self.apply_attribute_changes()
         return render_necessary
 
     def consume_item(self, index):
@@ -189,21 +204,26 @@ class Player(Character):
         return console_text
 
     def basic_attack(self, target):
+        """
+        For when the player attacks an enemy. Calculates damage based on strength, whether or not there's a crit or a
+        miss based on dex, and applies the damage, if any, to the target.
+        """
         console_text = ['']
         base_damage = max(self.attributes['str'] - target.attributes['end'], 1) + self.off_rating
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = max(self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis']), 0)
+        base_damage, crit_chance, base_accuracy = self.apply_offensive_combat_passives(base_damage, crit_chance,
+                                                                                       base_accuracy)
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
             console_text[0] += 'Critical hit! '
         elif random.randint(0, 100) >= base_accuracy:
             base_damage = 0
             console_text[0] += 'Miss! '
-        # The join in the formatting below just replaces _ with spaces and gets rid of the uuid in enemy names.
-        # e.g. large_rat_81d1db04-dfba-4680-a179-dba9d91cdc23 -> large rat
         console_text[0] += f"You dealt {base_damage} damage to {target.display_name}. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         if target.hp[0] == 0:
+            self.apply_on_kill_passives()
             from game_elements.enemy import death_phrases
             console_text.append(random.choice(death_phrases))
         return console_text
@@ -226,37 +246,38 @@ class Player(Character):
         if targets is not None:
             ability_outcome = ability.function(self=self, targets=targets, skill_level=ability.level)
             ability.turns_left = ability.cooldown
+            self.mp[0] = max(0, self.mp[0] - ability.mp_cost)
             for target in targets:
                 if target.hp[0] == 0:
                     from game_elements.enemy import death_phrases
                     ability_outcome['console_text'].append(random.choice(death_phrases))
+                    self.apply_on_kill_passives()
         else:
             ability_outcome = {
                 'console_text': [f'You used {ability.name}, but there was no target!']
             }
         return ability_outcome
 
-    def gain_experience(self, enemy_hp):
+    def gain_experience(self):
         """Called when an enemy is killed, the player gains experience based on the killed enemy's max HP"""
-        exp_gained = int(0.5 * enemy_hp[1])
-        if self.experience[0] + exp_gained >= self.experience[1]:
+        if self.experience[0] + 1 >= self.experience[1]:
             # This is where the player levels up
-            self.level_up(exp_gained)
+            self.level_up()
+            return True
         else:
-            self.experience[0] += exp_gained
+            self.experience[0] += 1
+            return False
 
-    def level_up(self, exp_gained):
+    def level_up(self):
         """
-        Increases the player level, calls necessary rendering functions for increasing attributes and skill levels,
-        and also sets new experience level based on the overflow of the previous level's experience bar.
+        Increases the player level, and also sets new experience level based on the overflow of the previous level's
+        experience bar.
         """
-        exp_overflow = exp_gained - (self.experience[1] - self.experience[0])
         self.level += 1
-        self.experience[1] = level_to_max_exp_map[self.level]
-        if exp_overflow > self.experience[1]:  # Handles the case when a player can gain multiple levels from one kill.
-            self.level_up(exp_overflow)
-            return
-        self.experience[0] = exp_overflow
+        self.hp[0] = self.hp[1]
+        self.mp[0] = self.mp[1]
+        self.experience[1] = level_to_max_exp_map.get(self.level, 10)
+        self.experience[0] = 0
 
     def decrement_ability_cooldowns(self):
         """
@@ -272,47 +293,71 @@ class Player(Character):
 
         return refresh_necessary
 
+    def set_abilities_from_skill_tree(self):
+        """Sets the players passive and active abilities based off the values in the skill tree dict."""
+        self.active_abilities = list()
+        self.passive_abilities = {'combat': dict(), 'on_kill': dict(), 'board_mods': dict()}
+        for tree_level in self.skill_tree:
+            for ability_entry in self.skill_tree[tree_level]:
+                ability = ability_entry['ability']
+                if ability.level > 0:
+                    if ability.active:  # Active and passive abilities are set differently
+                        self.active_abilities.append(ability)
+                    else:
+                        # For passives, if the specific mod already has an entry in the passives dict, then we just
+                        # add the ability's value to the existing value. Otherwise, we initialize the entry with the
+                        # ability's value.
+                        if self.passive_abilities[ability.mod_group].get(ability.specific_mod, False):
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] += ability.value
+                        else:
+                            self.passive_abilities[ability.mod_group][ability.specific_mod] = ability.value
 
-def load_player_from_json(filename):
-    """Function to initialize a Player object from a JSON file."""
-    with open(filename, 'r') as f:
-        character = json.load(f)
+    def apply_offensive_combat_passives(self, base_damage, base_crit, base_accuracy):
+        """
+        In the course of the basic_attack() function, applies any offensive bonuses/penalties to combat from the
+        player's passive abilities, if any.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage += combat_passives.get('base_dmg', 0)
+        base_crit += combat_passives.get('crit_rate', 0)
+        base_accuracy = min(base_accuracy + combat_passives.get('base_acc', 0), 100)
+        return base_damage, base_crit, base_accuracy
 
-    profession = character.get('profession', 'warrior')
-    attributes = None
-    active_abilities = None
-    passive_abilities = None
-    if character.get('attributes', None) is None:
-        attributes = profession_string_map[profession]['starting_attributes']
-    if character.get('active_abilities', None) is None:
-        active_abilities = profession_string_map[profession]['active_abilities']
-    if character.get('passive_abilities', None) is None:
-        passive_abilities = profession_string_map[profession]['passive_abilities']
+    def apply_defensive_combat_passives(self, base_damage, base_accuracy):
+        """
+        Similar to the offensive-combat variant, except this function is called during the enemy.basic_attack()
+        function and only applies to the player's defensive bonuses.
+        """
+        combat_passives = self.passive_abilities['combat']
+        base_damage = max(base_damage - combat_passives.get('base_def', 0), 0)
+        base_accuracy = max(base_accuracy - combat_passives.get('avoid', 0), 0)
+        return base_damage, base_accuracy
 
-    player = Player(
-        name=character.get('name', 'TEST'),
-        hp=character.get('hp', None),
-        mp=character.get('mp', None),
-        profession=profession,
-        active_abilities=active_abilities,
-        passive_abilities=passive_abilities,
-        attributes=attributes,
-        status=character.get('status', None),
-        condition=character.get('condition', None),
-        inventory=character.get('inventory', None),
-        equipment=character.get('equipment', None),
-        experience=character.get('experience', None)
-    )
+    def apply_on_kill_passives(self):
+        """When a player kills an enemy, apply all the on-kill effects from their passives, if any."""
+        on_kill_passives = self.passive_abilities['on_kill']
+        self.hp[0] = min(self.hp[0] + on_kill_passives.get('gain_hp', 0), self.hp[1])
+        self.mp[0] = min(self.mp[0] + on_kill_passives.get('gain_mp', 0), self.mp[1])
+        if on_kill_passives.get('cooldown_reduction', False):
+            for ability in self.active_abilities:
+                if ability.turns_left:
+                    ability.turns_left = max(0, ability.turns_left - on_kill_passives['cooldown_reduction'])
 
-    return player
+    def apply_attribute_changes(self):
+        """
+        Function to be called every time the player's attributes change, so as to update the rest of the player's
+        stats accordingly.
+        """
+        # Only max values for HP and MP are updated
+        self.hp = [self.hp[0], self.attributes['vit'] * 2]
+        self.mp = [self.mp[0], self.attributes['wis'] * 2, self.mp[2]]
 
 
 level_to_max_exp_map = {
-    1: 20,
-    2: 50,
-    3: 100,
-    4: 200,
-    5: 500
+    1: 5,  # Specify exp values up until level 4, then after that it defaults to 10.
+    2: 5,
+    3: 7,
+    4: 7,
 }
 
 profession_string_map = {

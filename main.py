@@ -3,7 +3,7 @@ import pygame as pg
 from game import Game
 from console import Console
 from game_elements.board import Board
-from game_elements.player import Player, load_player_from_json
+from game_elements.player import Player
 
 
 """
@@ -18,7 +18,7 @@ def main_menu():
 
 def main_game():
     """Loads the main game."""
-    game = Game(console=Console(), player=load_player_from_json(".\\saves\\first.json"), board=Board(tier=1))
+    game = Game(console=Console(), player=Player())
     run = True
     game.draw_window()
     game.console.refresh_console()

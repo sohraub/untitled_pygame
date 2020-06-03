@@ -4,6 +4,7 @@ Module that stores all the colors used in the game.
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (191, 48, 48)
+DARK_RED = (117, 12, 5)
 BLUE = (90, 122, 226)
 DARK_BLUE = (0, 34, 102)
 GREEN = (102, 204, 0)

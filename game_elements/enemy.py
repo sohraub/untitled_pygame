@@ -8,8 +8,8 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
                  'You watch it slowly bleed out to death. ']
 
 class Enemy(Character):
-    def __init__(self, name, x=0, y=0, hp=None, mp=None, attributes=None, status=None, attack_range=1, role='attacker',
-                 aggro_range=3, retreat_probability=0.3, flavour_text=None, display_name=''):
+    def __init__(self, name, x=0, y=0, attributes=None, status=None, attack_range=1, role='attacker',
+                 aggro_range=4, retreat_probability=0.3, flavour_text=None, display_name=''):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
         super(), refer to the Character module.
@@ -24,7 +24,7 @@ class Enemy(Character):
         :aggro: Boolean which determines if the player has ever entered the the Enemy's aggro range. If ever set to
                 True, will never go back to False even if the player moves away, under normal circumstances.
         """
-        super().__init__(name, x, y, hp, mp, attributes, status)
+        super().__init__(name, x, y, attributes, status)
         self.aggro_range = aggro_range
         self.aggro = False
         self.attack_range = attack_range
@@ -61,6 +61,7 @@ class Enemy(Character):
         base_damage = max(self.attributes['str'] - target.attributes['end'] - target.def_rating, 1)
         base_accuracy = 70 + 5 * (self.attributes['dex'] - target.attributes['dex'])
         crit_chance = self.attributes['dex'] + (self.attributes['wis'] - target.attributes['wis'])
+        base_damage, base_accuracy = target.apply_defensive_combat_passives(base_damage, base_accuracy)
 
         if random.randint(0, 100) <= crit_chance:
             base_damage = 2 * base_damage
@@ -69,6 +70,8 @@ class Enemy(Character):
             base_damage = 0
             console_text[0] += 'Miss! '
 
+        combat_dict = {'attacker': self, 'target': target, 'damage': base_damage}
+        console_text += target.apply_defensive_combat_statuses(combat_dict)
         console_text[0] += f"The {self.display_name} attacks you for {base_damage} damage. "
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         return console_text

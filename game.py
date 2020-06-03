@@ -8,14 +8,14 @@ from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
-from element_lists.board_templates import get_board_list
+from element_lists.board_templates import get_board_list, starting_board
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
 
 # List containing all of the keys that currently have a function
 FUNCTIONAL_KEYS = [pg.K_SPACE, pg.K_UP, pg.K_DOWN, pg.K_RIGHT, pg.K_d, pg.K_LEFT, pg.K_w, pg.K_s, pg.K_d, pg.K_a,
-                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5]
+                   pg.K_1, pg.K_2, pg.K_3, pg.K_4, pg.K_5, pg.K_t, pg.K_ESCAPE]
 
 class Game:
     def __init__(self, console, board=None, player=None, filename='untitled'):
@@ -28,7 +28,7 @@ class Game:
         :param filename: The save file which the game is loaded from. TODO: implement this
         """
         self.console = console
-        self.board = board if board is not None else Board()
+        self.board = board if board is not None else Board(board_template=starting_board)
         self.player = player if player is not None else Player()
         # Player coordinates are initialized from the board template
         self.player.x = self.board.player_coordinates[0]
@@ -39,10 +39,10 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
-        self.set_board_transitions()
+        self.board.generate_adjacent_boards()
 
     def set_board_transitions(self, tier=1):
-        """For each door in the current board, determine what the next board will be one a player enters that door."""
+        """For each door in the current board, determine what the next board will be once a player enters that door."""
         board_list = copy(get_board_list(tier=tier))
         for door_coordinate in self.board.tile_mapping['D']:
             board_choice = random.choice(board_list)
@@ -50,7 +50,6 @@ class Game:
             if len(board_list) > 1:
                 board_list.remove(board_choice)
         return
-
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -81,7 +80,7 @@ class Game:
             self.console.update('This chest is empty. ')
             return
         # pick_up_item returns text for the console as well as a boolean signifying the success of picking up item
-        console_text, success = self.player.pick_up_item(target_chest.item)
+        console_text, success = self.player.pick_up_item(target_chest.item, from_chest=True)
         if success:
             self.board.handle_chest_has_been_opened(chest_pos)
             self.player_panel.refresh_inventory()
@@ -97,11 +96,25 @@ class Game:
         # Battle text is returned to be fed into the console.
 
     def handle_enemy_death(self, enemy):
-        self.board.handle_enemy_death((enemy.x, enemy.y))
+        """
+        When an enemy dies, the following things will happen:
+            i. Enemy must be removed from the board
+            ii. Focus window in the misc. panel must be reset
+            iii. Player gains experience, and possibly levels up. These changes must be reflected in the rendering
+                 of the player panel.
+        """
+        self.board.handle_enemy_death(enemy_pos=(enemy.x, enemy.y))
         self.misc_panel.focus_tile = None
         self.refresh_focus_window()
-        self.player.gain_experience(enemy.hp)
-        self.player_panel.refresh_level_and_exp()
+        player_leveled_up = self.player.gain_experience()
+        # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
+        # handle_player_level_up method in the player panel.
+        if player_leveled_up:
+            self.player_panel.level_up()
+            self.console.update(f"{self.player.name} has reached level {self.player.level}.")
+            # Apply player's passives that modify the board, in case any new ones were allocated.
+            self.board.apply_player_passives(self.player.passive_abilities['board_mods'])
+        self.player_panel.refresh_player_panel()
 
     def start_enemy_turn(self):
         """
@@ -115,7 +128,6 @@ class Game:
         else
             wait
         """
-        # enemies = list(self.board.enemies.values())
         for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
@@ -137,12 +149,12 @@ class Game:
                     adjacent_tiles = ([(enemy.x + i, enemy.y) for i in [-1, 1]] +
                                       [(enemy.x, enemy.y + i) for i in [-1, 1]])
                     new_x, new_y = random.choice([tile for tile in adjacent_tiles if tile in set(open_tiles)])
-                if new_x is not None:  # Check if a valid movement was found
+                if new_x is not None and self.board.tile_is_open(new_x, new_y):  # Check if a valid movement was found
                     self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
             self.console.update(enemy.apply_end_of_turn_status_effects())
-
+            enemy.passive_mp_regen()
 
     def handle_item_use(self):
         """
@@ -174,9 +186,15 @@ class Game:
             return targets
         else:
             target_coords = [targeted_coord := xy_coords_from_tile(target_rect)]
-            if ability.multi_target:
-                for coord in ability.multi_target:
-                    target_coords.append((targeted_coord[0] + coord[0], targeted_coord[1] + coord[1]))
+            if ability.multi_target_function:
+                if len(ability.multi_target_function) == 2:
+                    # In this case multi_target_function was passed a a 2-tuple of (function, parameters_dict)
+                    target_coords += ability.multi_target_function[0](targeted_coord[0], targeted_coord[1],
+                                                                       player_x=self.player.x, player_y=self.player.y,
+                                                                       **ability.multi_target_function[1])
+                else:
+                    target_coords += ability.multi_target_function(targeted_coord[0], targeted_coord[1],
+                                                                   player_x=self.player.x, player_y=self.player.y)
             for target_coord in target_coords:
                 if self.board.enemies.get(target_coord, None):
                     target = self.board.enemies[target_coord]
@@ -197,17 +215,22 @@ class Game:
             iv.  If target was moved as part of the ability, update positions on board accordingly
             v.   End player turn
         :param ability_index: If this is None, then it means ability was used by clicking on the player panel, so we get
-                              we get the index from there. If it's not None, then ability was used by pressing the
+                              the index from there. If it's not None, then ability was used by pressing the
                               corresponding key, in which case the index is passed in by the handle_key_presses() method
         :return: New lines to be displayed in the console
         """
         if ability_index is None:
             ability_index = self.player_panel.get_tooltip_index(element='abilities')
         ability = self.player.active_abilities[ability_index]
+        # Return False if the ability is still on cooldown or player doesn't have enough MP
         if ability.turns_left > 0:
-            # This ability is still on cooldown, so do nothing
+            self.console.update('That ability is still on cooldown!')
+            return False
+        elif ability.mp_cost > self.player.mp[0]:
+            self.console.update('Not enough MP to use that ability!')
             return False
         targets = self.get_targets(ability)
+        self.load_game_board()  # Refresh game board to get rid of targeting render
         if targets:
             # Using abilities returns a dict containing all the of the outcomes of the ability, e.g. new console text,
             # any movements of the player or target(s), etc.
@@ -218,24 +241,21 @@ class Game:
             # If no movements were found, loop over an empty list, i.e. do nothing
             for movement in ability_outcome.get('movements', list()):
                 # Each movement entry in the ability_outcome dict will look like
-                # { 'subject': The character object that's being moved
-                #   'new_position': (new_x, new_y) }
-                if movement['subject'].hp[0] == 0:
-                    # Only bother moving the subject of the movement if they weren't outright killed by the ability
+                #   { 'subject': The character object that's being moved
+                #     'new_position': (new_x, new_y) }
+                if movement['subject'].hp[0] == 0:  # Don't bother moving the character if they were killed
                     continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
-                if self.board.template[new_y][new_x] in {'O', 'R'}:
+                if self.board.tile_is_open(new_x, new_y):
                     self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
                                                                   new_y=new_y))
                     self.load_game_board()
                     pg.display.update()
-                    # sleep(0.3)
             for target in targets:
                 if target is not None and target.hp[0] == 0:
                     self.handle_enemy_death(target)
             return True
-        self.load_game_board()  # Refresh board to get rid of targeting mode render
         return False
 
     def handle_turn_end(self):
@@ -247,12 +267,12 @@ class Game:
         changed, and thus needs re-drawing.
         """
         if self.player.conditions_worsen():
-            self.player_panel.refresh_hp_mp()
-            self.player_panel.refresh_conditions()
-            self.player_panel.refresh_attributes()
+            self.player_panel.refresh_player_panel()
 
         if self.player.decrement_ability_cooldowns():
             self.player_panel.refresh_abilities()
+
+        self.player.passive_mp_regen()
 
         if self.player.check_fatigue():
             self.player_panel.refresh_attributes()
@@ -267,8 +287,9 @@ class Game:
         self.load_misc_panel()
 
     def load_game_board(self):
-        """Calls render of the game board"""
+        """Calls render of the game board, and applies any board-modifiers in the Players passive abilities, if any."""
         board_renderer.render_game_board(self.board.template)
+        self.board.apply_player_passives(self.player.passive_abilities['board_mods'])
 
     def load_player_panel(self):
         """Initiates player_panel"""
@@ -303,6 +324,12 @@ class Game:
                 pg.K_5: 4
             }
             return self.handle_ability_use(ability_index=key_mapping[pressed_key])
+        elif pressed_key == pg.K_t:
+            self.player_panel.display_skill_tree()
+        elif pressed_key == pg.K_ESCAPE:
+            if self.player_panel.skill_tree_displaying:
+                self.player_panel.skill_tree_displaying = False
+                self.player_panel.refresh_player_panel()
 
     def handle_player_turn_over(self, console_text=None):
         """
@@ -323,14 +350,21 @@ class Game:
     def handle_left_clicks(self):
         """
         Method to handle cases in the main game loop when the left mouse button has been clicked.
-        :return console_text: New lines for the console.
         """
         new_actions = list()
         mouse_pos = pg.mouse.get_pos()
         # If a tooltip focus window is active, means a player has clicked on something that might have
         # a function when clicked.
         action_taken = False
-        if self.player_panel.tooltip_focus is not None:
+        if self.player_panel.skill_tree_displaying and self.player_panel.panel_rect.collidepoint(mouse_pos):
+            # If the skill tree is active and the mouse is on the player panel, then we assume that the player is
+            # trying to allocate skill points
+            self.player_panel.handle_skill_point_allocation()
+
+        if self.player_panel.attributes_rect.collidepoint(mouse_pos) and self.player_panel.level_up_points > 0:
+            self.player_panel.handle_allocate_attribute_point()
+
+        elif self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
             # is on the inventory, implying that an item was clicked.
             if self.player_panel.inventory_rect.collidepoint(mouse_pos):
@@ -344,12 +378,12 @@ class Game:
 
     def handle_board_transition(self, door_coordinates):
         """Handles all the necessary updates when the Player steps on a door and transitions to the next board."""
-        new_template = self.board.doors[door_coordinates]
-        new_board = Board(board_template=new_template, tier=self.board.tier)
+        new_board = self.board.doors[door_coordinates]['board']
+        self.player.x, self.player.y = self.board.doors[door_coordinates]['entry_position']
         self.board = new_board
+        self.board.player_coordinates = (self.player.x, self.player.y)
         self.misc_panel.board = new_board
-        self.player.x, self.player.y = self.board.player_coordinates
-        self.set_board_transitions()
+        self.board.generate_adjacent_boards()
         self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
@@ -381,11 +415,13 @@ class Game:
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
-            if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:  # Check if the left mouse button has been pressed
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
-                if event.key == pg.K_ESCAPE:  # ESC exits the game
-                    return False
+                keys = pg.key.get_pressed()
+                if keys[pg.K_RSHIFT] or keys[pg.K_LSHIFT]:
+                    if event.key == pg.K_ESCAPE:  # SHIFT + ESC exits the game
+                        return False
                 if event.key in FUNCTIONAL_KEYS:  # Check if pressed key has an assigned function
                     action_taken = self.handle_key_presses(event.key)
                     if action_taken:

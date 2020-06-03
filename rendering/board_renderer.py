@@ -1,10 +1,12 @@
 import pygame as pg
+from copy import copy
+from time import sleep
 
 import colors
 from config import TOP_LEFT_Y, TOP_LEFT_X, PLAY_HEIGHT, PLAY_LENGTH, TILE_SIZE, TILE_COLORS
 from game_elements.element_config_values import BOARD_LENGTH, BOARD_HEIGHT
 from rendering.window_renderer import MAIN_WINDOW
-from utility_functions import find_tiles_in_radius
+from utility_functions import find_tiles_in_radius, tile_from_xy_coords
 
 """
 Module that will handle all of the rendering logic for the game boards.
@@ -22,7 +24,8 @@ def render_game_board(board_template, tiles_to_highlight=None, highlight_color=c
         for x in range(BOARD_LENGTH):
             if (x, y) in tiles_to_highlight and board_template[y][x] in targetable_tile_types:
                 pg.draw.rect(MAIN_WINDOW, highlight_color,
-                             (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 1)
+                             (TOP_LEFT_X + x * TILE_SIZE + 1 , TOP_LEFT_Y + y * TILE_SIZE + 1,
+                              TILE_SIZE - 2, TILE_SIZE - 2), 1)
                 continue
             pg.draw.rect(MAIN_WINDOW, TILE_COLORS[board_template[y][x]],
                          (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)
@@ -53,16 +56,81 @@ def highlight_self(board_template, target_x, target_y, color=colors.BLACK):
     return [(target_x, target_y)]
 
 
-def highlight_radius_with_splash_target(board_template, target_x, target_y, radius, *args, color=colors.BLACK):
+def highlight_radius(board_template, target_x, target_y, radius, color=colors.BLACK):
     """
     Targets every open/trap tile on the board, and returns as a list of targets every tile directly adjacent to the
     tile selected.
     """
     potential_tiles_to_highlight = find_tiles_in_radius(center_x=target_x, center_y=target_y, radius=radius)
-    print(target_x)
-    print(target_y)
-    print(radius)
     tiles_to_highlight = [(x, y) for (x, y) in potential_tiles_to_highlight if board_template[y][x] in {'O', 'R'}]
     render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
                       targetable_tile_types={'O', 'R'})
     return tiles_to_highlight
+
+
+def highlight_enemies_and_walls_directly_ahead(board_template, target_x, target_y, color=colors.BLACK):
+    """
+    Targets the first enemy or wall to appear on the same x- or y-axis as the target in each cardinal direction,
+    but is stopped when hitting a non-open tile.
+    """
+    tiles_to_highlight = list()
+    for direction in [1, -1]:
+        for j in range(1, BOARD_HEIGHT):
+            if board_template[target_y + j*direction][target_x] == 'E':
+                tiles_to_highlight.append((target_x, target_y + j * direction))
+                break
+            elif board_template[target_y + j*direction][target_x] in {'X', 'T', 'D'}:
+                tiles_to_highlight.append((target_x, target_y + (j - 1) * direction ))
+                break
+        for j in range(1, BOARD_LENGTH):
+            if board_template[target_y][target_x + j*direction] == 'E':
+                tiles_to_highlight.append((target_x + j * direction, target_y))
+                break
+            elif board_template[target_y][target_x + j*direction] in {'X', 'T', 'D'}:
+                tiles_to_highlight.append((target_x + (j - 1) * direction, target_y))
+                break
+    render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
+                      targetable_tile_types={'O', 'E', 'T', 'D'})
+    return tiles_to_highlight
+
+
+def highlight_in_cross_pattern(board_template, target_x, target_y, color=colors.BLACK):
+    """ Highlights every tile in a cross patter around (target_x, target_y), stopping when hitting a wall or door. """
+    tiles_to_highlight = list()
+    for direction in [1, -1]:
+        for j in range(BOARD_HEIGHT):
+           if board_template[target_y + j*direction][target_x] in {'X', 'D'}:
+                break
+           tiles_to_highlight.append((target_x, target_y + j*direction))
+        for j in range(BOARD_LENGTH):
+            if board_template[target_y][target_x  + j*direction] in {'X','D'}:
+                break
+            tiles_to_highlight.append((target_x + j*direction, target_y))
+    render_game_board(board_template, tiles_to_highlight=set(tiles_to_highlight), highlight_color=color,
+                      targetable_tile_types={'O', 'E', 'R', 'T', 'D'})
+    return tiles_to_highlight
+
+
+def animate_enemy_death(enemy_x, enemy_y):
+    """
+    Function to gradually change the color of an enemy, on death, so as to create the effect of fading to the
+    background grey color, currently set to (173, 173, 173). On input of the enemy's coordinates, it works as follows:
+        i. use the tile_from_xy_coords() function to get the dimensions and location of the enemy's Rect on the board
+        ii. starting from the base red color for enemies, iteratively set the value of each hue to the average of
+            the current value and 173. This will eventually converge to ~ 173.
+        iii. The condition on the while loop can be read as:
+                iterate until the sum of the 3 hue values lies between 3*170 and 3*175.
+             This is done so that the animation doesn't end prematurely when one of the hues reaches ~173 before the
+             other two, and to allow the loop to iterate fewer times as the visual difference of values from
+             170-175 is largely negligible.
+    """
+    new_color = copy(TILE_COLORS['E'])
+    enemy_rect = pg.Rect(tile_from_xy_coords(x=enemy_x, y=enemy_y))
+
+    while not 510 < new_color[0] + new_color[1] + new_color[2] < 525:
+        new_color = (int((new_color[0] + 173) / 2),
+                     int((new_color[1] + 173) / 2),
+                     int((new_color[2] + 173) / 2))
+        MAIN_WINDOW.fill(rect=enemy_rect, color=new_color)
+        pg.display.update(enemy_rect)
+        sleep(0.1)

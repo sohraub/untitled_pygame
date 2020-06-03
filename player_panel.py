@@ -1,5 +1,8 @@
-from pygame import mouse
+import pygame as pg
+
 from rendering import player_panel_renderer
+
+from skill_tree import SkillTreeController
 
 class PlayerPanel:
     def __init__(self, player):
@@ -8,6 +11,8 @@ class PlayerPanel:
         condition, inventory, and skills. Also acts as a middle-man between the Game object and the panel-rendering
         module.
         :param player: the Player object being controlled by the user.
+        :param level_up_points: Every time the player levels up, they get two points to spend on their attributes. If
+                                this value is != 0, then the extra buttons to add points to attributes will be visible.
 
         In the init method of this class, functions in the player_panel_render module are called to draw the individual
         components, and all of these functions return the Rect object that encloses their subject areas. These Rects
@@ -23,6 +28,7 @@ class PlayerPanel:
                             to tell the Player object which item is being clicked on.
         """
         self.player = player
+        self.level_up_points = 0
         self.player_dict = player.to_dict()
         self.panel_rect = player_panel_renderer.draw_player_panel(self.player_dict['name'])
         self.hp_mp_rect = player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'])
@@ -30,7 +36,8 @@ class PlayerPanel:
                                                                 draw_status(self.player_dict['status']['buffs'],
                                                                             self.player_dict['status']['debuffs'])
         self.conditions_rect = player_panel_renderer.draw_conditions(self.player_dict['conditions'])
-        self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'])
+        self.attributes_rect = player_panel_renderer.draw_attributes(self.player_dict['attributes'],
+                                                                     self.level_up_points)
         self.level_and_exp_rect = player_panel_renderer.draw_level_and_experience(self.player_dict['level'],
                                                                                   self.player_dict['profession'],
                                                                                   self.player_dict['experience'])
@@ -39,9 +46,16 @@ class PlayerPanel:
         self.ability_tiles, self.abilities_rect = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'])
         self.tooltip_focus = None
         self.active_item_index = None
+        self.skill_tree = SkillTreeController(self.player_dict['skill_tree'], self.player_dict['profession'],
+                                              self.player_dict['level'], self.player_dict['attributes'],
+                                              self.player_dict['active_abilities'],
+                                              self.player_dict['passive_abilities'])
+        self.skill_tree_displaying = False
 
     def refresh_player_panel(self):
         """Refresh every part of the player panel."""
+        if self.skill_tree_displaying:
+            return
         self.player_dict = self.player.to_dict()
         player_panel_renderer.draw_player_panel(self.player_dict['name'], refresh=True)
         self.refresh_hp_mp()
@@ -55,39 +69,59 @@ class PlayerPanel:
 
     def refresh_hp_mp(self):
         """Method to refresh the displayed HP and MP values."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_hp_mp(self.player_dict['hp'], self.player_dict['mp'], refresh=True)
 
     def refresh_statuses(self):
         """Method to refresh the players statuses."""
+        if self.skill_tree_displaying:
+            return
         _, self.buff_rects, self.debuff_rects = player_panel_renderer.draw_status(self.player_dict['status']['buffs'],
                                                                                   self.player_dict['status']['debuffs'],
                                                                                   refresh=True)
 
     def refresh_level_and_exp(self):
         """Method to refresh the displayed level and experience bar."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_level_and_experience(self.player_dict['level'], self.player_dict['profession'],
                                                         self.player_dict['experience'], refresh=True)
 
     def refresh_attributes(self):
         """Method to refresh the displayed players attributes."""
-        player_panel_renderer.draw_attributes(self.player_dict['attributes'], refresh=True)
+        if self.skill_tree_displaying:
+            return
+        player_panel_renderer.draw_attributes(self.player_dict['attributes'], self.level_up_points, refresh=True)
+        if self.level_up_points > 0:
+            player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points)
 
     def refresh_conditions(self):
         """Method to refresh the displayed conditions."""
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_conditions(self.player_dict['conditions'], refresh=True)
 
     def refresh_inventory(self):
         """
         Refresh the displayed inventory, as well as re-set self.inventory_tiles based on the occupied inventory slots.
         """
+        if self.skill_tree_displaying:
+            return
         self.inventory_tiles, _ = player_panel_renderer.draw_inventory(self.player_dict['inventory'], refresh=True)
 
     def refresh_abilities(self):
         """Refresh the displayed abilities."""
-        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'], refresh=True)
+        if self.skill_tree_displaying:
+            return
+        self.ability_tiles, _ = player_panel_renderer.draw_active_abilities(self.player_dict['active_abilities'],
+                                                                            refresh=True,
+                                                                            skill_points=self.skill_tree.skill_points)
 
     def refresh_equipment(self):
         """Refresh the displayed inventory, as well as reset self.equipment_tiles base on occupied equipment slots."""
+        if self.skill_tree_displaying:
+            return
         self.equipment_tiles, _ = player_panel_renderer.draw_equipment(self.player_dict['equipment'], refresh=True)
 
     def handle_panel_mouseover(self):
@@ -95,12 +129,17 @@ class PlayerPanel:
         Method to handle the player mousing over the player panel, to display specific information on what is being
         moused over.
         """
-        mouse_pos = mouse.get_pos()
+        if self.skill_tree_displaying:
+            self.skill_tree.handle_skill_tree_mouseover(self.player_dict['skill_tree'])
+            return False
+        mouse_pos = pg.mouse.get_pos()
         # These conditions check if the mouse is on a panel element that can show a detail window, and that no detail
         # window is currently being displayed.
         if not self.tooltip_focus:
             if self.status_rect.collidepoint(mouse_pos):
                 self.handle_status_mouseover()
+            elif self.attributes_rect.collidepoint(mouse_pos):
+                self.handle_attributes_mouseover()
             elif self.inventory_rect.collidepoint(mouse_pos):
                 self.handle_inventory_mouseover()
             elif self.equipment_rect.collidepoint(mouse_pos):
@@ -114,7 +153,7 @@ class PlayerPanel:
             # if self.conditions_rect.collidepoint(mouse_pos) and not self.tooltip_focus:
             #     self.handle_conditions_mouseover()
         if self.tooltip_focus is not None and not self.tooltip_focus.collidepoint(mouse_pos):
-            # This condition checks if an item info window is still displaying even if the mouse is no longer
+            # This condition checks if an info tooltip is still displaying even if the mouse is no longer
             # on that item, and if so, refreshes the inventory to get rid of the item info
             self.refresh_player_panel()
             self.tooltip_focus = None
@@ -124,7 +163,9 @@ class PlayerPanel:
         """
         Handle cases when the mouse is over the statuses, to display tooltip info for buffs and debuffs.
         """
-        mouse_pos = mouse.get_pos()
+        if self.skill_tree_displaying:
+            return
+        mouse_pos = pg.mouse.get_pos()
         buff_index = None
         debuff_index = None
         buff_rect = None
@@ -138,7 +179,6 @@ class PlayerPanel:
         if buff_index is None:  # No need to check debuff collisions if we already know a buff has been collided with.
             for i, debuff_rect in enumerate(self.debuff_rects):
                 if debuff_rect.collidepoint(mouse_pos):
-                    print(debuff_index)
                     debuff_index = i
                     break
 
@@ -149,14 +189,47 @@ class PlayerPanel:
             self.tooltip_focus = debuff_rect
             player_panel_renderer.draw_status_details(self.player_dict['status']['debuffs'][debuff_index])
 
+    def handle_attributes_mouseover(self):
+        """
+        The attributes section of the panel has no real functionality on mouseover for the time being, might eventually
+        add tooltips explaining what each attribute is useful for.
+        """
+        pass
+
+    def handle_allocate_attribute_point(self):
+        """
+        Called when the Game object registers a left click and the mouse is on the attribute rectangle. If player has
+        attribute points to spend, allocates them accordingly.
+        """
+        level_up_buttons = player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points,
+                                                                                 return_only=True)
+        mouse_pos = pg.mouse.get_pos()
+        index_attribute_mapping = {
+            0: 'str',
+            1: 'dex',
+            2: 'int',
+            3: 'end',
+            4: 'vit',
+            5: 'wis'
+        }
+        for i, button in enumerate(level_up_buttons):
+            if button.collidepoint(mouse_pos):
+                clicked_attribute = index_attribute_mapping[i]
+                self.player.attributes[clicked_attribute] += 1
+                self.level_up_points -= 1
+                self.player.apply_attribute_changes()
+                self.refresh_player_panel()
+                return
 
     def handle_inventory_mouseover(self):
         """
         Method to specifically handle cases then the mouse is over the inventory, and display the appropriate item info.
         """
+        if self.skill_tree_displaying:
+            return
         item_index = None
         item_tile = None
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         for i, item_tile in enumerate(self.inventory_tiles):
             # This loop checks if the tile being moused over currently holds an actual item, and if so, returns index.
             if item_tile.collidepoint(mouse_pos) and len(self.player_dict['inventory']) >= i + 1:
@@ -176,7 +249,9 @@ class PlayerPanel:
         equipped in the slot being moused over, display that item's tooltip. Otherwise, display a tooltip showing the
         empty slot.
         """
-        mouse_pos = mouse.get_pos()
+        if self.skill_tree_displaying:
+            return
+        mouse_pos = pg.mouse.get_pos()
         slot_moused_over = ''
         for slot in self.equipment_tiles:
             if self.equipment_tiles[slot].collidepoint(mouse_pos):
@@ -195,7 +270,9 @@ class PlayerPanel:
         """
         Handle cases when mouse is over player abilities, listening for clicks on ability tiles and displaying tooltips.
         """
-        mouse_pos = mouse.get_pos()
+        if self.skill_tree_displaying:
+            return
+        mouse_pos = pg.mouse.get_pos()
         ability_index = None
         for index, tile in enumerate(self.ability_tiles):
             if tile.collidepoint(mouse_pos):
@@ -205,18 +282,23 @@ class PlayerPanel:
         # Check to make sure there are actually abilities up to that index before trying to do anymore.
         if ability_index is not None and len(self.player_dict['active_abilities']) >= ability_index + 1:
             self.tooltip_focus = self.ability_tiles[ability_index]
-            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index])
-
+            player_panel_renderer.draw_ability_details(self.player_dict['active_abilities'][ability_index],
+                                                       self.player_dict['attributes'],
+                                                       self.player_dict['mp'])
 
     def handle_conditions_mouseover(self):
         """
         Method to handle the case when the mouse is over the player's conditions, calling the rendering method to draw
         the detail window.
         """
+        if self.skill_tree_displaying:
+            return
         player_panel_renderer.draw_condition_details(self.player_dict['conditions'], self.conditions_rect)
 
     def handle_level_exp_mouseover(self):
         """Handles displaying tooltip when user mouses over their level or experience bar."""
+        if self.skill_tree_displaying:
+            return
         self.tooltip_focus = self.level_and_exp_rect
         player_panel_renderer.draw_exp_details(self.player_dict['experience'])
 
@@ -238,3 +320,24 @@ class PlayerPanel:
             return self.ability_tiles.index(self.tooltip_focus)
 
         raise Exception('Incompatible element passed into get_tooltip_index() method of player_panel.')
+
+    def level_up(self):
+        self.level_up_points += 2
+        self.skill_tree.level += 1
+        self.skill_tree.skill_points += 1
+
+    def display_skill_tree(self):
+        """
+        Method that calls necessary rendering functions to display the player's skill tree in the player panel.
+        """
+        self.skill_tree_displaying = True
+        self.skill_tree.render_skill_tree()
+
+    def handle_skill_point_allocation(self):
+        """
+        Calls methods to handle skill point allocation in SkillTreeController, and updates the players abilities
+        accordingly.
+        """
+        changes_made = self.skill_tree.allocate_skill_points()  # This function returns a boolean
+        if changes_made:
+            self.player.set_abilities_from_skill_tree()
