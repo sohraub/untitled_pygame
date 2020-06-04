@@ -186,8 +186,7 @@ class Player(Character):
         for effect, parameter_dict in zip(item.effects, item.parameters):
             parameter_dict['target'] = self
             effect(**parameter_dict)
-        console_text = f'You {item.verb} the {item.name}.'
-        return console_text
+        return item.console_text
 
     def equip_item(self, index):
         """Equips item at 'index', replacing it in the inventory with what was previously equipped, if any."""

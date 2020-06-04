@@ -379,7 +379,6 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     # Body strings will be constructed differently for consumables and equipment.
     body_strings = list()
-    body_colors = None
     if item_dict['type'] == 'consumable':
         body_strings = item_dict['description'] + ['---'] + item_dict['details']
 
@@ -389,7 +388,7 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
-                       header_string=item_dict['name'].upper())
+                       header_string=item_dict['name'].upper(), auto_window_height=True, auto_window_width=True)
 
 
 def draw_equipment_details(equipment_dict, slot):

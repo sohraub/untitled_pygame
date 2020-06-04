@@ -165,12 +165,26 @@ class Game:
         :returns: New lines to be displayed in the console
         """
         item_index = self.player_panel.get_tooltip_index(element='inventory')
-        item_dict = self.player.inventory[item_index].to_dict()
-        if item_dict['type'] == 'consumable':
+        item = self.player.inventory[item_index]
+        if item.is_consumable() and self.check_item_prerequisites(item):
             self.console.update(self.player.consume_item(item_index))
-        elif item_dict['type'] == 'equipment':
+        elif item.is_equipment():
             self.console.update(self.player.equip_item(item_index))
         self.player_panel.handle_item_consumption()
+        return True
+
+    def check_item_prerequisites(self, item):
+        """
+        Some consumable items have prerequisite conditions before they can be used. Those are checked here.
+        Return True if all prerequisites are met (of if there are None), and False otherwise.
+        """
+        if item.prerequisites_for_use is None:
+            return True
+        for prerequisite in item.prerequisites_for_use:
+            if prerequisite == 'no_enemies_on_board' and len(self.board.enemies.keys()) > 0:
+                self.console.update('Conditions to use this item are not met.')
+                return False
+
         return True
 
     def get_targets(self, ability):

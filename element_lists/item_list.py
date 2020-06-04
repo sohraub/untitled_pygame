@@ -1,7 +1,7 @@
 import random
 import copy
 
-import item_effects
+from item_effects import *
 from game_elements.item import Item, Consumable, Equipment
 
 """
@@ -11,25 +11,45 @@ Module containing all of the items that can be loaded into a board.
 #### CONSUMABLES ####
 small_hp_potion = Consumable(name='Small HP Potion',
                              description='A small potion you can drink to restore a bit of HP.',
-                             effects=[item_effects.increase_hp, item_effects.improve_conditions],
+                             effects=[increase_hp, improve_conditions],
                              parameters=[{'value':5}, {'conditions':['thirsty'], 'values':[3]}],
-                             details=['HP +5', 'Thirst -3'], verb='drank')
+                             details=['HP +5', 'Thirst -3'],
+                             console_text='You drink the Small HP Potion.')
 
 small_mp_potion = Consumable(name='Small MP Potion',
                              description='A small potion you can drink to restore a bit of MP.',
-                             effects=[item_effects.increase_mp, item_effects.improve_conditions],
+                             effects=[increase_mp, improve_conditions],
                              parameters=[{'value':5}, {'conditions':['thirsty'], 'values':[3]}],
-                             details=['MP +5', 'Thirst -3'], verb='drank')
+                             details=['MP +5', 'Thirst -3'],
+                             console_text='You drink the Small MP Potion.')
 
 apple = Consumable(name='Apple',
                    description='The fruit that needs no introduction.',
-                   effects=[item_effects.improve_conditions],
+                   effects=[improve_conditions],
                    parameters=[{'conditions':['hungry', 'thirsty'], 'values':[10, 1]}],
-                   details=['Hunger -10', 'Thirst -1'], verb='ate')
+                   details=['Hunger -10', 'Thirst -1'],
+                   console_text='You eat the apple.')
 
+questionable_liquid = Consumable(name='Questionable Liquid',
+                                 description='Whatever is in this flask might be passable as water, but its smell does'
+                                             ' not inspire confidence in its safety.',
+                                 effects=[improve_conditions, chance_to_poison],
+                                 parameters=[{'conditions':['thirsty'], 'values':[15]},
+                                             {'probability': 5, 'status_duration': 3}],
+                                 details=['Thirst -15', '5% Chance to Poison'],
+                                 console_text='You nervously down the questionable liquid.')
+
+bedroll = Consumable(name='Bedroll',
+                     description='The opportunity for respite, to forget about the situation in which you find yourself,'
+                                 ' and to recharge your resolve to push forward.',
+                     effects=[improve_conditions, increase_hp, increase_mp],
+                     parameters=[{'conditions':['tired'], 'values':[40],}, {'value': 1000}, {'value': 1000}],
+                     details=['Tired -40','Fully Restore HP and MP', "Can't be used if any enemies are around"],
+                     prereqs=['no_enemies_on_board'],
+                     console_text='You have a much-needed rest on the bedroll.')
 
 #### LISTS OF CONSUMABLES ####
-tier_1_c = [small_hp_potion, small_mp_potion, apple]
+tier_1_c = [small_hp_potion, small_mp_potion, apple, questionable_liquid, bedroll]
 
 
 #### EQUIPPABLES ####
