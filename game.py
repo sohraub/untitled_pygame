@@ -9,7 +9,7 @@ from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
-from element_lists.board_templates import get_board_list
+from element_lists.board_templates import get_board_list, starting_board
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
@@ -29,7 +29,7 @@ class Game:
         :param filename: The save file which the game is loaded from. TODO: implement this
         """
         self.console = console
-        self.board = board if board is not None else Board()
+        self.board = board if board is not None else Board(board_template=starting_board)
         self.player = player if player is not None else Player()
         # Player coordinates are initialized from the board template
         self.player.x = self.board.player_coordinates[0]
@@ -40,7 +40,7 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
-        self.set_board_transitions()
+        self.board.generate_adjacent_boards()
 
     def set_board_transitions(self, tier=1):
         """For each door in the current board, determine what the next board will be once a player enters that door."""
@@ -107,7 +107,7 @@ class Game:
         self.board.handle_enemy_death(enemy_pos=(enemy.x, enemy.y))
         self.misc_panel.focus_tile = None
         self.refresh_focus_window()
-        player_leveled_up = self.player.gain_experience(enemy.hp)
+        player_leveled_up = self.player.gain_experience()
         # Player.gain_experience() evaluates to True if the Player has leveled up. If so, the call the
         # handle_player_level_up method in the player panel.
         if player_leveled_up:
@@ -129,7 +129,6 @@ class Game:
         else
             wait
         """
-        # enemies = list(self.board.enemies.values())
         for enemy in list(self.board.enemies.values()):
             distance_to_player = manhattan_distance((enemy.x, enemy.y), (self.player.x, self.player.y))
             if distance_to_player <= enemy.aggro_range:
@@ -151,7 +150,7 @@ class Game:
                     adjacent_tiles = ([(enemy.x + i, enemy.y) for i in [-1, 1]] +
                                       [(enemy.x, enemy.y + i) for i in [-1, 1]])
                     new_x, new_y = random.choice([tile for tile in adjacent_tiles if tile in set(open_tiles)])
-                if new_x is not None:  # Check if a valid movement was found
+                if new_x is not None and self.board.tile_is_open(new_x, new_y):  # Check if a valid movement was found
                     self.console.update(self.board.move_character(enemy, new_x, new_y))
                     enemy.x = new_x
                     enemy.y = new_y
@@ -243,11 +242,13 @@ class Game:
             # If no movements were found, loop over an empty list, i.e. do nothing
             for movement in ability_outcome.get('movements', list()):
                 # Each movement entry in the ability_outcome dict will look like
-                # { 'subject': The character object that's being moved
-                #   'new_position': (new_x, new_y) }
+                #   { 'subject': The character object that's being moved
+                #     'new_position': (new_x, new_y) }
+                if movement['subject'].hp[0] == 0:  # Don't bother moving the character if they were killed
+                    continue
                 new_x, new_y = movement['new_position']
                 # Target is only moved if the new space is open or a trap
-                if self.board.template[new_y][new_x] in {'O', 'R'}:
+                if self.board.tile_is_open(new_x, new_y):
                     self.console.update(self.board.move_character(character=movement['subject'], new_x=new_x,
                                                                   new_y=new_y))
                     self.load_game_board()
@@ -350,7 +351,6 @@ class Game:
     def handle_left_clicks(self):
         """
         Method to handle cases in the main game loop when the left mouse button has been clicked.
-        :return console_text: New lines for the console.
         """
         new_actions = list()
         mouse_pos = pg.mouse.get_pos()
@@ -361,6 +361,9 @@ class Game:
             # If the skill tree is active and the mouse is on the player panel, then we assume that the player is
             # trying to allocate skill points
             self.player_panel.handle_skill_point_allocation()
+
+        if self.player_panel.attributes_rect.collidepoint(mouse_pos) and self.player_panel.level_up_points > 0:
+            self.player_panel.handle_allocate_attribute_point()
 
         elif self.player_panel.tooltip_focus is not None:
             # If the user has clicked on the inventory with the tooltip window active, we check if the mouse
@@ -376,12 +379,12 @@ class Game:
 
     def handle_board_transition(self, door_coordinates):
         """Handles all the necessary updates when the Player steps on a door and transitions to the next board."""
-        new_template = self.board.doors[door_coordinates]
-        new_board = Board(board_template=new_template, tier=self.board.tier)
+        new_board = self.board.doors[door_coordinates]['board']
+        self.player.x, self.player.y = self.board.doors[door_coordinates]['entry_position']
         self.board = new_board
+        self.board.player_coordinates = (self.player.x, self.player.y)
         self.misc_panel.board = new_board
-        self.player.x, self.player.y = self.board.player_coordinates
-        self.set_board_transitions()
+        self.board.generate_adjacent_boards()
         self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
@@ -417,7 +420,7 @@ class Game:
             # Handling the cases when there is a mouseover on the player panel
             if self.player_panel.panel_rect.collidepoint(pg.mouse.get_pos()):
                 self.player_panel.handle_panel_mouseover()
-            if pg.mouse.get_pressed()[0]:  # Check if the left mouse button has been pressed
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:  # Check if the left mouse button has been pressed
                 self.handle_left_clicks()
             if event.type == pg.KEYDOWN:  # If mouse hasn't been pressed, check for keystrokes
                 keys = pg.key.get_pressed()

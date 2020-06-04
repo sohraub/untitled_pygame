@@ -18,7 +18,7 @@ def main_menu():
 
 def main_game():
     """Loads the main game."""
-    game = Game(console=Console(), player=Player(), board=Board(tier=1))
+    game = Game(console=Console(), player=Player())
     run = True
     game.draw_window()
     game.console.refresh_console()

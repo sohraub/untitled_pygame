@@ -24,7 +24,8 @@ def render_game_board(board_template, tiles_to_highlight=None, highlight_color=c
         for x in range(BOARD_LENGTH):
             if (x, y) in tiles_to_highlight and board_template[y][x] in targetable_tile_types:
                 pg.draw.rect(MAIN_WINDOW, highlight_color,
-                             (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 1)
+                             (TOP_LEFT_X + x * TILE_SIZE + 1 , TOP_LEFT_Y + y * TILE_SIZE + 1,
+                              TILE_SIZE - 2, TILE_SIZE - 2), 1)
                 continue
             pg.draw.rect(MAIN_WINDOW, TILE_COLORS[board_template[y][x]],
                          (TOP_LEFT_X + x * TILE_SIZE, TOP_LEFT_Y + y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 0)

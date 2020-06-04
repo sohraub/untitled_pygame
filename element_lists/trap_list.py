@@ -30,8 +30,8 @@ def trigger_lesser_poison_trap(target):
 
 
 #### TRAPS ####
-spike_trap = Trap(type='direct', name='spike', function=trigger_spike_trap, trigger_prob=0.8, trigger_avoid_coeff=1)
-lesser_poison_trap = Trap(type='debuff', name='lesser poison', function=trigger_lesser_poison_trap, trigger_prob=0.7,
+spike_trap = Trap(type='direct', name='spike', function=trigger_spike_trap, trigger_prob=0.7, trigger_avoid_coeff=1)
+lesser_poison_trap = Trap(type='debuff', name='lesser poison', function=trigger_lesser_poison_trap, trigger_prob=0.8,
                           trigger_avoid_coeff=0.5)
 
 

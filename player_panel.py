@@ -1,4 +1,5 @@
-from pygame import mouse
+import pygame as pg
+
 from rendering import player_panel_renderer
 
 from skill_tree import SkillTreeController
@@ -131,7 +132,7 @@ class PlayerPanel:
         if self.skill_tree_displaying:
             self.skill_tree.handle_skill_tree_mouseover(self.player_dict['skill_tree'])
             return False
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         # These conditions check if the mouse is on a panel element that can show a detail window, and that no detail
         # window is currently being displayed.
         if not self.tooltip_focus:
@@ -164,7 +165,7 @@ class PlayerPanel:
         """
         if self.skill_tree_displaying:
             return
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         buff_index = None
         debuff_index = None
         buff_rect = None
@@ -190,33 +191,35 @@ class PlayerPanel:
 
     def handle_attributes_mouseover(self):
         """
-        The attributes section of the panel only has any real functionality when leveling up, i.e. when
-        self.level_up_points > 0. In this case, buttons will appear next to each attribute, and the player can click
-        these buttons to allocate any level_up points they have to increase these attributes.
+        The attributes section of the panel has no real functionality on mouseover for the time being, might eventually
+        add tooltips explaining what each attribute is useful for.
         """
-        if self.skill_tree_displaying:
-            return
-        if self.level_up_points > 0:
-            level_up_buttons = player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points,
-                                                                                     return_only=True)
-            mouse_pos = mouse.get_pos()
-            index_attribute_mapping = {
-                0: 'str',
-                1: 'dex',
-                2: 'int',
-                3: 'end',
-                4: 'vit',
-                5: 'wis'
-            }
-            if mouse.get_pressed()[0]:
-                for i, button in enumerate(level_up_buttons):
-                    if button.collidepoint(mouse_pos):
-                        clicked_attribute = index_attribute_mapping[i]
-                        self.player.attributes[clicked_attribute] += 1
-                        self.level_up_points -= 1
-                        self.player.apply_attribute_changes()
-                        self.refresh_player_panel()
-                        return
+        pass
+
+    def handle_allocate_attribute_point(self):
+        """
+        Called when the Game object registers a left click and the mouse is on the attribute rectangle. If player has
+        attribute points to spend, allocates them accordingly.
+        """
+        level_up_buttons = player_panel_renderer.draw_attribute_level_up_buttons(self.level_up_points,
+                                                                                 return_only=True)
+        mouse_pos = pg.mouse.get_pos()
+        index_attribute_mapping = {
+            0: 'str',
+            1: 'dex',
+            2: 'int',
+            3: 'end',
+            4: 'vit',
+            5: 'wis'
+        }
+        for i, button in enumerate(level_up_buttons):
+            if button.collidepoint(mouse_pos):
+                clicked_attribute = index_attribute_mapping[i]
+                self.player.attributes[clicked_attribute] += 1
+                self.level_up_points -= 1
+                self.player.apply_attribute_changes()
+                self.refresh_player_panel()
+                return
 
     def handle_inventory_mouseover(self):
         """
@@ -226,7 +229,7 @@ class PlayerPanel:
             return
         item_index = None
         item_tile = None
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         for i, item_tile in enumerate(self.inventory_tiles):
             # This loop checks if the tile being moused over currently holds an actual item, and if so, returns index.
             if item_tile.collidepoint(mouse_pos) and len(self.player_dict['inventory']) >= i + 1:
@@ -248,7 +251,7 @@ class PlayerPanel:
         """
         if self.skill_tree_displaying:
             return
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         slot_moused_over = ''
         for slot in self.equipment_tiles:
             if self.equipment_tiles[slot].collidepoint(mouse_pos):
@@ -269,7 +272,7 @@ class PlayerPanel:
         """
         if self.skill_tree_displaying:
             return
-        mouse_pos = mouse.get_pos()
+        mouse_pos = pg.mouse.get_pos()
         ability_index = None
         for index, tile in enumerate(self.ability_tiles):
             if tile.collidepoint(mouse_pos):
