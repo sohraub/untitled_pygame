@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_50, FONT_TNR_12, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_50, FONT_CALIBRI_12, draw_detail_window
 from rendering.player_panel_renderer import PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, ABILITY_TILE_LENGTH, draw_ability_details
 
 
@@ -114,7 +114,7 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
     for i in range(7):
         badge_points = [(a, b + i * (skill_tile_length + space_between_levels)) for (a, b) in base_badge_points]
         pg.draw.polygon(MAIN_WINDOW, colors.YELLOW, badge_points)
-        level_text = FONT_TNR_12.render(req_level_from_tree_level[i], 1, colors.BLACK)
+        level_text = FONT_CALIBRI_12.render(req_level_from_tree_level[i], 1, colors.BLACK)
         text_rect = level_text.get_rect(center=(badge_points[0][0] + 0.5 * badge_length,
                                                 badge_points[0][1] + 0.75* badge_length))
         MAIN_WINDOW.blit(level_text, text_rect)

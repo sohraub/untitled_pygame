@@ -43,10 +43,11 @@ bedroll = Consumable(name='Bedroll',
                      description='The opportunity for respite, to forget about the situation in which you find yourself,'
                                  ' and to recharge your resolve to push forward.',
                      effects=[improve_conditions, increase_hp, increase_mp],
-                     parameters=[{'conditions':['tired'], 'values':[40],}, {'value': 1000}, {'value': 1000}],
-                     details=['Tired -40','Fully Restore HP and MP', "Can't be used if any enemies are around"],
-                     prereqs=['no_enemies_on_board'],
-                     console_text='You have a much-needed rest on the bedroll.')
+                     parameters=[{'conditions':['tired', 'hungry', 'thirsty'], 'values':[40, -10, -10],},
+                                 {'value': 1000}, {'value': 1000}],
+                     details=['Tiredness -40','Hunger +10', 'Thirst +10','Fully Restore HP and MP',
+                              "Can't be used if any enemies are around"],
+                     prereqs=['no_enemies_on_board'], console_text='You have a much-needed rest on the bedroll.')
 
 #### LISTS OF CONSUMABLES ####
 tier_1_c = [small_hp_potion, small_mp_potion, apple, questionable_liquid, bedroll]
@@ -61,12 +62,22 @@ short_sword = Equipment(name='Short Sword',
                         description='Looks quite sharp, although it does lack much reach.',
                         slot='weapon', off_rating=3, stat_req={'str': 2, 'dex': 3})
 
-leather_cap = Equipment(name='Leather Cap',
-                        description="Doesn't offer much protection, but better than nothing.", slot='head',
-                        def_rating=1)
+old_leather_cap = Equipment(name='Old Leather Cap',
+                            description="Doesn't offer much protection, but better than nothing.", slot='head',
+                            def_rating=1)
+
+old_leather_tunic = Equipment(name='Old Leather Tunic', description="Suppose it beats being completely exposed.",
+                              slot='body', def_rating=3)
+
+old_leather_boots = Equipment(name='Old Leather Boots', description="The soles are falling apart...",
+                              slot='feet', def_rating=1)
+
+old_leather_gloves = Equipment(name='Old Leather Gloves',
+                               description="Going to assume those finger-holes are there by design.", slot='hands',
+                               def_rating=1)
 
 #### LISTS OF EQUIPPABLES ####
-tier_1_e = [rusty_sword, leather_cap, short_sword]
+tier_1_e = [rusty_sword, old_leather_cap, short_sword, old_leather_boots, old_leather_gloves, old_leather_tunic]
 
 def generate_random_item(tier, type='both'):
     """

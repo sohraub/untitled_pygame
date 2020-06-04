@@ -9,7 +9,7 @@ from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
-from element_lists.board_templates import get_board_list, starting_board
+from element_lists.board_templates import get_board_list, starting_board, testing
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
@@ -29,7 +29,7 @@ class Game:
         :param filename: The save file which the game is loaded from. TODO: implement this
         """
         self.console = console
-        self.board = board if board is not None else Board(board_template=starting_board)
+        self.board = board if board is not None else Board(board_template=testing)
         self.player = player if player is not None else Player()
         # Player coordinates are initialized from the board template
         self.player.x = self.board.player_coordinates[0]

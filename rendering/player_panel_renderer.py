@@ -4,7 +4,7 @@ import colors
 
 from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_CALIBRI_12, draw_detail_window
 from utility_functions import parse_description
 
 """
@@ -235,14 +235,14 @@ def draw_status(buffs, debuffs, refresh=False):
     for i, buff in enumerate(buffs):
         buff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 15, 15)
         buff_rects.append(buff_indicator)
-        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        buff_turns_left = FONT_CALIBRI_12.render(str(buff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
 
     for i, debuff in enumerate(debuffs):
         debuff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 57, 15, 15)
         debuff_rects.append(debuff_indicator)
-        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        debuff_turns_left = FONT_CALIBRI_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 
@@ -380,7 +380,7 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
     # Body strings will be constructed differently for consumables and equipment.
     body_strings = list()
     if item_dict['type'] == 'consumable':
-        body_strings = item_dict['description'] + ['---'] + item_dict['details']
+        body_strings = item_dict['description'] + ['---'] + item_dict['details'] + ['---', 'Left-click to consume']
 
     elif item_dict['type'] == 'equipment':
         # In this case we outsource the logic to another function, since it is a lot of logic.
@@ -413,7 +413,7 @@ def draw_equipment_details(equipment_dict, slot):
 
     draw_detail_window(body_strings=body_strings,
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
-                       header_string=header_string)
+                       header_string=header_string, auto_window_width=True, auto_window_height=True)
 
 
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
@@ -454,6 +454,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
     body_strings.append((f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}", compare_color))
+    body_strings.extend(['---', 'Left-click to equip'])
 
     return body_strings
 

@@ -4,7 +4,7 @@ import copy
 from element_lists import status_list
 
 """
-Module that stores all the possible effects an item can have, which are imported into item list on the initialization
+Module that stores all the possible effects an item can have, which are imported into item_list on the initialization
 of items.
 """
 

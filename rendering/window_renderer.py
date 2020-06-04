@@ -23,10 +23,8 @@ FONT_25 = pg.font.Font(font_SIL, 25)
 FONT_20 = pg.font.Font(font_SIL, 20)
 FONT_15 = pg.font.Font(font_SIL, 15)
 FONT_10 = pg.font.Font(font_SIL, 10)
-# FONT_TNR_12 = pg.font.SysFont('timesnewroman', 12)
-# FONT_TNR_13 = pg.font.SysFont('timesnewroman', 13)
-FONT_TNR_12 = pg.font.SysFont('calibri', 12)
-FONT_TNR_13 = pg.font.SysFont('calibri', 13)
+FONT_CALIBRI_12 = pg.font.SysFont('calibri', 12)
+FONT_CALIBRI_13 = pg.font.SysFont('calibri', 13)
 
 def draw_detail_window(body_strings, rect_dimensions, header_string=None, window_color=colors.NAVY, font_size=13,
                        auto_window_height=False, auto_window_width=False):
@@ -44,17 +42,9 @@ def draw_detail_window(body_strings, rect_dimensions, header_string=None, window
                               on the length of the longest line in body_strings and header_string.
     :return: n/a
     """
-    if auto_window_height:
-        auto_height = (font_size + 4) * len(body_strings)  # Add 4 to account for whitespace between lines.
-        auto_height += 27 if header_string is not None else 2
-        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], rect_dimensions[2], auto_height)
-    if auto_window_width:
-        max_width = 0
-        for line in body_strings:
-            # Multiple font_size by 0.5 since letters are approx. half as wide as they are tall.
-            max_width = max(max_width, len(line) * (0.45 * font_size))
-        max_width = max(max_width, len(header_string) * 10) if header_string is not None else max_width
-        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], max_width, rect_dimensions[3])
+    if auto_window_height or auto_window_height:
+        rect_dimensions = find_auto_dimensions(auto_window_height, auto_window_width, rect_dimensions, body_strings,
+                                               header_string, font_size)
     MAIN_WINDOW.fill(window_color, rect_dimensions)
     # If no header is given, this offset will be set at 2 so that there is no blank space at the top.
     body_offset = 2
@@ -71,3 +61,26 @@ def draw_detail_window(body_strings, rect_dimensions, header_string=None, window
     # The first two elements of rect_dimensions correspond to the top_left_x and top_left_y of the window, resp.
     for i, string in enumerate(body):
         MAIN_WINDOW.blit(string, (rect_dimensions[0] + 10, rect_dimensions[1] + body_offset + 16*i))
+
+
+def find_auto_dimensions(auto_height, auto_width, rect_dimensions, body_strings, header_string, font_size):
+    """
+    Returns dimensions of tooltip window after determining width and/or height automatically. Height will be based on
+    number of lines in body_strings, font_size, and presence of a header. Width will be based on the length of the
+    longest line between the body strings and header string, account for font size as well.
+    """
+    if auto_height:
+        auto_height = (font_size + 4) * len(body_strings)  # Add 4 to account for whitespace between lines.
+        auto_height += 35 if header_string is not None else 10
+        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], rect_dimensions[2], auto_height)
+    if auto_width:
+        max_width = 0
+        for line in body_strings:
+            if type(line) == tuple:  # Handle cases where body string is a tuple of (string, color)
+                line = line[0]
+            # Multiple font_size by 0.5 since letters are approx. half as wide as they are tall.
+            max_width = max(max_width, len(line) * (0.45 * font_size))
+        max_width = max(max_width, len(header_string) * 12) if header_string is not None else max_width
+        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], max_width, rect_dimensions[3])
+
+    return rect_dimensions
