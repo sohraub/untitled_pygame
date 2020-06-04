@@ -2,6 +2,7 @@ import pygame as pg
 import random
 from copy import copy
 from time import sleep, time
+from datetime import datetime
 
 
 from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_best_step
@@ -431,5 +432,5 @@ class Game:
             execution_time = end - start
             if execution_time > 0:
                 with open('time_logs.txt', 'a+') as f:
-                    f.write(str(execution_time) + '\n')
+                    f.write(f'{datetime.now()}, {execution_time}\n')
         return True
