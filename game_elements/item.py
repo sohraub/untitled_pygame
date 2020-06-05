@@ -8,7 +8,7 @@ class Item:
         :param description: Description to be displayed on the item-display modal.
         """
         self.name = name
-        self.description = parse_description(description)
+        self.description = parse_description(description, char_limit=33)
 
     def is_consumable(self):
         return self.__class__.__name__ == 'Consumable'

@@ -30,14 +30,14 @@ apple = Consumable(name='Apple',
                    details=['Hunger -10', 'Thirst -1'],
                    console_text='You eat the apple.')
 
-questionable_liquid = Consumable(name='Questionable Liquid',
-                                 description='Whatever is in this flask might be passable as water, but its smell does'
-                                             ' not inspire confidence in its safety.',
-                                 effects=[improve_conditions, chance_to_poison],
-                                 parameters=[{'conditions':['thirsty'], 'values':[15]},
-                                             {'probability': 5, 'status_duration': 3}],
-                                 details=['Thirst -15', '5% Chance to Poison'],
-                                 console_text='You nervously down the questionable liquid.')
+strange_liquid = Consumable(name='Strange Liquid',
+                            description='Whatever is in this flask might be passable as water, but its smell does'
+                                        ' not inspire confidence in its safety.',
+                            effects=[improve_conditions, chance_to_poison],
+                            parameters=[{'conditions':['thirsty'], 'values':[15]},
+                                        {'probability': 5, 'status_duration': 3}],
+                            details=['Thirst -15', '5% Chance to Poison'],
+                            console_text='You nervously down the questionable liquid.')
 
 bedroll = Consumable(name='Bedroll',
                      description='The opportunity for respite, to forget about the situation in which you find yourself,'
@@ -46,11 +46,11 @@ bedroll = Consumable(name='Bedroll',
                      parameters=[{'conditions':['tired', 'hungry', 'thirsty'], 'values':[40, -10, -10],},
                                  {'value': 1000}, {'value': 1000}],
                      details=['Tiredness -40','Hunger +10', 'Thirst +10','Fully Restore HP and MP',
-                              "Can't be used if any enemies are around"],
+                              "Unusable if enemies are around"],
                      prereqs=['no_enemies_on_board'], console_text='You have a much-needed rest on the bedroll.')
 
 #### LISTS OF CONSUMABLES ####
-tier_1_c = [small_hp_potion, small_mp_potion, apple, questionable_liquid, bedroll]
+tier_1_c = [small_hp_potion, small_mp_potion, apple, strange_liquid, bedroll]
 
 
 #### EQUIPPABLES ####
