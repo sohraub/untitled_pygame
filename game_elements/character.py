@@ -129,3 +129,14 @@ class Character:
                 console_text.append(status.combat_function(**combat_dict))
 
         return console_text
+
+
+    def apply_attribute_changes(self):
+        """
+        Function to be called every time a character's attributes change, so as to update the rest of the character's
+        stats accordingly.
+        """
+        # Only max values for HP and MP are updated at this time
+        self.hp = [self.hp[0], self.attributes['vit'] * 2]
+        self.mp = [self.mp[0], self.attributes['wis'] * 2, self.mp[2]]
+

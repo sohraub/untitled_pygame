@@ -29,7 +29,7 @@ class Game:
         :param filename: The save file which the game is loaded from. TODO: implement this
         """
         self.console = console
-        self.board = board if board is not None else Board(board_template=testing)
+        self.board = board if board is not None else Board(board_template=starting_board)
         self.player = player if player is not None else Player()
         # Player coordinates are initialized from the board template
         self.player.x = self.board.player_coordinates[0]
@@ -40,17 +40,7 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
-        self.board.generate_adjacent_boards()
-
-    def set_board_transitions(self, tier=1):
-        """For each door in the current board, determine what the next board will be once a player enters that door."""
-        board_list = copy(get_board_list(tier=tier))
-        for door_coordinate in self.board.tile_mapping['D']:
-            board_choice = random.choice(board_list)
-            self.board.doors[door_coordinate] = board_choice
-            if len(board_list) > 1:
-                board_list.remove(board_choice)
-        return
+        self.board.generate_adjacent_boards(self.player.level, self.player.experience)
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -398,7 +388,7 @@ class Game:
         self.board = new_board
         self.board.player_coordinates = (self.player.x, self.player.y)
         self.misc_panel.board = new_board
-        self.board.generate_adjacent_boards()
+        self.board.generate_adjacent_boards(self.player.level, self.player.experience)
         self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):

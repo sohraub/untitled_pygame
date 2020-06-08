@@ -55,8 +55,7 @@ cleansing_herb = Consumable(name='Cleansing Herb', effects=[remove_poison],
                             console_text='You ingest the herb, and can feel your body cleanse.')
 
 #### LISTS OF CONSUMABLES ####
-# tier_1_c = [small_hp_potion, small_mp_potion, apple, strange_liquid, bedroll]
-tier_1_c = [cleansing_herb]
+tier_1_c = [small_hp_potion, small_mp_potion, apple, strange_liquid, bedroll, cleansing_herb]
 
 #### EQUIPPABLES ####
 rusty_sword = Equipment(name='Rusty Sword',
@@ -96,8 +95,7 @@ def generate_random_item(tier, type='both'):
     tier_mapping = {
         '1_consumable': tier_1_c,
         '1_equipment': tier_1_e,
-        '1_both': tier_1_c
-        # '1_both': tier_1_c + tier_1_e
+        '1_both': tier_1_c + tier_1_e
     }
-    new_item = copy.deepcopy(random.choice(tier_mapping[f'{tier}_{type}']))
+    new_item = copy.deepcopy(random.choice(tier_mapping['1_both']))
     return new_item

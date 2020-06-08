@@ -8,17 +8,19 @@ death_phrases = ['It lets out one final, desperate breath before it ceases movem
                  'You watch it slowly bleed out to death. ']
 
 class Enemy(Character):
-    def __init__(self, name, x=0, y=0, attributes=None, status=None, attack_range=1, role='attacker',
-                 aggro_range=4, retreat_probability=0.3, flavour_text=None, display_name=''):
+    def __init__(self, name, x=0, y=0, attributes=None, status=None, attack_range=1, role='attacker', level=1,
+                 aggro_range=4, retreat_probability=0.3, flavour_text=None, display_name='', level_up_dict=None):
         """
         Initializes the Enemy class, extended from Character. For explanations on parameters initialized through
         super(), refer to the Character module.
         :param attack_range: Denotes from how far an enemy can attack.
         :param role: A string which will determine the behaviour of the enemy AI. Not yet implemented.
+        :param level: The power level of the enemy.
         :param aggro_range: Denotes from how far an enemy will notice a player and start acting.
         :param retreat_probability: Probability of an enemy retreating when it is weak.
         :param flavour_text: Some flavour text that is displayed in the focus window.
         :param display_name: Enemy's name in a nicer format for display purposes.
+        :param level_up_dict: A dict describing how the enemy's stats will increase as they level up.
 
         In addition to the above, the following attributes are also initialized for each Enemy:
         :aggro: Boolean which determines if the player has ever entered the the Enemy's aggro range. If ever set to
@@ -28,10 +30,12 @@ class Enemy(Character):
         self.aggro_range = aggro_range
         self.aggro = False
         self.attack_range = attack_range
+        self.level = level
         self.retreat_probability = retreat_probability
         self.role = role
         self.flavour_text = flavour_text if flavour_text is not None else 'This is placeholder flavour text'
         self.display_name = display_name
+        self.level_up_dict = level_up_dict if level_up_dict is not None else dict()
 
     def check_aggro(self, player):
         """Method to check if the player is within the enemy's aggro range."""
@@ -76,18 +80,36 @@ class Enemy(Character):
         target.hp[0] = max(target.hp[0] - base_damage, 0)
         return console_text
 
+    def level_up(self, new_level):
+        """
+        Method that levels up an enemy to match the level of a character. This will increase the attributes of the enemy
+        based off of the number of levels gained and the enemy's level_up_dict.
+        """
+        levels_gained = new_level - self.level
+        for attribute in self.attributes.keys():
+            level_up_coeff = self.level_up_dict.get(attribute, 0)
+            self.attributes[attribute] += int(levels_gained * level_up_coeff)
+        self.level = new_level
+        # Make sure there HP and MP are updated accordingly
+        self.apply_attribute_changes()
+        # Set the current HP/MP values to their nex max, if necessary
+        self.hp[0] = self.hp[1]
+        self.mp[0] = self.mp[1]
 
-def generate_new_enemy(x, y, tier):
+
+def generate_new_enemy(x, y, level):
     import copy
     from uuid import uuid4
     from element_lists import enemy_list
     tier_mapping = {
         1: enemy_list.tier_1
     }
-    new_enemy = copy.deepcopy(random.choice(tier_mapping[tier]))
-    new_enemy.name = new_enemy.name + '_{}'.format(str(uuid4()))
+    new_enemy = copy.deepcopy(random.choice(tier_mapping.get(level, enemy_list.tier_1)))
+    new_enemy.name = new_enemy.name + f'_{str(uuid4())}'
     new_enemy.x = x
     new_enemy.y = y
+    if new_enemy.level != level:
+        new_enemy.level_up(new_level=level)
     return new_enemy
 
 

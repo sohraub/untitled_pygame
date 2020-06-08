@@ -53,6 +53,6 @@ testing = ['XXXXXXXXXXXXXXX',
            'XXXXXXXXXXXXXXX']
 
 
-def get_board_list(tier):
+def get_board_list():
     """Function which returns a list of every board non-starting template."""
     return templates

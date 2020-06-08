@@ -342,15 +342,6 @@ class Player(Character):
                 if ability.turns_left:
                     ability.turns_left = max(0, ability.turns_left - on_kill_passives['cooldown_reduction'])
 
-    def apply_attribute_changes(self):
-        """
-        Function to be called every time the player's attributes change, so as to update the rest of the player's
-        stats accordingly.
-        """
-        # Only max values for HP and MP are updated
-        self.hp = [self.hp[0], self.attributes['vit'] * 2]
-        self.mp = [self.mp[0], self.attributes['wis'] * 2, self.mp[2]]
-
 
 level_to_max_exp_map = {
     1: 5,  # Specify exp values up until level 4, then after that it defaults to 10.
