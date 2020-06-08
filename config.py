@@ -15,6 +15,8 @@ TOP_LEFT_Y = int((WINDOW_HEIGHT - PLAY_HEIGHT) / 2 + int(WINDOW_HEIGHT / 15))  #
 SIDE_PANEL_LENGTH = int(WINDOW_LENGTH * 0.25)  # Currently: 375
 SIDE_PANEL_HEIGHT = int(WINDOW_HEIGHT * 0.98)  # Currently: 735
 
+PLAYER_PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)  # Currently: 38
+PLAYER_PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)  # Currently: 8
 
 ###### TILE COLORS ######
 TILE_COLORS = {  # Mapping of letters to tile type is as follows:

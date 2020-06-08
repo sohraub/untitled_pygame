@@ -2,9 +2,9 @@ import pygame as pg
 
 import colors
 
-from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
+from config import SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, PLAYER_PANEL_TOP_LEFT_X, PLAYER_PANEL_TOP_LEFT_Y, font_SIL
 from game_elements.element_config_values import INVENTORY_LIMIT, INVENTORY_ROW_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12, draw_detail_window
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_CALIBRI_12, draw_detail_window
 from utility_functions import parse_description
 
 """
@@ -15,14 +15,10 @@ mouseovers.
 The following are the dimensions for all the main rectangles drawn in this panel.
 """
 
-#### MAIN PANEL ####
-PANEL_TOP_LEFT_X = int((TOP_LEFT_X - SIDE_PANEL_LENGTH) * 0.5)  # Currently: 38
-PANEL_TOP_LEFT_Y = int((WINDOW_HEIGHT - SIDE_PANEL_HEIGHT) * 0.5)  # Currently: 8
-
 #### INVENTORY ####
 INVENTORY_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
-INVENTORY_TOP_LEFT_X = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PANEL_TOP_LEFT_X
-INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PANEL_TOP_LEFT_Y
+INVENTORY_TOP_LEFT_X = int((SIDE_PANEL_LENGTH - INVENTORY_LENGTH) * 0.5) + PLAYER_PANEL_TOP_LEFT_X
+INVENTORY_TOP_LEFT_Y = int(SIDE_PANEL_HEIGHT * 0.45) + PLAYER_PANEL_TOP_LEFT_Y
 INVENTORY_NUM_ROWS = int(INVENTORY_LIMIT / INVENTORY_ROW_LENGTH)
 ITEM_LENGTH = int(INVENTORY_LENGTH / INVENTORY_ROW_LENGTH)  # Items are stored as square tiles, so length = height
 
@@ -34,17 +30,17 @@ ITEM_TOOLTIP_HEIGHT = ITEM_LENGTH * 2
 EQUIP_ITEM_LENGTH = int(ITEM_LENGTH * 0.75)  # Item tiles in equipment be 3/4ths the size of items in inventory.
 EQUIPMENT_LENGTH = 3.8 * EQUIP_ITEM_LENGTH  # Equipment will be 3 items across and 3 items high, so set length, height to
 EQUIPMENT_HEIGHT = 3.8 * EQUIP_ITEM_LENGTH  # be 4 * EQUIP_ITEM_LENGTH for a bit of extra wiggle-room.
-EQUIPMENT_TOP_LEFT_X = PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
-EQUIPMENT_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
+EQUIPMENT_TOP_LEFT_X = PLAYER_PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - EQUIPMENT_LENGTH
+EQUIPMENT_TOP_LEFT_Y = PLAYER_PANEL_TOP_LEFT_Y + int(0.175*SIDE_PANEL_HEIGHT)
 
 #### ABILITIES ####
 ABILITY_TILE_LENGTH = int(1.2 * ITEM_LENGTH)
 ABILITIES_TOP_LEFT_X = INVENTORY_TOP_LEFT_X
-ABILITIES_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.7 * SIDE_PANEL_HEIGHT)
+ABILITIES_TOP_LEFT_Y = PLAYER_PANEL_TOP_LEFT_Y + int(0.7 * SIDE_PANEL_HEIGHT)
 
 #### LEVEL/EXP INFO ####
-LEVEL_EXP_TOP_LEFT_X = int(PANEL_TOP_LEFT_X * 1.25)
-LEVEL_EXP_TOP_LEFT_Y = PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
+LEVEL_EXP_TOP_LEFT_X = int(PLAYER_PANEL_TOP_LEFT_X * 1.25)
+LEVEL_EXP_TOP_LEFT_Y = PLAYER_PANEL_TOP_LEFT_Y + int(0.9 * SIDE_PANEL_HEIGHT)
 LEVEL_EXP_LENGTH = int(0.95 * SIDE_PANEL_LENGTH)
 LEVEL_EXP_HEIGHT = int(SIDE_PANEL_HEIGHT / 21)
 
@@ -55,12 +51,12 @@ def draw_player_panel(player_name, refresh=False):
     :param player_dict:
     :return: panel_rect, the rect that makes up the main panel
     """
-    panel_rect = pg.Rect(PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
+    panel_rect = pg.Rect(PLAYER_PANEL_TOP_LEFT_X, PLAYER_PANEL_TOP_LEFT_Y, SIDE_PANEL_LENGTH, SIDE_PANEL_HEIGHT)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, panel_rect)
     pg.draw.rect(MAIN_WINDOW, colors.WHITE, panel_rect, 2)
     player_name = FONT_30.render(player_name, 1, colors.WHITE)
-    MAIN_WINDOW.blit(player_name, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
+    MAIN_WINDOW.blit(player_name, (PLAYER_PANEL_TOP_LEFT_X + 5, PLAYER_PANEL_TOP_LEFT_Y + 5))
 
     return panel_rect
 
@@ -131,7 +127,7 @@ def draw_level_and_experience(level, profession, experience, refresh=False):
                  (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 24, LEVEL_EXP_LENGTH, LEVEL_EXP_HEIGHT - 27), 1)
 
     exp_percent = experience[0] / experience[1]
-    current_exp_length = int(exp_percent * (SIDE_PANEL_LENGTH - 18 - PANEL_TOP_LEFT_X))
+    current_exp_length = int(exp_percent * (SIDE_PANEL_LENGTH - 18 - PLAYER_PANEL_TOP_LEFT_X))
     if current_exp_length > 0:
         pg.draw.rect(MAIN_WINDOW, colors.PALE_YELLOW,
                      (LEVEL_EXP_TOP_LEFT_X, LEVEL_EXP_TOP_LEFT_Y + 26, current_exp_length, 6), 0)
@@ -148,16 +144,16 @@ def draw_attributes(attributes, level_up_points, refresh=False):
     :param refresh: A boolean determining if the area around this info is filled to black, as a refresh.
     :return: The Rect object enclosing the attributes.
     """
-    attributes_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 95, 150, 180)
+    attributes_rect = pg.Rect(PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 95, 150, 180)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, attributes_rect)
     coord_mapping = {
-        'str': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 120),
-        'dex': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 145),
-        'int': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 170),
-        'end': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 195),
-        'vit': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 220),
-        'wis': (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 245)
+        'str': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 120),
+        'dex': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 145),
+        'int': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 170),
+        'end': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 195),
+        'vit': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 220),
+        'wis': (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 245)
     }
     font = pg.font.Font(font_SIL, 20)
     for stat in coord_mapping:
@@ -182,8 +178,8 @@ def draw_attribute_level_up_buttons(level_up_points, return_only=False):
                         for event-handling.
     :return: level_up_buttons, a list of Rect objects that make up all of the buttons.
     """
-    top_left_x = PANEL_TOP_LEFT_X + 85
-    top_left_y = PANEL_TOP_LEFT_Y + 125
+    top_left_x = PLAYER_PANEL_TOP_LEFT_X + 85
+    top_left_y = PLAYER_PANEL_TOP_LEFT_Y + 125
     if not return_only:
         level_up_label = FONT_20.render(f"Points Available: {level_up_points}", 1, colors.GREY)
         MAIN_WINDOW.blit(level_up_label, (top_left_x - 75, top_left_y - 27))
@@ -207,13 +203,13 @@ def draw_hp_mp(hp, mp, refresh=False):
     :param refresh: As above.
     :return: The Rect object that encloses hp and mp.
     """
-    hp_mp_rect = pg.Rect(PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40, 100, 50)
+    hp_mp_rect = pg.Rect(PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 40, 100, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, hp_mp_rect)
     hp_indicator = FONT_20.render("HP: {0} / {1}".format(hp[0], hp[1]), 1, colors.RED)
     mp_indicator = FONT_20.render("MP: {0} / {1}".format(mp[0], mp[1]), 1, colors.BLUE)
-    MAIN_WINDOW.blit(hp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 40))
-    MAIN_WINDOW.blit(mp_indicator, (PANEL_TOP_LEFT_X + 10, PANEL_TOP_LEFT_Y + 65))
+    MAIN_WINDOW.blit(hp_indicator, (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 40))
+    MAIN_WINDOW.blit(mp_indicator, (PLAYER_PANEL_TOP_LEFT_X + 10, PLAYER_PANEL_TOP_LEFT_Y + 65))
     return hp_mp_rect
 
 
@@ -226,23 +222,23 @@ def draw_status(buffs, debuffs, refresh=False):
     :param refresh: Same as above.
     :return: Lists of each rect for the buff and debuff indicators.
     """
-    status_rect = pg.Rect(PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 200, 50)
+    status_rect = pg.Rect(PLAYER_PANEL_TOP_LEFT_X + 130, PLAYER_PANEL_TOP_LEFT_Y + 40, 200, 50)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, status_rect)
     buff_rects = list()
     debuff_rects = list()
 
     for i, buff in enumerate(buffs):
-        buff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 40, 15, 15)
+        buff_indicator = pg.Rect((i*17) + PLAYER_PANEL_TOP_LEFT_X + 130, PLAYER_PANEL_TOP_LEFT_Y + 40, 15, 15)
         buff_rects.append(buff_indicator)
-        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        buff_turns_left = FONT_CALIBRI_12.render(str(buff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
 
     for i, debuff in enumerate(debuffs):
-        debuff_indicator = pg.Rect((i*17) + PANEL_TOP_LEFT_X + 130, PANEL_TOP_LEFT_Y + 57, 15, 15)
+        debuff_indicator = pg.Rect((i*17) + PLAYER_PANEL_TOP_LEFT_X + 130, PLAYER_PANEL_TOP_LEFT_Y + 57, 15, 15)
         debuff_rects.append(debuff_indicator)
-        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        debuff_turns_left = FONT_CALIBRI_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 
@@ -257,7 +253,7 @@ def draw_conditions(conditions, refresh=False):
     :param refresh: As above.
     :return: The Rect object that encloses the conditions.
     """
-    condition_rect = (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90, PANEL_TOP_LEFT_Y + 10, 80, 90)
+    condition_rect = (PLAYER_PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90, PLAYER_PANEL_TOP_LEFT_Y + 10, 80, 90)
     if refresh:
         MAIN_WINDOW.fill(colors.BLACK, condition_rect)
     condition_y_mapping = {'thirsty': 10, 'hungry': 35, 'tired': 60}
@@ -277,8 +273,8 @@ def draw_conditions(conditions, refresh=False):
             else:
                 color = colors.YELLOW
             condition_indicator = FONT_20.render(condition.upper(), 1, color)
-            MAIN_WINDOW.blit(condition_indicator, (PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
-                                                   PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
+            MAIN_WINDOW.blit(condition_indicator, (PLAYER_PANEL_TOP_LEFT_X + SIDE_PANEL_LENGTH - 90,
+                                                   PLAYER_PANEL_TOP_LEFT_Y + condition_y_mapping[condition]))
     return pg.Rect(condition_rect)
 
 
@@ -370,7 +366,7 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     mouse_pos = pg.mouse.get_pos()
     top_left_y = INVENTORY_TOP_LEFT_Y
-    if mouse_pos[0] < PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+    if mouse_pos[0] < PLAYER_PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         # Cursor is on the left side of the inventory
         top_left_x = mouse_pos[0]
     else:
@@ -379,17 +375,16 @@ def draw_item_details(item_dict, attributes_dict=None, current_equipment=None):
 
     # Body strings will be constructed differently for consumables and equipment.
     body_strings = list()
-    body_colors = None
     if item_dict['type'] == 'consumable':
-        body_strings = item_dict['description'] + ['---'] + item_dict['details']
+        body_strings = item_dict['description'] + ['---'] + item_dict['details'] + ['---', 'Left-click to consume']
 
     elif item_dict['type'] == 'equipment':
         # In this case we outsource the logic to another function, since it is a lot of logic.
         body_strings = parse_equipment_details(item_dict, attributes_dict, current_equipment)
 
-    draw_detail_window(body_strings=body_strings,
+    draw_detail_window(body_strings=body_strings, location='player_panel',
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
-                       header_string=item_dict['name'].upper())
+                       header_string=item_dict['name'].upper(), auto_window_height=True, auto_window_width=True)
 
 
 def draw_equipment_details(equipment_dict, slot):
@@ -412,9 +407,9 @@ def draw_equipment_details(equipment_dict, slot):
         body_strings = ['Nothing equipped here.']
         header_string = slot.upper()
 
-    draw_detail_window(body_strings=body_strings,
+    draw_detail_window(body_strings=body_strings, location='player_panel',
                        rect_dimensions=(top_left_x, top_left_y, ITEM_TOOLTIP_LENGTH, ITEM_TOOLTIP_HEIGHT),
-                       header_string=header_string)
+                       header_string=header_string, auto_window_width=True, auto_window_height=True)
 
 
 def parse_equipment_details(item_dict, attributes_dict, current_equipment):
@@ -455,6 +450,7 @@ def parse_equipment_details(item_dict, attributes_dict, current_equipment):
             compare_color = colors.WHITE
     # The weird string in the first format maps 'off_rating' to 'OFF' and 'def_rating' to 'DEF'.
     body_strings.append((f"{stat_to_compare[:3].upper()} {item_dict[stat_to_compare]}", compare_color))
+    body_strings.extend(['---', 'Left-click to equip'])
 
     return body_strings
 
@@ -481,13 +477,14 @@ def draw_condition_details(conditions_dict, conditions_rect):
         max = conditions_dict[condition][1]
         window_body.append(f'{adj_to_noun[condition]} level: {current} / {max}')
 
-    draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15)
+    draw_detail_window(body_strings=window_body, rect_dimensions=(top_left_x, top_left_y, width, height), font_size=15,
+                       location='player_panel')
 
 
 def draw_status_details(status):
     """Function to draw a tooltip providing details on the status currently being hovered over."""
     window_body = ['----'] + status['description'] + ['----', f'Expires in {status["turns_left"]} turns.']
-    draw_detail_window(header_string=status['name'], body_strings=window_body,
+    draw_detail_window(header_string=status['name'], body_strings=window_body, location='player_panel',
                        rect_dimensions=(pg.mouse.get_pos()[0], pg.mouse.get_pos()[1], ITEM_TOOLTIP_LENGTH,
                                         ITEM_TOOLTIP_HEIGHT))
 
@@ -500,11 +497,11 @@ def draw_ability_details(ability, player_attributes, player_mp=None):
     the skill tree, so we don't display info such as turns left in the cooldown.
     """
     mouse_pos = pg.mouse.get_pos()
-    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+    if mouse_pos[0] > PLAYER_PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         top_left_x = mouse_pos[0] - ITEM_TOOLTIP_LENGTH
     else:
         top_left_x = mouse_pos[0]
-    if mouse_pos[1] > PANEL_TOP_LEFT_Y + int(SIDE_PANEL_HEIGHT / 2):
+    if mouse_pos[1] > PLAYER_PANEL_TOP_LEFT_Y + int(SIDE_PANEL_HEIGHT / 2):
         top_left_y = mouse_pos[1] - (1.5 * ITEM_TOOLTIP_HEIGHT)
     else:
         top_left_y = mouse_pos[1]
@@ -528,7 +525,8 @@ def draw_ability_details(ability, player_attributes, player_mp=None):
                        [f'{key}: {eval(value.format(skill_level=ability["level"] + 1, **player_attributes))}'
                         for key, value in ability['details'].items()]
     draw_detail_window(header_string=ability['name'], body_strings=window_body, auto_window_height=True,
-                       rect_dimensions=(top_left_x, top_left_y, 1.05 * ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT))
+                       rect_dimensions=(top_left_x, top_left_y, 1.05 * ITEM_TOOLTIP_LENGTH, 1.5 * ITEM_TOOLTIP_HEIGHT),
+                       location='player_panel')
 
 
 def draw_exp_details(experience):
@@ -536,12 +534,12 @@ def draw_exp_details(experience):
     window_body = [f'Experience: {experience[0]} / {experience[1]}']
     mouse_pos = pg.mouse.get_pos()
     length = int(0.4*SIDE_PANEL_LENGTH)
-    if mouse_pos[0] > PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
+    if mouse_pos[0] > PLAYER_PANEL_TOP_LEFT_X + int(SIDE_PANEL_LENGTH / 2):
         top_left_x = mouse_pos[0] - length
     else:
         top_left_x = mouse_pos[0]
     top_left_y = mouse_pos[1]
     draw_detail_window(body_strings=window_body,
-                       rect_dimensions=(top_left_x, top_left_y, length, 30))
+                       rect_dimensions=(top_left_x, top_left_y, length, 30), location='player_panel')
 
 

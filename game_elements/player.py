@@ -9,7 +9,7 @@ from game_elements.element_config_values import INVENTORY_LIMIT
 
 class Player(Character):
     def __init__(self, name='Sohraub', x=0, y=0, status=None, inventory=None, equipment=None, condition=None, level=1,
-                 experience=None, profession="warrior", skill_tree=warrior_config['skill_tree']):
+                 experience=None, profession="warrior"):
         """
         The Player object which will be the user's avatar as they navigate the world, an extension of the Character
         class. For explanations on the parameters used in the super() init, refer to the Character module.
@@ -58,7 +58,7 @@ class Player(Character):
             'on_kill': dict(),
             'board_mods': dict()
         }
-        self.skill_tree = skill_tree
+        self.skill_tree = profession_config['skill_tree']
         self.set_abilities_from_skill_tree()
         self.level = level
         self.experience = experience if experience is not None else [0, 3]
@@ -186,8 +186,7 @@ class Player(Character):
         for effect, parameter_dict in zip(item.effects, item.parameters):
             parameter_dict['target'] = self
             effect(**parameter_dict)
-        console_text = f'You {item.verb} the {item.name}.'
-        return console_text
+        return item.console_text
 
     def equip_item(self, index):
         """Equips item at 'index', replacing it in the inventory with what was previously equipped, if any."""
