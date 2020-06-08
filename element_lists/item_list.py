@@ -49,9 +49,14 @@ bedroll = Consumable(name='Bedroll',
                               "Unusable if enemies are around"],
                      prereqs=['no_enemies_on_board'], console_text='You have a much-needed rest on the bedroll.')
 
-#### LISTS OF CONSUMABLES ####
-tier_1_c = [small_hp_potion, small_mp_potion, apple, strange_liquid, bedroll]
+cleansing_herb = Consumable(name='Cleansing Herb', effects=[remove_poison],
+                            description="Has the freshest smell you've encountered in a long while.",
+                            details=['Removes any poison status'],
+                            console_text='You ingest the herb, and can feel your body cleanse.')
 
+#### LISTS OF CONSUMABLES ####
+# tier_1_c = [small_hp_potion, small_mp_potion, apple, strange_liquid, bedroll]
+tier_1_c = [cleansing_herb]
 
 #### EQUIPPABLES ####
 rusty_sword = Equipment(name='Rusty Sword',
@@ -91,7 +96,8 @@ def generate_random_item(tier, type='both'):
     tier_mapping = {
         '1_consumable': tier_1_c,
         '1_equipment': tier_1_e,
-        '1_both': tier_1_c + tier_1_e
+        '1_both': tier_1_c
+        # '1_both': tier_1_c + tier_1_e
     }
     new_item = copy.deepcopy(random.choice(tier_mapping[f'{tier}_{type}']))
     return new_item

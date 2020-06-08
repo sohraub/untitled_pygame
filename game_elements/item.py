@@ -18,7 +18,7 @@ class Item:
 
 
 class Consumable(Item):
-    def __init__(self, name, description, effects, parameters, details=None, console_text='', prereqs=None):
+    def __init__(self, name, description, effects, parameters=None, details=None, console_text='', prereqs=None):
         """
         Specific extended class of items that can be consumed. For info on parameters used in super(), refer to the
         Item docstring.
@@ -31,7 +31,7 @@ class Consumable(Item):
         """
         super().__init__(name, description)
         self.effects = effects
-        self.parameters = parameters
+        self.parameters = parameters if parameters is not None else [dict()]
         self.details = details if details is not None else list()
         self.console_text = console_text
         self.prerequisites_for_use = prereqs

@@ -15,12 +15,14 @@ def increase_hp(target, value):
     else:
         target.hp[0] = max(target.hp[0] - value, 0)
 
+
 def increase_mp(target, value):
     """Increase the mp of 'target' by 'value'"""
     if value >= 0:
         target.mp[0] = min(target.mp[0] + value, target.mp[1])
     else:
         target.mp[0] = max(target.mp[0] - value, 0)
+
 
 def improve_conditions(target, conditions, values):
     """Improves conditions by the associated value. Can effect multiple conditions at once."""
@@ -31,12 +33,20 @@ def improve_conditions(target, conditions, values):
         else:
             target.conditions[condition][0] = max(target.conditions[condition][0] - value, 0)
 
+
 def chance_to_poison(target, probability, status_duration=5):
     """Item effect for items which have a chance to inflict poison on consumption."""
     if random.randint(0, 100) < probability:
         poison_status = copy.copy(status_list.lesser_poison)
         poison_status.duration = status_duration
         target.apply_status(poison_status)
+
+
+def remove_poison(target):
+    """If the character has the poison debuff, remove it."""
+    for debuff in target.status['debuffs']:
+        if debuff.name == 'Lesser Poison':
+            target.remove_status(debuff)
 
 
 
