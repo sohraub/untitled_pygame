@@ -2,9 +2,9 @@ import pygame as pg
 
 import colors
 
-from config import WINDOW_HEIGHT, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_50, FONT_TNR_12, draw_detail_window
-from rendering.player_panel_renderer import PANEL_TOP_LEFT_X, PANEL_TOP_LEFT_Y, ABILITY_TILE_LENGTH, draw_ability_details
+from config import SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH, font_SIL, PLAYER_PANEL_TOP_LEFT_X, PLAYER_PANEL_TOP_LEFT_Y
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_50, FONT_CALIBRI_12, draw_detail_window
+from rendering.player_panel_renderer import ABILITY_TILE_LENGTH, draw_ability_details
 
 
 
@@ -24,15 +24,15 @@ def draw_skill_tree(skill_tree, profession, player_level, skill_points):
     """
     # Reset the player panel to black.
     MAIN_WINDOW.fill(color=colors.BLACK,
-                     rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2, SIDE_PANEL_HEIGHT - 2))
+                     rect=(PLAYER_PANEL_TOP_LEFT_X + 1, PLAYER_PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2, SIDE_PANEL_HEIGHT - 2))
 
     skill_tile_length = 0.7 * ABILITY_TILE_LENGTH
     space_between_levels = 0.9 * skill_tile_length  # The vertical space between each layer of the tree
     draw_skill_tree_level_progression(player_level, space_between_levels, skill_tile_length)
     skill_tree_title = FONT_20.render(f'PATH OF THE {profession.upper()}', 1, colors.WHITE)  # Skill tree title
-    MAIN_WINDOW.blit(skill_tree_title, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 5))
+    MAIN_WINDOW.blit(skill_tree_title, (PLAYER_PANEL_TOP_LEFT_X + 5, PLAYER_PANEL_TOP_LEFT_Y + 5))
     points_remaining = FONT_20.render(f'Skill points remaining: {skill_points}', 1, colors.WHITE)
-    MAIN_WINDOW.blit(points_remaining, (PANEL_TOP_LEFT_X + 5, PANEL_TOP_LEFT_Y + 30))
+    MAIN_WINDOW.blit(points_remaining, (PLAYER_PANEL_TOP_LEFT_X + 5, PLAYER_PANEL_TOP_LEFT_Y + 30))
     rect_map = dict()
     for tree_level, level_name in enumerate(skill_tree):
         num_skills_in_row = len(skill_tree[level_name])
@@ -42,8 +42,8 @@ def draw_skill_tree(skill_tree, profession, player_level, skill_points):
             # This formula for the top-left xy-coordinates of each skill works out such that the space between each
             # skill in a row will come out equal to space_between_skills, and the vertical space between each layer
             # will be space_between_levels
-            skill_rect = ((i + 1) * space_between_skills + i * skill_tile_length + PANEL_TOP_LEFT_X,
-                          (tree_level + 1) * space_between_levels + tree_level * skill_tile_length + PANEL_TOP_LEFT_Y + 40,
+            skill_rect = ((i + 1) * space_between_skills + i * skill_tile_length + PLAYER_PANEL_TOP_LEFT_X,
+                          (tree_level + 1) * space_between_levels + tree_level * skill_tile_length + PLAYER_PANEL_TOP_LEFT_Y + 40,
                           skill_tile_length, skill_tile_length)
             rect_map[(level_name, i)] = pg.Rect(skill_rect)
             pg.draw.rect(MAIN_WINDOW, colors.GREY, skill_rect, 0 if skill_tree[level_name][i]['ability'].level > 0 else 1)
@@ -95,10 +95,10 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
         10: 1
     }
     MAIN_WINDOW.fill(color=colors.DARK_RED,
-                     rect=(PANEL_TOP_LEFT_X + 1, PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2,
+                     rect=(PLAYER_PANEL_TOP_LEFT_X + 1, PLAYER_PANEL_TOP_LEFT_Y + 1, SIDE_PANEL_LENGTH - 2,
                            window_fill_from_player_level[player_level] * (SIDE_PANEL_HEIGHT - 2)))
-    x = PANEL_TOP_LEFT_X + 0.3  * skill_tile_length
-    y = PANEL_TOP_LEFT_Y + 2 * skill_tile_length
+    x = PLAYER_PANEL_TOP_LEFT_X + 0.3  * skill_tile_length
+    y = PLAYER_PANEL_TOP_LEFT_Y + 2 * skill_tile_length
     badge_length = 0.3 * skill_tile_length
     base_badge_points = [(x, y), (x + badge_length, y), (x + badge_length, y + badge_length),
                          (x + 0.5 * badge_length, y + 1.5 * badge_length), ( x, y + badge_length)]
@@ -114,7 +114,7 @@ def draw_skill_tree_level_progression(player_level, space_between_levels, skill_
     for i in range(7):
         badge_points = [(a, b + i * (skill_tile_length + space_between_levels)) for (a, b) in base_badge_points]
         pg.draw.polygon(MAIN_WINDOW, colors.YELLOW, badge_points)
-        level_text = FONT_TNR_12.render(req_level_from_tree_level[i], 1, colors.BLACK)
+        level_text = FONT_CALIBRI_12.render(req_level_from_tree_level[i], 1, colors.BLACK)
         text_rect = level_text.get_rect(center=(badge_points[0][0] + 0.5 * badge_length,
                                                 badge_points[0][1] + 0.75* badge_length))
         MAIN_WINDOW.blit(level_text, text_rect)

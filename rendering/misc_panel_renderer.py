@@ -3,7 +3,7 @@ import pygame as pg
 import colors
 
 from config import WINDOW_HEIGHT, WINDOW_LENGTH, TOP_LEFT_X, SIDE_PANEL_HEIGHT, SIDE_PANEL_LENGTH
-from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_TNR_12
+from rendering.window_renderer import MAIN_WINDOW, FONT_15, FONT_20, FONT_30, FONT_CALIBRI_12
 from utility_functions import parse_description
 
 """
@@ -91,7 +91,7 @@ def render_enemy_statuses(buffs, debuffs):
     buff_top_left_y = PORTRAIT_TOP_LEFT_Y + 25
     for i, buff in enumerate(buffs):
         buff_indicator = pg.Rect((i*17) + buff_top_left_x, buff_top_left_y, 15, 15)
-        buff_turns_left = FONT_TNR_12.render(str(buff['turns_left']), 1, colors.YELLOW)
+        buff_turns_left = FONT_CALIBRI_12.render(str(buff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(buff_turns_left, (buff_indicator[0] + 2, buff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.GREEN, buff_indicator, 1)
 
@@ -99,7 +99,7 @@ def render_enemy_statuses(buffs, debuffs):
     debuff_top_left_y = buff_top_left_y + 17
     for i, debuff in enumerate(debuffs):
         debuff_indicator = pg.Rect((i*17) + debuff_top_left_x, debuff_top_left_y, 15, 15)
-        debuff_turns_left = FONT_TNR_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
+        debuff_turns_left = FONT_CALIBRI_12.render(str(debuff['turns_left']), 1, colors.YELLOW)
         MAIN_WINDOW.blit(debuff_turns_left, (debuff_indicator[0] + 2, debuff_indicator[1] + 2))
         pg.draw.rect(MAIN_WINDOW, colors.RED, debuff_indicator, 1)
 

@@ -8,25 +8,33 @@ class Item:
         :param description: Description to be displayed on the item-display modal.
         """
         self.name = name
-        self.description = parse_description(description)
+        self.description = parse_description(description, char_limit=33)
 
+    def is_consumable(self):
+        return self.__class__.__name__ == 'Consumable'
+
+    def is_equipment(self):
+        return self.__class__.__name__ == 'Equipment'
 
 
 class Consumable(Item):
-    def __init__(self, name, description, effects, parameters, details=None, verb='used'):
+    def __init__(self, name, description, effects, parameters=None, details=None, console_text='', prereqs=None):
         """
         Specific extended class of items that can be consumed. For info on parameters used in super(), refer to the
         Item docstring.
         :param effects: The function(s) a consumable calls when used.
         :param parameters: List of dict representations of the parameters used in the effect functions.
         :param details: List of effects to display in the item window.
-        :param verb: Verb that will be printed to console when the player uses this item.
+        :param console_text: Text that will be printed to console when you consume the item.
+        :param prereqs: Some items have certain pre-requisites that need to be met before they can be used. These will
+                        be checked by the Game object before an item can be used.
         """
         super().__init__(name, description)
         self.effects = effects
-        self.parameters = parameters
+        self.parameters = parameters if parameters is not None else [dict()]
         self.details = details if details is not None else list()
-        self.verb = verb
+        self.console_text = console_text
+        self.prerequisites_for_use = prereqs
 
     def to_dict(self):
         """Returns a dict representation of the object, to be used in rendering modules."""

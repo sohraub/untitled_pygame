@@ -9,10 +9,10 @@ from rendering import board_renderer
 from utility_functions import find_exit_direction, find_appropriate_entrance, rotate_board
 
 
-def choose_random_board(tier=1):
+def choose_random_board():
     """Function which just returns a random board template of a given tier."""
     from element_lists.board_templates import get_board_list
-    return random.choice(copy.copy(get_board_list(tier=tier)))
+    return random.choice(copy.copy(get_board_list()))
 
 
 class Board:
@@ -31,13 +31,13 @@ class Board:
                       'XXXXXXXXDXXXXXXX']
     according to the tile_mapping below.
     """
-    def __init__(self, board_template=None, doors_dict=None, tier=1, dist_from_initial_board=0):
+    def __init__(self, board_template=None, doors_dict=None, level=1, dist_from_initial_board=0):
         """
         The Board object will be responsible for holding all of the data which is specific to each board and
         nothing else.
 
         :param board_template: The template the board is loaded from.
-        :param tier: The tier of the board, which is used to determine the levels of enemies and items generated.
+        :param level: The level of the board, which is used to determine the levels of enemies and items generated.
 
         In this init function, the following attributes are also set based on the board template:
         :player_coordinates: The (x, y) position of the player on the board
@@ -48,8 +48,8 @@ class Board:
         :tile_mapping: A dict that contains entries for each tile type, the value of which is a list of all the
                        coordinates of tiles of that type.
         """
-        self.template = board_template if board_template is not None else choose_random_board(tier)
-        self.tier = tier
+        self.template = board_template if board_template is not None else choose_random_board()
+        self.level = level
         self.dist_from_initial_board = dist_from_initial_board
         self.player_coordinates = None
         self.applied_passives = dict()
@@ -74,9 +74,9 @@ class Board:
                     self.tile_mapping[self.template[y][x]].append((x, y))
         self.enemies = dict()
         for coord in self.tile_mapping['E']:
-            self.enemies[coord] = enemy.generate_new_enemy(x=coord[0], y=coord[1], tier=self.tier)
+            self.enemies[coord] = enemy.generate_new_enemy(x=coord[0], y=coord[1], level=self.level)
         for coord in self.tile_mapping['T']:
-            self.chests[coord] = chest.generate_chest(tier=self.tier)
+            self.chests[coord] = chest.generate_chest(level=self.level)
         for coord in self.tile_mapping['R']:
             self.traps[coord] = trap.generate_random_trap(coord)
 
@@ -206,7 +206,7 @@ class Board:
         for enemy in self.enemies.values():
             enemy.aggro_range -= enemy_aggro_mod
 
-    def generate_adjacent_boards(self):
+    def generate_adjacent_boards(self, player_level, player_exp):
         """
         Method run by the Game object when a new Board() object has been loaded. For each door on the Board, if it
         doesn't already have one, create an entry in the self.doors dict where the key is the door coordinates and the
@@ -216,36 +216,52 @@ class Board:
         where 'board' is the Board object that will be loaded when this door is stepped on and 'entry_position' is the
         tile immediately in front of the door (direction determined with the entry_position_mapping below) which is
         where the Player will start on this new Board once it is loaded.
+        The level of these new board will be determined by a combination of the player level, their current exp, and
+        the number of enemies on the current board.
         """
-        # Dict which maps each direction to its opposite
-        direction_mapping = {'top': 'bottom', 'bottom':'top', 'left':'right', 'right':'left'}
-        # Dict which gives the value added to each door coordinate to get the appropriate starting position on the board
-        entry_position_mapping = {'top': (0, 1), 'bottom': (0, -1), 'left': (1, 0), 'right': (-1, 0)}
         for door_coord in self.tile_mapping['D']:
             # For every board that's not the starting board, they will be initialized with one entry in their door dict
             # that refers to the board that preceded them. We do this check so they don't get overwritten.
             if door_coord in self.doors.keys():
                 continue
-            exit_direction = find_exit_direction(self.template, door_coord[0], door_coord[1])
-            new_board = choose_random_board(tier=1)
-            entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
-            # We keep rotating the randomly chosen template until it has an entrance that corresponds with this exit.
-            while entry_door is None:
-                new_board = rotate_board(new_board)
-                entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
-            return_pos_delta = entry_position_mapping[exit_direction]
-            new_board_doors_dict = {
-                # Construct the doors_dict that will be used to initialize the new board.
-                entry_door: {
-                    'board': self,
-                    'entry_position': (door_coord[0] + return_pos_delta[0], door_coord[1] + return_pos_delta[1])
-                 }
-            }
-            entry_pos_delta = entry_position_mapping[direction_mapping[exit_direction]]
-            # Update the doors dict of this board to reflect the new adjacent board.
-            board_dict = {'board': Board(board_template=new_board, doors_dict=new_board_doors_dict),
-                          'entry_position': (entry_door[0] + entry_pos_delta[0], entry_door[1] + entry_pos_delta[1])}
-            self.doors[door_coord] = board_dict
+            # If this door does not have a corresponding board, generate it here.
+            board_dict = self.get_next_board_info(door_coord)
+            new_board_template, new_board_doors_dict, new_board_entry_pos = self.get_next_board_info(door_coord)
+            new_board_level = player_level
+            if len(self.enemies.keys()) >= player_exp[1] - player_exp[0]:
+                # If the player would level up after clearing this board, set the next board to player_level + 1
+                new_board_level += 1
+            self.doors[door_coord] = {'board': Board(board_template=new_board_template, doors_dict=new_board_doors_dict,
+                                                     level=new_board_level),
+                                      'entry_position': new_board_entry_pos}
 
+    def get_next_board_info(self, door_coord):
+        """
+        Given a door, choose a random board for it to lead to and rotate it so that the entrances/exits line up. Once
+        this is determined, return the template, doors_dict, and entry_position the new board will be initialized with.
+        """
+        # Dict which maps each direction to its opposite
+        direction_mapping = {'top': 'bottom', 'bottom': 'top', 'left': 'right', 'right': 'left'}
+        # Dict which gives the value added to each door coordinate to get the appropriate starting position on the board
+        entry_position_mapping = {'top': (0, 1), 'bottom': (0, -1), 'left': (1, 0), 'right': (-1, 0)}
+        exit_direction = find_exit_direction(self.template, door_coord[0], door_coord[1])
+        new_board = choose_random_board()
+        entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+        # We keep rotating the randomly chosen template until it has an entrance that corresponds with this exit.
+        while entry_door is None:
+            new_board = rotate_board(new_board)
+            entry_door = find_appropriate_entrance(new_board, target_direction=direction_mapping[exit_direction])
+        return_pos_delta = entry_position_mapping[exit_direction]
+        new_board_doors_dict = {
+            # Construct the doors_dict that will be used to initialize the new board.
+            entry_door: {
+                'board': self,
+                'entry_position': (door_coord[0] + return_pos_delta[0], door_coord[1] + return_pos_delta[1])
+            }
+        }
+        entry_pos_delta = entry_position_mapping[direction_mapping[exit_direction]]
+        entry_position = (entry_door[0] + entry_pos_delta[0], entry_door[1] + entry_pos_delta[1])
+        # Return the values that will be used to initialize the new board.
+        return new_board, new_board_doors_dict, entry_position
 
 

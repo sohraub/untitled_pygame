@@ -1,14 +1,15 @@
 import pygame as pg
 import random
 from copy import copy
-from time import sleep
+from time import sleep, time
+from datetime import datetime
 
 
 from utility_functions import manhattan_distance, tile_from_xy_coords, xy_coords_from_tile, find_best_step
 from rendering import window_renderer, board_renderer
 from game_elements.board import Board
 from game_elements.player import Player
-from element_lists.board_templates import get_board_list, starting_board
+from element_lists.board_templates import get_board_list, starting_board, testing
 from misc_panel import MiscPanel
 from player_panel import PlayerPanel
 
@@ -39,17 +40,7 @@ class Game:
         self.misc_panel = None
         # Boolean flag showing if player is targeting an ability/item use
         self.targeting_mode = False
-        self.board.generate_adjacent_boards()
-
-    def set_board_transitions(self, tier=1):
-        """For each door in the current board, determine what the next board will be once a player enters that door."""
-        board_list = copy(get_board_list(tier=tier))
-        for door_coordinate in self.board.tile_mapping['D']:
-            board_choice = random.choice(board_list)
-            self.board.doors[door_coordinate] = board_choice
-            if len(board_list) > 1:
-                board_list.remove(board_choice)
-        return
+        self.board.generate_adjacent_boards(self.player.level, self.player.experience)
 
     def handle_player_movement(self, input):
         """Given a basic movement input, moves the player character and updates its position on the board."""
@@ -164,12 +155,26 @@ class Game:
         :returns: New lines to be displayed in the console
         """
         item_index = self.player_panel.get_tooltip_index(element='inventory')
-        item_dict = self.player.inventory[item_index].to_dict()
-        if item_dict['type'] == 'consumable':
+        item = self.player.inventory[item_index]
+        if item.is_consumable() and self.check_item_prerequisites(item):
             self.console.update(self.player.consume_item(item_index))
-        elif item_dict['type'] == 'equipment':
+        elif item.is_equipment():
             self.console.update(self.player.equip_item(item_index))
         self.player_panel.handle_item_consumption()
+        return True
+
+    def check_item_prerequisites(self, item):
+        """
+        Some consumable items have prerequisite conditions before they can be used. Those are checked here.
+        Return True if all prerequisites are met (of if there are None), and False otherwise.
+        """
+        if item.prerequisites_for_use is None:
+            return True
+        for prerequisite in item.prerequisites_for_use:
+            if prerequisite == 'no_enemies_on_board' and len(self.board.enemies.keys()) > 0:
+                self.console.update('Conditions to use this item are not met.')
+                return False
+
         return True
 
     def get_targets(self, ability):
@@ -383,7 +388,7 @@ class Game:
         self.board = new_board
         self.board.player_coordinates = (self.player.x, self.player.y)
         self.misc_panel.board = new_board
-        self.board.generate_adjacent_boards()
+        self.board.generate_adjacent_boards(self.player.level, self.player.experience)
         self.load_game_board()
 
     def enter_targeting_game_loop(self, valid_target_tiles):
@@ -407,8 +412,12 @@ class Game:
         Main game loop, which iterates over player inputs and calls appropriate methods.
 
         Returns False if the game has been finished, and True otherwise.
+
+        Also records the time each loop iteration takes, and if the time > 0 (i.e. there was an actual input), we write
+        the execution time to a text file to log our performance as we add features.
         """
         for event in pg.event.get():
+            start = time()
             if event.type == pg.QUIT:
                 return False
             # List holding text to be displayed on the console after turn, if any.
@@ -426,5 +435,9 @@ class Game:
                     action_taken = self.handle_key_presses(event.key)
                     if action_taken:
                         self.handle_player_turn_over()
-
+            end = time()
+            execution_time = end - start
+            if execution_time > 0:
+                with open('time_logs.txt', 'a+') as f:
+                    f.write(f'{datetime.now()}, {execution_time}\n')
         return True
