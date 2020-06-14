@@ -80,16 +80,16 @@ def find_auto_dimensions(auto_height, auto_width, rect_dimensions, body_strings,
     longest line between the body strings and header string, account for font size as well.
     """
     if auto_height:
-        auto_height = (font_size + 4) * len(body_strings)  # Add 4 to account for whitespace between lines.
-        auto_height += 35 if header_string is not None else 10
-        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], rect_dimensions[2], auto_height)
+        height = (font_size + 4) * len(body_strings)  # Add 4 to account for whitespace between lines.
+        height += 35 if header_string is not None else 10
+        rect_dimensions = (rect_dimensions[0], rect_dimensions[1], rect_dimensions[2], height)
     if auto_width:
         max_width = 0
         for line in body_strings:
             if type(line) == tuple:  # Handle cases where body string is a tuple of (string, color)
                 line = line[0]
             # Multiple font_size by 0.5 since letters are approx. half as wide as they are tall.
-            max_width = max(max_width, len(line) * (0.45 * font_size))
+            max_width = max(max_width, len(line) * (0.5 * font_size))
         max_width = max(max_width, len(header_string) * 12) if header_string is not None else max_width
         rect_dimensions = (rect_dimensions[0], rect_dimensions[1], max_width, rect_dimensions[3])
 
