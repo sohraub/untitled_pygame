@@ -1,4 +1,5 @@
 import colors
+import os
 """
 Config file to store most variables which have to do with main system stuff.
 """
@@ -31,5 +32,5 @@ TILE_COLORS = {  # Mapping of letters to tile type is as follows:
 
 
 ###### FONT FILES ######
-font_SIL = '.\\fonts\\ShadowsIntoLight.ttf'
+font_SIL = os.path.join('fonts', 'ShadowsIntoLight.ttf')
 
