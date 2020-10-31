@@ -31,7 +31,7 @@ def improve_conditions(target, conditions, values):
             target.conditions[condition][0] = min(target.conditions[condition][0] + value,
                                                   target.conditions[condition][1])
         else:
-            target.conditions[condition][0] = max(target.conditions[condition][0] - value, 0)
+            target.conditions[condition][0] = max(target.conditions[condition][0] + value, 0)
 
 
 def chance_to_poison(target, probability, status_duration=5):
